@@ -20,44 +20,55 @@ PIO1B:       	.EQU    1              ; (OUTPUT) OUT TO LEDS
 PIO1C:       	.EQU    2              ; (INPUT)
 PIO1CONT:    	.EQU    3              ; CONTROL BYTE PIO 82C55
 
+;**************************************************************
+; General I/O Initialization
+;**************************************************************
 
-INIT_IO:	CALL INIT_PIO
-			
-			; Setting up serial buffers
-			
-			LD        HL,serBuf
-            LD        (serInPtr),HL
-            LD        (serRdPtr),HL
-            XOR       A               ;0 to accumulator
-            LD        (serBufUsed),A
-			
-			CALL INIT_UART
-			
-			RET
+INIT_IO:        CALL INIT_PIO	
+
+                LD        HL,serBuf         ; Setting up serial buffers	
+                LD        (serInPtr),HL
+                LD        (serRdPtr),HL
+                XOR       A               
+                LD        (serBufUsed),A
+
+                CALL INIT_UART
+                RET
+
+;**************************************************************
+; Init PIO 82C55
+;**************************************************************
+
+INIT_PIO:       LD     A,10011001B    ; A= IN, B= OUT C= IN
+                OUT    (PIO1CONT),A
+                LD		A,0
+                OUT	(PIO1B), A
+                RET
+
 
 ;**************************************************************
 ; Init UART routine
 ;**************************************************************
 
-INIT_UART:   LD     A,80H
-             OUT    (UART3),A     ; SET DLAB FLAG (LINE CONTROL)
-			 
-			 IN		A,(PIO1A)	  ; Get baud rate from SW1 4 firts bits of PA PIO Port
-			 AND	A,$03
-			 LD		H, 0
-			 LD		L, A
-			 LD		DE, BAUDTABLE
-			 ADD	HL, DE
-             LD     A,(HL)        
-             OUT    (UART0),A     ; Set BAUD rate 9600
-             
-			 LD     A,00H
-             OUT    (UART1),A     ; CHECK RX
-             LD     A,03H
-             OUT    (UART3),A     ; LINE CONTROL
-			 LD	    A,$01
-			 OUT    (UART1),A	  ; Enable receive data available interrupt only
-			 RET
+INIT_UART:      LD      A,80H
+                OUT     (UART3),A           ; SET DLAB FLAG (LINE CONTROL)
+
+                IN		A,(PIO1A)           ; Get baud rate from SW1 4 firts bits of PA PIO Port
+                AND	    A,$03
+                LD		H, 0
+                LD		L, A
+                LD		DE, BAUDTABLE
+                ADD     HL, DE
+                LD      A,(HL)        
+                OUT     (UART0),A            ; Set BAUD rate
+
+                LD      A,00H
+                OUT     (UART1),A            ; CHECK RX
+                LD      A,03H
+                OUT     (UART3),A            ; LINE CONTROL
+                LD      A,$01
+                OUT     (UART1),A            ; Enable receive data available interrupt only
+                RET
 			 
 ;**************************************************************
 ; Read character if available and put into buffer
@@ -103,29 +114,24 @@ rts0:           IN		 A,(PIO1B)
 ; TX/RX Ready routines
 ;**************************************************************
 
-UART_TX_RDY:
-			 PUSH 	AF
-UART_TX_RDY_LP:			
-			 IN		A,(UART5)    	;Fetch the control register
-			 BIT 	5,A            	;Bit will be set if UART is ready to send
-			 JP		Z,UART_TX_RDY_LP		
-			 POP     AF
-			 RET
+UART_TX_RDY:    PUSH 	AF
+UART_TX_RDY_LP:	IN		A,(UART5)    	;Fetch the control register
+			    BIT 	5,A            	;Bit will be set if UART is ready to send
+			    JP		Z,UART_TX_RDY_LP		
+			    POP     AF
+			    RET
 			
 
-UART_RX_RDY:
-			 PUSH 	AF
-UART_RX_RDY_LP:			
-			 IN		A,(UART5)    	;Fetch the control register
-			 BIT 	0,A             ;Bit will be set if UART is ready to receive
-			 JP		Z,UART_RX_RDY_LP		
-			 POP     AF
-			 RET
-			
-RXA:
-waitForChar:    LD       A,(serBufUsed)
+UART_RX_RDY:    PUSH 	AF
+UART_RX_RDY_LP:	IN		A,(UART5)    	;Fetch the control register
+			    BIT 	0,A             ;Bit will be set if UART is ready to receive
+			    JP		Z,UART_RX_RDY_LP		
+			    POP     AF
+			    RET
+
+RXA:            LD       A,(serBufUsed)
                 CP       $00
-                JR       Z, waitForChar
+                JR       Z, RXA
                 PUSH     HL
                 LD       HL,(serRdPtr)
                 INC      HL
@@ -175,13 +181,7 @@ PRINT:          LD       A,(HL)          ; Get character
                 INC      HL              ; Next Character
                 JR       PRINT           ; Continue until $00
                 RET
-			
-INIT_PIO:	 LD     A,10011001B    ; A= IN, B= OUT C= IN
-             OUT    (PIO1CONT),A
-			 LD		A,0
-			 OUT	(PIO1B), A
-             RET
-			 
+
 ; Baud lookup table based on SW connected to PA0..3 port
 			 
 BAUDTABLE:	   .BYTE	 208		; 1200

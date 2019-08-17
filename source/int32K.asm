@@ -40,20 +40,20 @@ BASIC_WARM		.EQU	 $0320
 ;------------------------------------------------------------------------------
 ; Reset
 
-RST00            DI                       ;Disable interrupts
-                 JP       INIT            ;Initialize Hardware and go
+RST00           DI                       ;Disable interrupts
+                JP       INIT            ;Initialize Hardware and go
 
 ;------------------------------------------------------------------------------
 ; TX a character over RS232 
 
                 .ORG     0008H
-RST08            JP      TXA
+RST08           JP      TXA
 
 ;------------------------------------------------------------------------------
 ; RX a character over RS232 Channel A [Console], hold here until char ready.
 
-                 .ORG    0010H
-RST10            JP      RXA
+                .ORG    0010H
+RST10           JP      RXA
 
 ;------------------------------------------------------------------------------
 ; Check serial status
@@ -66,7 +66,7 @@ RST18            JP      CKINCHAR
 
                 .ORG   $38            ; Int mode 1
 
-serialInt:      PUSH     AF
+                PUSH     AF
                 PUSH     HL
 
 				CALL	 READ_UART
