@@ -1,6 +1,6 @@
 EESchema Schematic File Version 4
 LIBS:Z80Mini-cache
-EELAYER 29 0
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -26,7 +26,7 @@ F 3 "www.zilog.com/manage_directlink.php?filepath=docs/z80/um0080" H 3000 4100 5
 	1    0    0    -1  
 $EndComp
 $Comp
-L Memory_EEPROM:AT28C64B-15PU U3
+L Z80Mini-rescue:AT28C64B-15PU-Memory_EEPROM U3
 U 1 1 5D3D9F2C
 P 6450 2650
 F 0 "U3" H 7000 2915 50  0000 C CNN
@@ -43,7 +43,7 @@ F 9 "AT28C64B-15PU" H 7400 2050 50  0001 L CNN "Manufacturer_Part_Number"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Memory_RAM:TC55257CPI U2
+L Z80Mini-rescue:TC55257CPI-Memory_RAM U2
 U 1 1 5D3DEAED
 P 4950 2500
 F 0 "U2" H 5000 2615 50  0000 C CNN

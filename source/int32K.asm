@@ -33,8 +33,8 @@ LF              .EQU     0AH
 CS              .EQU     0CH             ; Clear screen
 
 ; MS-BASIC Addresses
-BASIC_COLD		.EQU	 $0318
-BASIC_WARM		.EQU	 $0320
+BASIC_COLD		.EQU	 $0368
+BASIC_WARM		.EQU	 $0388
 
                 .ORG $0000
 ;------------------------------------------------------------------------------
@@ -80,10 +80,10 @@ RST18            JP      CKINCHAR
 INIT:
                LD        HL,TEMPSTACK    ; Temp stack
                LD        SP,HL           ; Set up a temporary stack
-               
-               
+            
+               CALL      CHIMPSOUND
 			   CALL		 INIT_IO
-			   
+               
 			   IM        1
                EI
                LD        HL,SIGNON1      ; Sign-on message
@@ -119,7 +119,63 @@ CHECKWARM:
                LD        A,$0A
                RST       08H
                JP        BASIC_WARM           ; Start BASIC WARM
-              
+
+;**************************************************************************************
+; Simple sound generation with AY-3-8910 
+;**************************************************************************************
+
+CHIMPSOUND:  PUSH   D
+
+             LD     A, 7
+             LD     C, 62
+             CALL   AYREGWRITE
+             LD     D, 0
+
+LOOP1VOL:    LD     A, 8
+             LD     C, D
+             CALL   AYREGWRITE
+
+             LD     E, 0
+LOOP2PITCH:  LD     A, 1
+             LD     C, E
+             CALL   AYREGWRITE
+             LD     BC,200
+             CALL   PAUSE
+             INC    E
+             LD     A, 7
+             CP     E
+             JR     NZ, LOOP2PITCH   
+
+             LD     A, 8
+             LD     C, 0
+             CALL   AYREGWRITE   
+
+             INC    D
+             LD     A, 8
+             CP     D
+             JR     NZ, LOOP1VOL
+
+             LD     A, 8
+             LD     C, 0
+             CALL   AYREGWRITE   
+
+             POP    D
+             RET
+
+
+PAUSE:       PUSH   AF
+             INC    B
+             INC    C              ; ADJUST THE LOOP
+PAUSELOOP1:  LD     A,13H          ; ADJUST THE TIME 13h IS FOR 4 MHZ
+PAUSELOOP2:  DEC    A              ; DEC COUNTER. 4 T-states = 1 uS.
+             JP     NZ,PAUSELOOP2  ; JUMP TO PAUSELOOP2 IF A <> 0.
+             DEC    C              ; DEC COUNTER
+             JP     NZ,PAUSELOOP1  ; JUMP TO PAUSELOOP1 IF C <> 0.
+
+             DJNZ   PAUSELOOP1     ; JUMP TO PAUSELOOP1 IF B <> 0.
+PAUSESLUT:   POP    AF
+             RET
+
 SIGNON1:       .BYTE     CS
                .BYTE     "Z80 SBC By Grant Searle",CR,LF
 			   .BYTE     "UART 16650 and IO routines written by Tomeu Capó",CR,LF,0

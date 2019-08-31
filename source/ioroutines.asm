@@ -5,7 +5,7 @@
 ;******************************************************************
 
 ; UART 16C550 SERIAL
-UART0: 		    .EQU    $80           ; DATA IN/OUT
+UART0:          .EQU    $80           ; DATA IN/OUT
 UART1:          .EQU    $81           ; CHECK RX
 UART2:          .EQU    $82           ; INTERRUPTS
 UART3:          .EQU    $83           ; LINE CONTROL
@@ -19,6 +19,10 @@ PIO1A:       	.EQU    0              ; (INPUT)  IN 1-8
 PIO1B:       	.EQU    1              ; (OUTPUT) OUT TO LEDS
 PIO1C:       	.EQU    2              ; (INPUT)
 PIO1CONT:    	.EQU    3              ; CONTROL BYTE PIO 82C55
+
+; AY-3-8910
+AYCTRL:         .EQU    $31
+AYDATA:         .EQU    $32
 
 ;**************************************************************
 ; General I/O Initialization
@@ -39,10 +43,10 @@ INIT_IO:        CALL INIT_PIO
 ; Init PIO 82C55
 ;**************************************************************
 
-INIT_PIO:       LD     A,10011001B    ; A= IN, B= OUT C= IN
-                OUT    (PIO1CONT),A
-                LD		A,0
-                OUT	(PIO1B), A
+INIT_PIO:       LD      A,10011001B    ; A= IN, B= OUT C= IN
+                OUT     (PIO1CONT),A
+                LD      A,0
+                OUT	    (PIO1B), A
                 RET
 
 
@@ -78,8 +82,7 @@ READ_UART:		IN		 A,(UART5)    	 ;Fetch the control register
 				BIT 	 0,A
                 JR       Z,rts0          ; if not, ignore
 
-				IN		 A,(PIO1B)
-				OR       A, 4
+				LD       A, 4
 				OUT		 (PIO1B),A
 				
 				IN       A,(UART0)
@@ -105,8 +108,7 @@ notWrap:        LD       (serInPtr),HL
                 CP       SER_FULLSIZE
                 JR       C,rts0
 				
-rts0:           IN		 A,(PIO1B)
-				AND      A, 3
+rts0:           LD       A, 0
 				OUT		 (PIO1B),A
 				RET
 				
@@ -182,9 +184,20 @@ PRINT:          LD       A,(HL)          ; Get character
                 JR       PRINT           ; Continue until $00
                 RET
 
+;**************************************************************
+; Sound generator register/data control
+;**************************************************************
+
+AYREGWRITE:     PUSH       BC
+                OUT (AYCTRL), A
+                POP        BC
+                LD         A, C
+                OUT (AYDATA), A
+                RET
+
 ; Baud lookup table based on SW connected to PA0..3 port
 			 
-BAUDTABLE:	   .BYTE	 208		; 1200
-			   .BYTE	 104		; 2400
-			   .BYTE	 26		    ; 9600
-			   .BYTE	 13			; 19200
+BAUDTABLE:      .BYTE	 208		; 1200
+                .BYTE	 104		; 2400
+                .BYTE	 26		    ; 9600
+                .BYTE	 13			; 19200

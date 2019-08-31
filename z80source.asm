@@ -79,20 +79,31 @@ STR_TER:         .EQU    $FF            ; Mark END OF TEXT
 
 MAIN:        LD     SP,RAMTOP      ; Set stack pointer to top off ram
 			 CALL   INIT_PIO       ; programm the PIO
-             CALL   INIT_UART      ; INIT AND TEST OF UART
-			 IM     1              ; Set interrupt mode 1
-             EI       
+             ;CALL   INIT_UART      ; INIT AND TEST OF UART
+			 ;IM     1              ; Set interrupt mode 1
+             ;EI       
            
-			 LD     HL,TXT_HELLO  
-             CALL   PRINT_STRING  
+			 ;LD     HL,TXT_HELLO  
+             ;CALL   PRINT_STRING  
 			 
+             LD     A,3
+             OUT    (PIO1B),A    ; ALL BITS ON FOR 1 SEC..
+
+             LD     BC,2000
+             CALL   PAUSE
+
+             LD     A,1
+             OUT    (PIO1B),A    ; ALL BITS ON FOR 1 SEC..
+
+
+
 MAIN_LOOP:	 LD     A,4
              OUT    (PIO1B),A    ; ALL BITS ON FOR 1 SEC..
 
              LD     BC,1000
              CALL   PAUSE
 
-             LD     A,0
+             LD     A,1
              OUT    (PIO1B),A
 
              LD     BC,1000
