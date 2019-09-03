@@ -1,0 +1,11 @@
+FILE_TYPE = MULTI_PHYS_TABLE;
+
+PART 'AS6C62256_55PCN'
+CLASS = IC
+{========================================================================================}
+:"MANUFACTURER_NAME", "MANUFACTURER_PART_NUMBER"= "PART_NUMBER", "JEDEC_TYPE", "PACK_TYPE", "MOUSER_PART_NUMBER", "MOUSER_PRICE/STOCK", "RS_PART_NUMBER", "RS_PRICE/STOCK", "DESCRIPTION", "DATASHEET", "HEIGHT";
+{========================================================================================}
+ "Alliance Memory", "AS6C62256-55PCN" (!) = "", "DIP1587W140P254L3632H381Q28N", "Dual-In-Line Packages", "913-AS6C62256-55PCN", "https://www.mouser.com/Search/Refine.aspx?Keyword=913-AS6C62256-55PCN", "0538148", "http://uk.rs-online.com/web/p/products/0538148", "Alliance Memory AS6C62256-55PCN SRAM Memory, 256kbit, 2.7  5.5 V, 55ns 28-Pin PDIP", "https://componentsearchengine.com/Datasheets/1/AS6C62256-55PCN.pdf", "3.81 mm"
+END_PART
+
+END.

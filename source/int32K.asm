@@ -129,7 +129,7 @@ CHIMPSOUND:  PUSH   D
              LD     A, 7
              LD     C, 62
              CALL   AYREGWRITE
-             LD     D, 0
+             LD     D, 1
 
 LOOP1VOL:    LD     A, 8
              LD     C, D

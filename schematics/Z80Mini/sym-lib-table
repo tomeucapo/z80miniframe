@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Z80Mini-rescue)(type Legacy)(uri ${KIPRJMOD}/Z80Mini-rescue.lib)(options "")(descr ""))
+)

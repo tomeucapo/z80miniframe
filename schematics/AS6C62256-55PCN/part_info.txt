@@ -1,0 +1,9 @@
+Manufacturer=Alliance Memory
+PartNumber=AS6C62256-55PCN
+PartCategory=Integrated Circuit
+PackageCategory=Dual-In-Line Packages
+PinCount=28
+Version=1.1
+Released=2017-06-18 23:33:35
+Downloaded=2019-09-01 13:25:38
+3D=Y

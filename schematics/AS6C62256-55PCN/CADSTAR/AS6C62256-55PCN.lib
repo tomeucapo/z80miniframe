@@ -1,0 +1,18 @@
+.AS6C62256-55PCN :1 ;Alliance Memory AS6C62256-55PCN SRAM Memory, 256kbit, 2.7  5.5 V, 55ns 28-Pin PDIP
+DIP1587W140P254L3632H381Q28N
+*STM IC
+*NGS
+*PLB 1="A14" 2="A12" 3="A7" 4="A6" 5="A5" 6="A4" 7="A3" 8="A2" 9="A1" 10="A0" 11="DQ0" 12="DQ1" 13="DQ2" 14="VSS" 15="DQ3" 16="DQ4" 17="DQ5" 18="DQ6" 19="DQ7" 20="CE#" 21="A10" 22="OE#" 23="A11" 24="A9" 25="A8" 26="A13" 27="WE#" 28="VCC"
+*MXP 28
+*DFN AS6C62256-55PCN
+~!Manufacturer_Name (Alliance Memory)
+~!Manufacturer_Part_Number (AS6C62256-55PCN)
+~!Mouser Part Number (913-AS6C62256-55PCN)
+~!Link Mouser Price/Stock (https://www.mouser.com/Search/Refine.aspx?Keyword=913-AS6C62256-55PCN)
+~!RS Part Number (0538148)
+~!Link RS Price/Stock (http://uk.rs-online.com/web/p/products/0538148)
+~!Link Datasheet (https://componentsearchengine.com/Datasheets/1/AS6C62256-55PCN.pdf)
+~!Height (3.81mm)
+~!3D_Model (AS6C62256-55PCN)
+AS6C62256-55PCN
+1.1!I 2.1!I 3.1!I 4.1!I 5.1!I 6.1!I 7.1!I 8.1!I 9.1!I 10.1!I 11.1!U 12.1!U 13.1!U 14.1!G 28.1!P 27.1!I 26.1!I 25.1!I 24.1!I 23.1!I 22.1!I 21.1!I 20.1!I 19.1!U 18.1!U 17.1!U 16.1!U 15.1!U 
