@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:Z80MiniFrame-Sound_Graphics-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -112,12 +113,12 @@ Wire Wire Line
 $Comp
 L power:VCC #PWR0103
 U 1 1 5D7AF4D2
-P 9100 750
-F 0 "#PWR0103" H 9100 600 50  0001 C CNN
-F 1 "VCC" H 9117 923 50  0000 C CNN
-F 2 "" H 9100 750 50  0001 C CNN
-F 3 "" H 9100 750 50  0001 C CNN
-	1    9100 750 
+P 7850 750
+F 0 "#PWR0103" H 7850 600 50  0001 C CNN
+F 1 "VCC" H 7867 923 50  0000 C CNN
+F 2 "" H 7850 750 50  0001 C CNN
+F 3 "" H 7850 750 50  0001 C CNN
+	1    7850 750 
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -139,10 +140,10 @@ NoConn ~ 8000 1350
 Wire Wire Line
 	6600 950  6600 850 
 Wire Wire Line
-	6600 850  9100 850 
+	6600 850  7850 850 
 Connection ~ 9100 850 
 Wire Wire Line
-	9100 850  9100 750 
+	7850 850  7850 750 
 Wire Wire Line
 	7100 1350 7250 1350
 Wire Wire Line
@@ -1411,6 +1412,66 @@ $EndComp
 NoConn ~ 2600 6250
 NoConn ~ 2800 6250
 NoConn ~ 3000 6250
+$Comp
+L 74xx:74LS32 U12
+U 5 1 5E343B66
+P 1650 2000
+F 0 "U12" H 1880 2046 50  0000 L CNN
+F 1 "74LS32" H 1880 1955 50  0000 L CNN
+F 2 "Package_DIP:DIP-14_W7.62mm_LongPads" H 1650 2000 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74LS32" H 1650 2000 50  0001 C CNN
+	5    1650 2000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C?
+U 1 1 5E3463D5
+P 1250 1950
+AR Path="/5E3463D5" Ref="C?"  Part="1" 
+AR Path="/5D76ACBB/5E3463D5" Ref="C?"  Part="1" 
+AR Path="/5D79B46A/5E3463D5" Ref="C22"  Part="1" 
+F 0 "C22" H 1136 1904 50  0000 R CNN
+F 1 "100nF" H 1136 1995 50  0000 R CNN
+F 2 "Capacitor_THT:C_Disc_D7.0mm_W2.5mm_P5.00mm" H 1288 1800 50  0001 C CNN
+F 3 "~" H 1250 1950 50  0001 C CNN
+	1    1250 1950
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	1250 1800 1250 1500
+Wire Wire Line
+	1250 1500 1650 1500
+Wire Wire Line
+	1250 2100 1250 2500
+Wire Wire Line
+	1250 2500 1650 2500
+$Comp
+L power:GND #PWR0145
+U 1 1 5E3729CC
+P 1650 2500
+F 0 "#PWR0145" H 1650 2250 50  0001 C CNN
+F 1 "GND" H 1655 2327 50  0000 C CNN
+F 2 "" H 1650 2500 50  0001 C CNN
+F 3 "" H 1650 2500 50  0001 C CNN
+	1    1650 2500
+	1    0    0    -1  
+$EndComp
+Connection ~ 1650 2500
+$Comp
+L power:VCC #PWR0146
+U 1 1 5E373CDE
+P 1650 1500
+F 0 "#PWR0146" H 1650 1350 50  0001 C CNN
+F 1 "VCC" H 1667 1673 50  0000 C CNN
+F 2 "" H 1650 1500 50  0001 C CNN
+F 3 "" H 1650 1500 50  0001 C CNN
+	1    1650 1500
+	1    0    0    -1  
+$EndComp
+Connection ~ 1650 1500
+Connection ~ 7850 850 
+Wire Wire Line
+	7850 850  9100 850 
 Wire Wire Line
 	3950 2350 4250 2350
 Wire Wire Line

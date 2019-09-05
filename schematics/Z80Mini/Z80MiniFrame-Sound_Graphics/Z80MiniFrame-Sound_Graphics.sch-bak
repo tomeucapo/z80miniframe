@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:Z80MiniFrame-Sound_Graphics-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -198,7 +199,7 @@ U 1 1 5DE6E254
 P 5550 5850
 F 0 "U13" H 5550 6466 50  0000 C CNN
 F 1 "74LS139" H 5550 6375 50  0000 C CNN
-F 2 "Package_DIP:DIP-16_W10.16mm_LongPads" H 5550 5850 50  0001 C CNN
+F 2 "Package_DIP:DIP-16_W7.62mm_LongPads" H 5550 5850 50  0001 C CNN
 F 3 "" H 5550 5850 50  0001 C CNN
 	1    5550 5850
 	1    0    0    -1  
