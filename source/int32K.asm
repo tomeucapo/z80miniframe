@@ -33,8 +33,8 @@ LF              .EQU     0AH
 CS              .EQU     0CH             ; Clear screen
 
 ; MS-BASIC Addresses
-BASIC_COLD		.EQU	 $0368
-BASIC_WARM		.EQU	 $0388
+BASIC_COLD		.EQU	 $07E8   ;$0368
+BASIC_WARM		.EQU	 $07EB   ;$0388
 
                 .ORG $0000
 ;------------------------------------------------------------------------------
@@ -83,6 +83,7 @@ INIT:
             
                CALL      CHIMPSOUND
 			   CALL		 INIT_IO
+               CALL      INIT_VDP
                
 			   IM        1
                EI
@@ -181,9 +182,9 @@ SIGNON1:       .BYTE     CS
 			   .BYTE     "UART 16650 and IO routines written by Tomeu Capó",CR,LF,0
 SIGNON2:       .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
-
 			   
 include "ioroutines.asm"
 include "monitor.asm"
+include "tms9929.asm"
 
 .END

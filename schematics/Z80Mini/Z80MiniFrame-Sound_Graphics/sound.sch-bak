@@ -394,22 +394,6 @@ Wire Wire Line
 	10300 3450 9650 3450
 Text HLabel 1550 3000 0    50   BiDi ~ 0
 D[0..7]
-NoConn ~ 5200 5550
-NoConn ~ 5200 5450
-NoConn ~ 5200 5350
-NoConn ~ 5200 5250
-NoConn ~ 5200 5150
-NoConn ~ 5200 5050
-NoConn ~ 5200 4950
-NoConn ~ 5200 4850
-NoConn ~ 5200 4650
-NoConn ~ 5200 4550
-NoConn ~ 5200 4450
-NoConn ~ 5200 4350
-NoConn ~ 5200 4250
-NoConn ~ 5200 4150
-NoConn ~ 5200 4050
-NoConn ~ 5200 3950
 Text HLabel 1700 4350 0    50   Input ~ 0
 A0
 Text HLabel 1700 4550 0    50   Input ~ 0
@@ -612,228 +596,18 @@ Connection ~ 8900 3050
 Wire Wire Line
 	8300 2650 7850 2650
 Connection ~ 7850 2650
-$Comp
-L Connector_Generic:Conn_02x03_Odd_Even JP2
-U 1 1 5D72322B
-P 5350 2850
-F 0 "JP2" V 5400 3050 50  0000 L CNN
-F 1 "STEREO JACK" H 5150 2600 50  0000 L CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_2x03_P2.00mm_Vertical" H 5350 2850 50  0001 C CNN
-F 3 "~" H 5350 2850 50  0001 C CNN
-	1    5350 2850
-	0    1    1    0   
-$EndComp
-$Comp
-L Audio:AY-3-8910 U?
-U 1 1 5D798962
-P 3400 3000
-AR Path="/5D798962" Ref="U?"  Part="1" 
-AR Path="/5D76ACBB/5D798962" Ref="U7"  Part="1" 
-F 0 "U7" H 4650 3031 50  0000 C CNN
-F 1 "AY-3-8910" H 4650 2940 50  0000 C CNN
-F 2 "Package_DIP:DIP-40_W15.24mm_LongPads" H 4650 1750 50  0001 C CNN
-F 3 "" H 4650 1750 50  0001 C CNN
-	1    3400 3000
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	5200 3750 5450 3750
 Wire Wire Line
 	5200 3650 5350 3650
 Wire Wire Line
 	5200 3550 5250 3550
-$Comp
-L Device:R R?
-U 1 1 5D767F77
-P 5250 2300
-AR Path="/5D767F77" Ref="R?"  Part="1" 
-AR Path="/5D76ACBB/5D767F77" Ref="R29"  Part="1" 
-F 0 "R29" H 5180 2254 50  0000 R CNN
-F 1 "1K" H 5180 2345 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 5180 2300 50  0001 C CNN
-F 3 "~" H 5250 2300 50  0001 C CNN
-	1    5250 2300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R R?
-U 1 1 5D7687DF
-P 5450 2300
-AR Path="/5D7687DF" Ref="R?"  Part="1" 
-AR Path="/5D76ACBB/5D7687DF" Ref="R30"  Part="1" 
-F 0 "R30" H 5380 2254 50  0000 R CNN
-F 1 "1K" H 5380 2345 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 5380 2300 50  0001 C CNN
-F 3 "~" H 5450 2300 50  0001 C CNN
-	1    5450 2300
-	-1   0    0    1   
-$EndComp
-$Comp
-L Device:R R?
-U 1 1 5D768F46
-P 5250 1800
-AR Path="/5D768F46" Ref="R?"  Part="1" 
-AR Path="/5D76ACBB/5D768F46" Ref="R31"  Part="1" 
-F 0 "R31" H 5180 1754 50  0000 R CNN
-F 1 "2K2" H 5180 1845 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 5180 1800 50  0001 C CNN
-F 3 "~" H 5250 1800 50  0001 C CNN
-	1    5250 1800
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R R?
-U 1 1 5D7698CD
-P 5450 1800
-AR Path="/5D7698CD" Ref="R?"  Part="1" 
-AR Path="/5D76ACBB/5D7698CD" Ref="R32"  Part="1" 
-F 0 "R32" H 5380 1754 50  0000 R CNN
-F 1 "2K2" H 5380 1845 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 5380 1800 50  0001 C CNN
-F 3 "~" H 5450 1800 50  0001 C CNN
-	1    5450 1800
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	5250 1650 5250 1550
-Wire Wire Line
-	5250 1550 5150 1550
-Wire Wire Line
-	5000 1550 5000 2150
-Wire Wire Line
-	5000 2150 5250 2150
-Wire Wire Line
-	5450 2150 5650 2150
-Wire Wire Line
-	5650 2150 5650 1550
-Wire Wire Line
-	5650 1550 5550 1550
-Wire Wire Line
-	5450 1550 5450 1650
-$Comp
-L Device:C C?
-U 1 1 5D79A3F5
-P 5550 1300
-AR Path="/5D79A3F5" Ref="C?"  Part="1" 
-AR Path="/5D76ACBB/5D79A3F5" Ref="C24"  Part="1" 
-F 0 "C24" V 5298 1300 50  0000 C CNN
-F 1 "2uF" V 5389 1300 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm" H 5588 1150 50  0001 C CNN
-F 3 "~" H 5550 1300 50  0001 C CNN
-	1    5550 1300
-	-1   0    0    1   
-$EndComp
-$Comp
-L Device:C C?
-U 1 1 5D79AFA6
-P 5150 1300
-AR Path="/5D79AFA6" Ref="C?"  Part="1" 
-AR Path="/5D76ACBB/5D79AFA6" Ref="C23"  Part="1" 
-F 0 "C23" V 4898 1300 50  0000 C CNN
-F 1 "2uF" V 4989 1300 50  0000 C CNN
-F 2 "Capacitor_THT:C_Disc_D5.0mm_W2.5mm_P5.00mm" H 5188 1150 50  0001 C CNN
-F 3 "~" H 5150 1300 50  0001 C CNN
-	1    5150 1300
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	5150 1550 5150 1450
-Connection ~ 5150 1550
-Wire Wire Line
-	5150 1550 5000 1550
-Wire Wire Line
-	5550 1550 5550 1450
-Connection ~ 5550 1550
-Wire Wire Line
-	5550 1550 5450 1550
-Wire Wire Line
-	4600 1100 5150 1100
-Wire Wire Line
-	5150 1100 5150 1150
-Wire Wire Line
-	4600 900  5550 900 
-Wire Wire Line
-	5550 900  5550 1150
-NoConn ~ 4600 1000
-$Comp
-L Device:R R?
-U 1 1 5D7B527C
-P 5850 1550
-AR Path="/5D7B527C" Ref="R?"  Part="1" 
-AR Path="/5D76ACBB/5D7B527C" Ref="R33"  Part="1" 
-F 0 "R33" H 5780 1504 50  0000 R CNN
-F 1 "2K2" H 5780 1595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 5780 1550 50  0001 C CNN
-F 3 "~" H 5850 1550 50  0001 C CNN
-	1    5850 1550
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Device:R R?
-U 1 1 5D7B5D52
-P 4800 1550
-AR Path="/5D7B5D52" Ref="R?"  Part="1" 
-AR Path="/5D76ACBB/5D7B5D52" Ref="R34"  Part="1" 
-F 0 "R34" H 4730 1504 50  0000 R CNN
-F 1 "2K" H 4730 1595 50  0000 R CNN
-F 2 "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal" V 4730 1550 50  0001 C CNN
-F 3 "~" H 4800 1550 50  0001 C CNN
-	1    4800 1550
-	0    -1   -1   0   
-$EndComp
-Wire Wire Line
-	4950 1550 5000 1550
-Connection ~ 5000 1550
-Wire Wire Line
-	5650 1550 5700 1550
-Connection ~ 5650 1550
-$Comp
-L power:GND #PWR0149
-U 1 1 5D7C397D
-P 6100 1600
-F 0 "#PWR0149" H 6100 1350 50  0001 C CNN
-F 1 "GND" H 6105 1427 50  0000 C CNN
-F 2 "" H 6100 1600 50  0001 C CNN
-F 3 "" H 6100 1600 50  0001 C CNN
-	1    6100 1600
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR0150
-U 1 1 5D7C3EE2
-P 4550 1600
-F 0 "#PWR0150" H 4550 1350 50  0001 C CNN
-F 1 "GND" H 4555 1427 50  0000 C CNN
-F 2 "" H 4550 1600 50  0001 C CNN
-F 3 "" H 4550 1600 50  0001 C CNN
-	1    4550 1600
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	4550 1600 4550 1550
-Wire Wire Line
-	4550 1550 4650 1550
-Wire Wire Line
-	6000 1550 6100 1550
-Wire Wire Line
-	6100 1550 6100 1600
-Wire Wire Line
-	5250 1950 5350 1950
 Wire Wire Line
 	5250 3550 5250 3250
 Wire Wire Line
 	5350 3650 5350 3350
 Wire Wire Line
 	5450 3750 5450 3450
-Wire Wire Line
-	5250 2650 5250 2450
-Wire Wire Line
-	5350 2650 5350 1950
-Connection ~ 5350 1950
-Wire Wire Line
-	5350 1950 5450 1950
-Wire Wire Line
-	5450 2650 5450 2450
 $Comp
 L Connector_Generic:Conn_02x03_Odd_Even JP1
 U 1 1 5D7FB918
@@ -877,25 +651,113 @@ Connection ~ 4450 2500
 Wire Wire Line
 	4450 2500 4450 2350
 Connection ~ 5250 3250
-Wire Wire Line
-	5250 3250 5250 3150
 Connection ~ 5350 3350
-Wire Wire Line
-	5350 3350 5350 3150
 Connection ~ 5450 3450
-Wire Wire Line
-	5450 3450 5450 3150
-Wire Bus Line
-	3900 3000 3900 4150
 $Comp
-L Connector:AudioJack3 J5
-U 1 1 5D8835CF
-P 4400 1000
-F 0 "J5" H 4382 1325 50  0000 C CNN
-F 1 "AudioJack3" H 4382 1234 50  0000 C CNN
-F 2 "Connector_Audio:Jack_3.5mm_CUI_SJ1-3533NG_Horizontal" H 4400 1000 50  0001 C CNN
-F 3 "~" H 4400 1000 50  0001 C CNN
-	1    4400 1000
+L Connector:Conn_01x03_Male J3
+U 1 1 5D798F32
+P 5350 2400
+F 0 "J3" V 5412 2544 50  0000 L CNN
+F 1 "Conn_01x03_Male" V 5503 2544 50  0000 L CNN
+F 2 "Connector_PinHeader_2.00mm:PinHeader_1x03_P2.00mm_Vertical" H 5350 2400 50  0001 C CNN
+F 3 "~" H 5350 2400 50  0001 C CNN
+	1    5350 2400
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5250 2600 5250 3250
+Wire Wire Line
+	5350 2600 5350 3350
+Wire Wire Line
+	5450 2600 5450 3450
+$Comp
+L Z80MiniFrame-Sound_Graphics-rescue:AY-3-8910-Audio U?
+U 1 1 5D798962
+P 3400 3000
+AR Path="/5D798962" Ref="U?"  Part="1" 
+AR Path="/5D76ACBB/5D798962" Ref="U7"  Part="1" 
+F 0 "U7" H 4650 3031 50  0000 C CNN
+F 1 "AY-3-8910" H 4650 2940 50  0000 C CNN
+F 2 "Package_DIP:DIP-40_W15.24mm_LongPads" H 4650 1750 50  0001 C CNN
+F 3 "" H 4650 1750 50  0001 C CNN
+	1    3400 3000
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	5200 3950 5600 3950
+Wire Wire Line
+	5200 4050 5600 4050
+Wire Wire Line
+	5600 4150 5200 4150
+Wire Wire Line
+	5200 4250 5600 4250
+Wire Wire Line
+	5200 4350 5600 4350
+Wire Wire Line
+	5200 4450 5600 4450
+Wire Wire Line
+	5600 4550 5200 4550
+Wire Wire Line
+	5200 4650 5600 4650
+Wire Wire Line
+	5200 4850 6200 4850
+Wire Wire Line
+	6200 4850 6200 3950
+Wire Wire Line
+	6200 3950 6100 3950
+Wire Wire Line
+	6300 4050 6100 4050
+Wire Wire Line
+	5200 4950 6300 4950
+Wire Wire Line
+	6300 4050 6300 4950
+Wire Wire Line
+	5200 5050 6400 5050
+Wire Wire Line
+	6400 5050 6400 4150
+Wire Wire Line
+	6400 4150 6100 4150
+Wire Wire Line
+	5200 5150 6500 5150
+Wire Wire Line
+	6500 5150 6500 4250
+Wire Wire Line
+	6500 4250 6100 4250
+Wire Wire Line
+	5200 5250 6600 5250
+Wire Wire Line
+	6600 5250 6600 4350
+Wire Wire Line
+	6600 4350 6100 4350
+Wire Wire Line
+	5200 5350 6700 5350
+Wire Wire Line
+	6700 5350 6700 4450
+Wire Wire Line
+	6700 4450 6100 4450
+Wire Wire Line
+	5200 5450 6800 5450
+Wire Wire Line
+	6800 5450 6800 4550
+Wire Wire Line
+	6800 4550 6100 4550
+$Comp
+L Connector_Generic:Conn_02x08_Odd_Even J4
+U 1 1 5D817986
+P 5800 4250
+F 0 "J4" H 5850 4767 50  0000 C CNN
+F 1 "IO_PORT" H 5850 4676 50  0000 C CNN
+F 2 "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical" H 5800 4250 50  0001 C CNN
+F 3 "~" H 5800 4250 50  0001 C CNN
+	1    5800 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 5550 6900 5550
+Wire Wire Line
+	6900 5550 6900 4650
+Wire Wire Line
+	6100 4650 6900 4650
+Wire Bus Line
+	3900 3000 3900 4150
 $EndSCHEMATC

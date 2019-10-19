@@ -394,22 +394,6 @@ Wire Wire Line
 	10300 3450 9650 3450
 Text HLabel 1550 3000 0    50   BiDi ~ 0
 D[0..7]
-NoConn ~ 5200 5550
-NoConn ~ 5200 5450
-NoConn ~ 5200 5350
-NoConn ~ 5200 5250
-NoConn ~ 5200 5150
-NoConn ~ 5200 5050
-NoConn ~ 5200 4950
-NoConn ~ 5200 4850
-NoConn ~ 5200 4650
-NoConn ~ 5200 4550
-NoConn ~ 5200 4450
-NoConn ~ 5200 4350
-NoConn ~ 5200 4250
-NoConn ~ 5200 4150
-NoConn ~ 5200 4050
-NoConn ~ 5200 3950
 Text HLabel 1700 4350 0    50   Input ~ 0
 A0
 Text HLabel 1700 4550 0    50   Input ~ 0
@@ -612,19 +596,6 @@ Connection ~ 8900 3050
 Wire Wire Line
 	8300 2650 7850 2650
 Connection ~ 7850 2650
-$Comp
-L Audio:AY-3-8910 U?
-U 1 1 5D798962
-P 3400 3000
-AR Path="/5D798962" Ref="U?"  Part="1" 
-AR Path="/5D76ACBB/5D798962" Ref="U7"  Part="1" 
-F 0 "U7" H 4650 3031 50  0000 C CNN
-F 1 "AY-3-8910" H 4650 2940 50  0000 C CNN
-F 2 "Package_DIP:DIP-40_W15.24mm_LongPads" H 4650 1750 50  0001 C CNN
-F 3 "" H 4650 1750 50  0001 C CNN
-	1    3400 3000
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	5200 3750 5450 3750
 Wire Wire Line
@@ -699,6 +670,94 @@ Wire Wire Line
 	5350 2600 5350 3350
 Wire Wire Line
 	5450 2600 5450 3450
+$Comp
+L Z80MiniFrame-Sound_Graphics-rescue:AY-3-8910-Audio U?
+U 1 1 5D798962
+P 3400 3000
+AR Path="/5D798962" Ref="U?"  Part="1" 
+AR Path="/5D76ACBB/5D798962" Ref="U7"  Part="1" 
+F 0 "U7" H 4650 3031 50  0000 C CNN
+F 1 "AY-3-8910" H 4650 2940 50  0000 C CNN
+F 2 "Package_DIP:DIP-40_W15.24mm_LongPads" H 4650 1750 50  0001 C CNN
+F 3 "" H 4650 1750 50  0001 C CNN
+	1    3400 3000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 3950 5600 3950
+Wire Wire Line
+	5200 4050 5600 4050
+Wire Wire Line
+	5600 4150 5200 4150
+Wire Wire Line
+	5200 4250 5600 4250
+Wire Wire Line
+	5200 4350 5600 4350
+Wire Wire Line
+	5200 4450 5600 4450
+Wire Wire Line
+	5600 4550 5200 4550
+Wire Wire Line
+	5200 4650 5600 4650
+Wire Wire Line
+	5200 4850 6200 4850
+Wire Wire Line
+	6200 4850 6200 3950
+Wire Wire Line
+	6200 3950 6100 3950
+Wire Wire Line
+	6300 4050 6100 4050
+Wire Wire Line
+	5200 4950 6300 4950
+Wire Wire Line
+	6300 4050 6300 4950
+Wire Wire Line
+	5200 5050 6400 5050
+Wire Wire Line
+	6400 5050 6400 4150
+Wire Wire Line
+	6400 4150 6100 4150
+Wire Wire Line
+	5200 5150 6500 5150
+Wire Wire Line
+	6500 5150 6500 4250
+Wire Wire Line
+	6500 4250 6100 4250
+Wire Wire Line
+	5200 5250 6600 5250
+Wire Wire Line
+	6600 5250 6600 4350
+Wire Wire Line
+	6600 4350 6100 4350
+Wire Wire Line
+	5200 5350 6700 5350
+Wire Wire Line
+	6700 5350 6700 4450
+Wire Wire Line
+	6700 4450 6100 4450
+Wire Wire Line
+	5200 5450 6800 5450
+Wire Wire Line
+	6800 5450 6800 4550
+Wire Wire Line
+	6800 4550 6100 4550
+$Comp
+L Connector_Generic:Conn_02x08_Odd_Even J4
+U 1 1 5D817986
+P 5800 4250
+F 0 "J4" H 5850 4767 50  0000 C CNN
+F 1 "IO_PORT" H 5850 4676 50  0000 C CNN
+F 2 "Connector_IDC:IDC-Header_2x08_P2.54mm_Vertical" H 5800 4250 50  0001 C CNN
+F 3 "~" H 5800 4250 50  0001 C CNN
+	1    5800 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 5550 6900 5550
+Wire Wire Line
+	6900 5550 6900 4650
+Wire Wire Line
+	6100 4650 6900 4650
 Wire Bus Line
 	3900 3000 3900 4150
 $EndSCHEMATC
