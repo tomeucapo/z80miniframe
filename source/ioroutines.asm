@@ -5,20 +5,20 @@
 ;******************************************************************
 
 ; UART 16C550 SERIAL
-UART0:          .EQU    $80           ; DATA IN/OUT
-UART1:          .EQU    $81           ; CHECK RX
-UART2:          .EQU    $82           ; INTERRUPTS
-UART3:          .EQU    $83           ; LINE CONTROL
-UART4:          .EQU    $84           ; MODEM CONTROL
-UART5:          .EQU    $85           ; LINE STATUS
-UART6:          .EQU    $86           ; MODEM STATUS
-UART7:          .EQU    $87           ; SCRATCH REG.
+UART0:          .EQU    $10           ; DATA IN/OUT
+UART1:          .EQU    $11           ; CHECK RX
+UART2:          .EQU    $12           ; INTERRUPTS
+UART3:          .EQU    $13           ; LINE CONTROL
+UART4:          .EQU    $14           ; MODEM CONTROL
+UART5:          .EQU    $15           ; LINE STATUS
+UART6:          .EQU    $16           ; MODEM STATUS
+UART7:          .EQU    $17           ; SCRATCH REG.
 
 ; PIO 82C55 I/O
-PIO1A:       	.EQU    0              ; (INPUT)  IN 1-8
-PIO1B:       	.EQU    1              ; (OUTPUT) OUT TO LEDS
-PIO1C:       	.EQU    2              ; (INPUT)
-PIO1CONT:    	.EQU    3              ; CONTROL BYTE PIO 82C55
+PIO1A:       	.EQU    $00              ; (INPUT)  IN 1-8
+PIO1B:       	.EQU    $01              ; (OUTPUT) OUT TO LEDS
+PIO1C:       	.EQU    $02              ; (INPUT)
+PIO1CONT:    	.EQU    $03              ; CONTROL BYTE PIO 82C55
 
 ; AY-3-8910
 AYCTRL:         .EQU    $31
@@ -36,6 +36,7 @@ INIT_IO:        CALL INIT_PIO
                 XOR       A               
                 LD        (serBufUsed),A
 
+            
                 CALL INIT_UART
                 RET
 

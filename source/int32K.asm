@@ -33,8 +33,8 @@ LF              .EQU     0AH
 CS              .EQU     0CH             ; Clear screen
 
 ; MS-BASIC Addresses
-BASIC_COLD		.EQU	 $07E8   ;$0368
-BASIC_WARM		.EQU	 $07EB   ;$0388
+BASIC_COLD		.EQU	 $07F8   ;$0368
+BASIC_WARM		.EQU	 $07FB   ;$0388
 
                 .ORG $0000
 ;------------------------------------------------------------------------------
@@ -81,15 +81,35 @@ INIT:
                LD        HL,TEMPSTACK    ; Temp stack
                LD        SP,HL           ; Set up a temporary stack
             
-               CALL      CHIMPSOUND
-			   CALL		 INIT_IO
+               CALL		 INIT_IO
                CALL      INIT_VDP
+               CALL      CHIMPSOUND
                
+               LD       A, 4
+			   OUT		 (PIO1B),A
+
+               LD     BC,500
+               CALL   PAUSE
+
+               LD       A, 8
+			   OUT		 (PIO1B),A
+
+               LD     BC,500
+               CALL   PAUSE
+
+               LD       A, 0
+			   OUT		 (PIO1B),A
+
 			   IM        1
                EI
                LD        HL,SIGNON1      ; Sign-on message
                CALL      PRINT           ; Output string
 			   
+               LD        A, 4
+               LD        D, 8
+               LD        HL,  WELCOME_MSG
+               CALL      PRINT_VDP
+
 			   CALL		 MON_HELP
 			   CALL		 MON_LOOP
 			   
@@ -182,9 +202,11 @@ SIGNON1:       .BYTE     CS
 			   .BYTE     "UART 16650 and IO routines written by Tomeu Capó",CR,LF,0
 SIGNON2:       .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
+
+WELCOME_MSG:   .BYTE     "Z80MiniFrame Video Console",0
 			   
 include "ioroutines.asm"
 include "monitor.asm"
-include "tms9929.asm"
+include "vdp.asm"
 
 .END

@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Z80MiniFrame-Sound_Graphics-rescue)(type Legacy)(uri ${KIPRJMOD}/Z80MiniFrame-Sound_Graphics-rescue.lib)(options "")(descr ""))
+)
