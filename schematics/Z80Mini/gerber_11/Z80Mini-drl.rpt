@@ -1,0 +1,29 @@
+Drill report for C:/Users/tomeu/OneDrive/Hardware/projectes/Z80/schematics/Z80Mini/Z80Mini.kicad_pcb
+Created on 23/12/2019 21:39:54
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'Z80Mini-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0,40mm  0,016"  (102 holes)
+    T2  0,75mm  0,030"  (3 holes)
+    T3  0,80mm  0,031"  (307 holes)
+    T4  0,90mm  0,035"  (8 holes)
+    T5  1,02mm  0,040"  (20 holes)
+    T6  1,10mm  0,043"  (4 holes)
+    T7  3,20mm  0,126"  (5 holes)
+
+    Total plated holes count 449
+
+
+Drill file 'Z80Mini-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  1,00mm  0,039"  (2 holes)
+
+    Total unplated holes count 2
