@@ -12,6 +12,7 @@ VDP_R4      equ 04h
 VDP_R5      equ 05h
 VDP_R6      equ 06h
 VDP_R7      equ 07h
+VDP_WAIT    equ 1
 
 SER_BUFSIZE     equ     $3f
 SER_FULLSIZE    equ     $30
@@ -23,19 +24,19 @@ serRdPtr        equ     serInPtr+2
 serBufUsed      equ     serRdPtr+2
 basicStarted    equ     serBufUsed+1
 bufWrap         equ     (SERBUF_START + SER_BUFSIZE) & $ff
-TEMPSTACK       .EQU     $80ED  
+TEMPSTACK       EQU     $80ED  
 
 CR              equ     0dh
 LF              equ     0ah
 SPC             equ     20h
 
 ; PIO 82C55 I/O
-PIO1A:       	.EQU    0              ; (INPUT)  IN 1-8
-PIO1B:       	.EQU    1              ; (OUTPUT) OUT TO LEDS
-PIO1C:       	.EQU    2              ; (INPUT)
-PIO1CONT:    	.EQU    3              ; CONTROL BYTE PIO 82C55
+PIO1A:       	EQU    0              ; (INPUT)  IN 1-8
+PIO1B:       	EQU    1              ; (OUTPUT) OUT TO LEDS
+PIO1C:       	EQU    2              ; (INPUT)
+PIO1CONT:    	EQU    3              ; CONTROL BYTE PIO 82C55
 
-                .ORG $0000
+                ORG $0000
                 di
 
 INIT_HW:        ; first run - setup HW & SW
@@ -47,6 +48,12 @@ INIT_HW:        ; first run - setup HW & SW
                 xor a                   ; set A to 0
                 ld (serBufUsed),a       ; clear actual buffer size
 
+                LD      A,10010000B    ; A= IN, B= OUT C= OUT            
+                OUT     (PIO1CONT),A
+
+                LD      A, 4
+                OUT      (PIO1B), A
+
                 call initVDP
 
                 xor a,a                 ; set high byte of interrupt vectors
@@ -54,24 +61,67 @@ INIT_HW:        ; first run - setup HW & SW
                 im 2                    ; interrupt mode 2
                 ei                      ; enable interrupts
 
-                LD      A,10011001B    ; A= IN, B= OUT C= IN            
-                OUT     (PIO1CONT),A
-                LD      A,0
-                OUT	    (PIO1B), A
-MAIN_LOOP:           
-                call PRMSG
-                LD       A, 4
-		OUT		 (PIO1B),A
+             
+               CALL     PRMSG
 
-               LD     BC,1000
-               CALL   PAUSE
+               LD       C, 1
+               LD       B, 7
+               LD       HL, CUR_X
 
-               LD       A, 8
-	        OUT		 (PIO1B),A
+MAIN_LOOP:     LD       A, C
+               OUT      (PIO1C), A      ; COL
+               LD       A, B
+               AND      $70
+               OUT      (PIO1B), A      ; ROW
+               IN       A, (PIO1A)
+               AND      $80
+               JR       Z, NEXT_ROW
 
-               LD     BC,1000
-               CALL   PAUSE
+               LD   A, (HL)
+               LD   E, 1
+               CALL tmstextpos 
+               INC  A               
+               LD   (HL), A
+
+               CALL     MATCH_SYMBOL
+               LD   A, E
+               CALL tmschrout
+               
+NEXT_ROW:      DJNZ MAIN_LOOP
+               LD B, 0
+               SLA C
+               JR Z, MAIN_LOOP
+               LD C, 1
                jp MAIN_LOOP
+
+MATCH_SYMBOL:  PUSH HL
+               PUSH DE
+
+               LD HL, KBD_ORIC_COLS
+               LD E, 0
+NEXT_COL:      LD A, (HL)
+               CP C
+               JR Z, FOUND_COL 
+               INC HL
+               INC E
+               JR NEXT_COL 
+               JP NOT_MATCH
+
+FOUND_COL:     LD HL, KBD_ORIC_ROWS
+               LD A, B
+               SLA A
+               SLA A
+               SLA A
+               SLA A
+               ADD A, E
+               LD E, A
+               LD D, 0 
+               ADD HL, DE
+               LD E, (HL) 
+
+NOT_MATCH:     POP DE
+               POP HL
+               RET
 
 initVDP:        ; set up VDP to work at startup in TEXT MODE
 
@@ -80,7 +130,7 @@ initVDP:        ; set up VDP to work at startup in TEXT MODE
                 ld hl,VDPTXTREG     ; pointer to registers settings
                 ld a,VDP_WREG+$00   ; start with REG0 ($80+register number)
                 ld c,VDP_REG        ; VDP port for registers access
-LDREGVLS        ld d,(HL)           ; load register's value
+LDREGVLS:       ld d,(HL)           ; load register's value
                 out (c),d           ; send data to VDP
                 out (c),a           ; indicate the register to send data to
                 inc a               ; next register
@@ -118,7 +168,7 @@ SENDCHRPTRNS:   ld a,(hl)           ; load byte to send to VDP
                 jr nz,SENDCHRPTRNS  ; no, continue
                 djnz NXTCHAR        ; yes, decrement chars counter and continue for all the 127 chars
 
-ENDVDPINIT      ret                 ; return to caller
+                ret                 ; return to caller
 
 PRMSG:          ; welcome message
                 ld c,VDP_REG        ; load VPD port value
@@ -126,14 +176,50 @@ PRMSG:          ; welcome message
                 out (c),l           ; low byte of address to VDP
                 out (c),h           ; high byte address to VDP
                 ld hl,WLCMSG        ; load start address of welcome message
-LDWLCMMSG       ld a,(hl)           ; load char
+LDWLCMMSG:      ld a,(hl)           ; load char
                 cp $00              ; is it the end of message?
                 jr z,ENDVDPINIT     ; yes, exit
                 out (VDP_RAM),a     ; no, print char onto screen
                 nop
                 inc hl
                 jr LDWLCMMSG        ; next char
-                ret 
+ENDVDPINIT:     ret 
+
+; output a character
+;       A = character to output
+tmschrout:
+        out     (VDP_RAM), a
+        nop
+        ret
+
+
+; set the address to place text at X/Y coordinate
+;       A = X
+;       E = Y
+tmstextpos:
+        ld      d, 0
+        ld      hl, 0
+        add     hl, de                  ; Y x 1
+        add     hl, hl                  ; Y x 2
+        add     hl, hl                  ; Y x 4
+        add     hl, de                  ; Y x 5
+        add     hl, hl                  ; Y x 10
+        add     hl, hl                  ; Y x 20
+        add     hl, hl                  ; Y x 40
+        ld      e, a
+        add     hl, de                  ; add column for final address
+        ex      de, hl                  ; send address to TMS
+        call    tmswriteaddr
+        ret
+
+tmswriteaddr:
+        ld      c, VDP_REG
+        out     (c), e             ; send lsb     
+        ld      a, d                    ; mask off msb to max of 16KB
+        and     $3F
+        or      $48                ; set second highest bit to indicate write
+        out     (VDP_REG), a             ; send msb
+        ret
 
 PAUSE:       PUSH   AF
              INC    B
@@ -149,21 +235,17 @@ PAUSESLUT:   POP    AF
              RET
 
                 ; VDP registers settings to set up a text mode
-VDPTXTREG       defb 00000000b    ; reg.0: external video disabled
+VDPTXTREG:      defb 00000000b    ; reg.0: external video disabled
                 defb 11010000b    ; reg.1: text mode (40x24), enable display
                 defb $02          ; reg.2: name table set to $800 ($02x$400)
                 defb $00          ; reg.3: not used in text mode
                 defb $00          ; reg.4: pattern table set to $0000
                 defb $00          ; reg.5: not used in text mode
                 defb $00          ; reg.6: not used in text mode
-                defb $f1          ; reg.7: light blue text on white background
+                defb $f1          ; reg.7: Background and text color
+          
 
-MSGTXT1:        defm "Z80 SBC by Grant Searle",CR,LF
-                defm "LM80C bootloader by Leonardo Miliani",CR,LF,0
-MSGTXT2:        defb CR,LF
-                defm "|C|old or |W|arm start? ",0              
-
-                ;-------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------
 ;
 ;               C  H  A  R  S  E  T
 ;
@@ -300,7 +382,18 @@ CHARSET: equ $
         defb 0x20,0x10,0x10,0x08,0x10,0x10,0x20,0x00 ; }
         defb 0x00,0x28,0x50,0x00,0x00,0x00,0x00,0x00 ; ~ (127th char, last ASCII char)
 
-WLCMSG  defm "TEST VDP with Z80MiniFrame",0                ; system message
+WLCMSG:  defm "TEST VDP with Z80MiniFrame *************",0                ; system message
 
+CUR_X:   defb 1
+CUR_Y:   defb 3
 
+KBD_ORIC_COLS:   defb 16, 32, 64,  1,  8,  128,  2,  4
+KBD_ORIC_ROWS:   defb 0, '1','X','7','V','3','N','5'
+                defb 0,  27,'Q','J','F','D','T','R'
+                defb 17,'Z','2','M','4','C','6','B'
+                defb 0,   0,  0,'\\','K','-', 39, '9'
+                defb 16, 37, 40, 32, 38,39,',','.'
+                defb 0,   8, ']','U','P','[','I','O'
+                defb 0, 'A','S','Y','E','W','H','G'
+                defb 16,13,0,'8','/','=','L','0'
 .END

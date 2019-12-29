@@ -21,7 +21,7 @@ PIO1C:       	.EQU    $02              ; (INPUT)
 PIO1CONT:    	.EQU    $03              ; CONTROL BYTE PIO 82C55
 
 ; AY-3-8910
-AYCTRL:         .EQU    $31
+AYCTRL:         .EQU    $31 
 AYDATA:         .EQU    $32
 
 ;**************************************************************

@@ -1,20 +1,20 @@
 ;label defining for VDP (Video Display Processor)
-VDP_RAM     equ $2e
-VDP_REG     equ $2f
+VDP_RAM         equ $2e
+VDP_REG         equ $2f
 
-VDP_WREG    equ 10000000b   ; to be added to the REG value
-VDP_RRAM    equ 00000000b   ; to be added to the ADRS value
-VDP_WRAM    equ 01000000b   ; to be added to the ADRS value
-VDP_R0      equ 00h
-VDP_R1      equ 01h
-VDP_R2      equ 02h
-VDP_R3      equ 03h
-VDP_R4      equ 04h
-VDP_R5      equ 05h
-VDP_R6      equ 06h
-VDP_R7      equ 07h
+VDP_WREG        equ 10000000b   ; to be added to the REG value
+VDP_RRAM        equ 00000000b   ; to be added to the ADRS value
+VDP_WRAM        equ 01000000b   ; to be added to the ADRS value
+VDP_R0          equ 00h
+VDP_R1          equ 01h
+VDP_R2          equ 02h
+VDP_R3          equ 03h
+VDP_R4          equ 04h
+VDP_R5          equ 05h
+VDP_R6          equ 06h
+VDP_R7          equ 07h
 
-INIT_VDP:       ; set up registers for text mode
+VDP_INIT:       ; set up registers for text mode
                 ld b,$08            ; 8 registers
                 ld hl,VDPTXTREG     ; pointer to registers settings
                 ld a,VDP_WREG+$00   ; start with REG0 ($80+register number)
@@ -59,8 +59,10 @@ SENDCHRPTRNS:   ld a,(hl)           ; load byte to send to VDP
 
 ENDVDPINIT      ret                 ; return to caller
 
-                
-PRINT_VDP:      ; Print Message
+
+; copy a null-terminated string to VRAM
+;       HL = ram source address
+VDP_PRINT:      ; Print Message
                 ld c,VDP_REG        ; load VPD port value
                 out (c),a           ; low byte of address to VDP
                 out (c),d           ; high byte address to VDP
@@ -72,6 +74,36 @@ LDWLCMMSG       ld a,(hl)           ; load char
                 inc hl
                 jr LDWLCMMSG        ; next char
                 ret 
+
+; set the address to place text at X/Y coordinate
+;       A = X
+;       E = Y
+VDP_SETPOS:
+        ld      d, 0
+        ld      hl, 0
+        add     hl, de                  ; Y x 1
+        add     hl, hl                  ; Y x 2
+        add     hl, hl                  ; Y x 4
+        add     hl, de                  ; Y x 5
+        add     hl, hl                  ; Y x 10
+        add     hl, hl                  ; Y x 20
+        add     hl, hl                  ; Y x 40
+        ld      e, a
+        add     hl, de                  ; add column for final address
+        ex      de, hl                  ; send address to TMS
+        call    VDP_WRITEADDR
+        ret
+
+; set the next address of vram to write
+;       DE = address
+VDP_WRITEADDR:
+        ld      a, e                    ; send lsb
+        out     (VDP_REG), a
+        ld      a, d                    ; mask off msb to max of 16KB
+        and     $3F
+        or      $40                     ; set second highest bit to indicate write
+        out     (VDP_REG), a             ; send msb
+        ret
 
                 ; VDP registers settings to set up a text mode
 VDPTXTREG       defb 00000000b    ; reg.0: external video disabled

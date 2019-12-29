@@ -43,18 +43,14 @@ Wire Wire Line
 $Comp
 L power:GND #PWR0102
 U 1 1 5D7227B9
-P 2150 6600
-F 0 "#PWR0102" H 2150 6350 50  0001 C CNN
-F 1 "GND" H 2155 6427 50  0000 C CNN
-F 2 "" H 2150 6600 50  0001 C CNN
-F 3 "" H 2150 6600 50  0001 C CNN
-	1    2150 6600
+P 2700 6550
+F 0 "#PWR0102" H 2700 6300 50  0001 C CNN
+F 1 "GND" H 2705 6377 50  0000 C CNN
+F 2 "" H 2700 6550 50  0001 C CNN
+F 3 "" H 2700 6550 50  0001 C CNN
+	1    2700 6550
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	2150 6600 2150 6550
-Wire Wire Line
-	2150 6550 2700 6550
 Wire Wire Line
 	1700 4600 1900 4600
 Wire Bus Line
@@ -180,12 +176,6 @@ Wire Wire Line
 	7000 3200 5950 3200
 Wire Wire Line
 	6600 4750 5950 4750
-Wire Wire Line
-	5050 4750 4650 4750
-Wire Wire Line
-	4650 4750 4650 6300
-Wire Wire Line
-	4650 6300 2400 6300
 NoConn ~ 2400 6200
 NoConn ~ 2400 5900
 NoConn ~ 2400 5800
@@ -193,7 +183,6 @@ NoConn ~ 2400 5700
 NoConn ~ 2400 5600
 NoConn ~ 2400 5400
 NoConn ~ 2400 4500
-NoConn ~ 2400 4400
 NoConn ~ 1900 4400
 NoConn ~ 1900 4500
 NoConn ~ 1900 4700
@@ -216,12 +205,6 @@ Wire Wire Line
 NoConn ~ 2400 5500
 NoConn ~ 1900 5500
 NoConn ~ -2400 5000
-Wire Wire Line
-	2500 4550 5050 4550
-Wire Wire Line
-	2500 4550 2500 4600
-Wire Wire Line
-	2500 4600 2400 4600
 Wire Wire Line
 	6600 4750 6600 6950
 Wire Wire Line
@@ -246,6 +229,39 @@ Wire Wire Line
 	6200 4500 6200 2900
 Wire Wire Line
 	6200 2900 5950 2900
+Wire Wire Line
+	2500 4600 2400 4600
+Wire Wire Line
+	2500 4550 2500 4600
+Wire Wire Line
+	2500 4550 5050 4550
+Wire Wire Line
+	3100 4400 2400 4400
+$Comp
+L Device:Jumper_NC_Dual JP3
+U 1 1 5DF3C247
+P 4500 5500
+F 0 "JP3" H 4500 5647 50  0000 C CNN
+F 1 "Jumper_NC_Dual" H 4500 5738 50  0000 C CNN
+F 2 "Connector_PinHeader_2.00mm:PinHeader_1x03_P2.00mm_Vertical" H 4500 5500 50  0001 C CNN
+F 3 "~" H 4500 5500 50  0001 C CNN
+	1    4500 5500
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	3100 5500 4250 5500
+Wire Wire Line
+	3100 4400 3100 5500
+Wire Wire Line
+	4500 5400 4500 4750
+Wire Wire Line
+	4500 4750 5050 4750
+Wire Wire Line
+	4750 5500 5100 5500
+Wire Wire Line
+	5100 5500 5100 6300
+Wire Wire Line
+	5100 6300 2400 6300
 Wire Wire Line
 	2400 4700 2950 4700
 Wire Bus Line

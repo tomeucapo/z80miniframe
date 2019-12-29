@@ -80,7 +80,6 @@ F 3 "" H 7850 750 50  0001 C CNN
 	1    7850 750 
 	1    0    0    -1  
 $EndComp
-NoConn ~ 8000 1350
 Wire Wire Line
 	6600 950  6600 850 
 Wire Wire Line
@@ -707,14 +706,10 @@ F 3 "http://www.ti.com/lit/gpn/sn74LS32" H 10700 4850 50  0001 C CNN
 	5    10700 4850
 	1    0    0    -1  
 $EndComp
-Text HLabel 1300 3650 0    50   Output ~ 0
+Text HLabel 650  3650 0    50   Output ~ 0
 INT
 Wire Wire Line
-	2300 3650 1300 3650
-Wire Wire Line
 	2300 3800 2300 3650
-Wire Wire Line
-	3000 3800 2300 3800
 $Comp
 L power:GND #PWR0132
 U 1 1 5DF45E8C
@@ -1612,12 +1607,42 @@ Text HLabel 2000 6600 0    50   Output ~ 0
 COMVID
 Wire Wire Line
 	2000 6600 2200 6600
+$Comp
+L power:GND #PWR0138
+U 1 1 5DF966DD
+P 7550 1350
+F 0 "#PWR0138" H 7550 1100 50  0001 C CNN
+F 1 "GND" H 7555 1177 50  0000 C CNN
+F 2 "" H 7550 1350 50  0001 C CNN
+F 3 "" H 7550 1350 50  0001 C CNN
+	1    7550 1350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	650  3650 2300 3650
+$Comp
+L Diode:1N4148 D1
+U 1 1 5E052EE5
+P 2650 3800
+F 0 "D1" H 2650 3584 50  0000 C CNN
+F 1 "1N4148" H 2650 3675 50  0000 C CNN
+F 2 "Diode_THT:D_DO-35_SOD27_P7.62mm_Horizontal" H 2650 3625 50  0001 C CNN
+F 3 "https://assets.nexperia.com/documents/data-sheet/1N4148_1N4448.pdf" H 2650 3800 50  0001 C CNN
+	1    2650 3800
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2500 3800 2300 3800
+Wire Wire Line
+	2800 3800 3000 3800
 Wire Wire Line
 	9000 1450 9800 1450
 Wire Wire Line
 	9000 1950 9700 1950
 Wire Wire Line
 	3950 2350 4250 2350
+Wire Wire Line
+	7550 1350 8000 1350
 Wire Bus Line
 	7700 2450 7700 3000
 Wire Bus Line
