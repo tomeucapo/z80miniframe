@@ -665,7 +665,6 @@ Wire Wire Line
 	4050 4200 4050 5650
 Wire Wire Line
 	3950 4200 4050 4200
-NoConn ~ 3950 4100
 $Comp
 L Video:TMS9918A U1
 U 1 1 5DECA710
@@ -779,7 +778,7 @@ $EndComp
 Wire Wire Line
 	1250 3850 1350 3850
 Text HLabel 1100 5250 0    50   Input ~ 0
-A1
+A0
 Wire Wire Line
 	2550 5250 1100 5250
 Wire Wire Line
@@ -865,21 +864,21 @@ RESET
 Wire Wire Line
 	3000 3500 1300 3500
 Text Label 2900 3050 0    50   ~ 0
-D7
-Text Label 2900 2950 0    50   ~ 0
-D6
-Text Label 2900 2850 0    50   ~ 0
-D5
-Text Label 2900 2750 0    50   ~ 0
-D4
-Text Label 2900 2650 0    50   ~ 0
-D3
-Text Label 2900 2550 0    50   ~ 0
-D2
-Text Label 2900 2450 0    50   ~ 0
-D1
-Text Label 2900 2350 0    50   ~ 0
 D0
+Text Label 2900 2950 0    50   ~ 0
+D1
+Text Label 2900 2850 0    50   ~ 0
+D2
+Text Label 2900 2750 0    50   ~ 0
+D3
+Text Label 2900 2650 0    50   ~ 0
+D4
+Text Label 2900 2550 0    50   ~ 0
+D5
+Text Label 2900 2450 0    50   ~ 0
+D6
+Text Label 2900 2350 0    50   ~ 0
+D7
 Text Label 6000 5650 0    50   ~ 0
 AD7
 Text Label 6000 5550 0    50   ~ 0
@@ -1284,8 +1283,6 @@ Text Label 7850 2450 0    50   ~ 0
 VD1
 Text Label 7850 2350 0    50   ~ 0
 VD0
-Wire Bus Line
-	7700 3000 9250 3000
 Wire Wire Line
 	7800 2550 8000 2550
 Wire Wire Line
@@ -1298,7 +1295,6 @@ Entry Wire Line
 	7700 2550 7800 2450
 Entry Wire Line
 	7700 2650 7800 2550
-Connection ~ 7700 3000
 Text Label 7100 3800 0    50   ~ 0
 VA13
 Text Label 7100 3700 0    50   ~ 0
@@ -1536,25 +1532,6 @@ F 3 "" H 7900 2700 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Z80MiniFrame-Sound_Graphics-rescue:AS6C62256-55PCN-Memory_RAM U5
-U 1 1 5D7A4B8E
-P 8000 1350
-F 0 "U5" H 8500 1615 50  0000 C CNN
-F 1 "AS6C62256-55PCN" H 8500 1524 50  0000 C CNN
-F 2 "Package_DIP:DIP-28_W15.24mm_LongPads" H 8850 1450 50  0001 L CNN
-F 3 "https://componentsearchengine.com/Datasheets/1/AS6C62256-55PCN.pdf" H 8850 1350 50  0001 L CNN
-F 4 "Alliance Memory AS6C62256-55PCN SRAM Memory, 256kbit, 2.7  5.5 V, 55ns 28-Pin PDIP" H 8850 1250 50  0001 L CNN "Description"
-F 5 "3.81" H 8850 1150 50  0001 L CNN "Height"
-F 6 "Alliance Memory" H 8850 1050 50  0001 L CNN "Manufacturer_Name"
-F 7 "AS6C62256-55PCN" H 8850 950 50  0001 L CNN "Manufacturer_Part_Number"
-F 8 "913-AS6C62256-55PCN" H 8850 850 50  0001 L CNN "Mouser Part Number"
-F 9 "https://www.mouser.com/Search/Refine.aspx?Keyword=913-AS6C62256-55PCN" H 8850 750 50  0001 L CNN "Mouser Price/Stock"
-F 10 "0538148" H 8850 650 50  0001 L CNN "RS Part Number"
-F 11 "http://uk.rs-online.com/web/p/products/0538148" H 8850 550 50  0001 L CNN "RS Price/Stock"
-	1    8000 1350
-	1    0    0    -1  
-$EndComp
-$Comp
 L 74xx:74LS574 U3
 U 1 1 5D7A0CA0
 P 6600 3600
@@ -1635,12 +1612,40 @@ Wire Wire Line
 	2500 3800 2300 3800
 Wire Wire Line
 	2800 3800 3000 3800
+Connection ~ 7700 3000
+$Comp
+L Z80MiniFrame-Sound_Graphics-rescue:AS6C62256-55PCN-Memory_RAM U5
+U 1 1 5D7A4B8E
+P 8000 1350
+F 0 "U5" H 8500 1615 50  0000 C CNN
+F 1 "AS6C62256-55PCN" H 8500 1524 50  0000 C CNN
+F 2 "Package_DIP:DIP-28_W15.24mm_LongPads" H 8850 1450 50  0001 L CNN
+F 3 "https://componentsearchengine.com/Datasheets/1/AS6C62256-55PCN.pdf" H 8850 1350 50  0001 L CNN
+F 4 "Alliance Memory AS6C62256-55PCN SRAM Memory, 256kbit, 2.7  5.5 V, 55ns 28-Pin PDIP" H 8850 1250 50  0001 L CNN "Description"
+F 5 "3.81" H 8850 1150 50  0001 L CNN "Height"
+F 6 "Alliance Memory" H 8850 1050 50  0001 L CNN "Manufacturer_Name"
+F 7 "AS6C62256-55PCN" H 8850 950 50  0001 L CNN "Manufacturer_Part_Number"
+F 8 "913-AS6C62256-55PCN" H 8850 850 50  0001 L CNN "Mouser Part Number"
+F 9 "https://www.mouser.com/Search/Refine.aspx?Keyword=913-AS6C62256-55PCN" H 8850 750 50  0001 L CNN "Mouser Price/Stock"
+F 10 "0538148" H 8850 650 50  0001 L CNN "RS Part Number"
+F 11 "http://uk.rs-online.com/web/p/products/0538148" H 8850 550 50  0001 L CNN "RS Price/Stock"
+	1    8000 1350
+	1    0    0    -1  
+$EndComp
+Wire Bus Line
+	7700 3000 9250 3000
+Wire Wire Line
+	3950 4100 4100 4100
+Wire Wire Line
+	4100 4100 4100 5800
+Wire Wire Line
+	4100 5800 3150 5800
+Wire Wire Line
+	3950 2350 4250 2350
 Wire Wire Line
 	9000 1450 9800 1450
 Wire Wire Line
 	9000 1950 9700 1950
-Wire Wire Line
-	3950 2350 4250 2350
 Wire Wire Line
 	7550 1350 8000 1350
 Wire Bus Line
@@ -1650,8 +1655,6 @@ Wire Bus Line
 Wire Bus Line
 	9250 1050 9250 1950
 Wire Bus Line
-	7800 1050 7800 2150
-Wire Bus Line
 	7700 3000 7700 6850
 Wire Bus Line
 	4150 1050 4150 3050
@@ -1660,7 +1663,11 @@ Wire Bus Line
 Wire Bus Line
 	4150 3350 4150 6850
 Wire Bus Line
+	7800 1050 7800 2150
+Wire Bus Line
 	7350 1050 7350 3700
 Wire Bus Line
 	5850 1050 5850 5550
+Text HLabel 3150 5800 0    50   Output ~ 0
+CPUCLK
 $EndSCHEMATC

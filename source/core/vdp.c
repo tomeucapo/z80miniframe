@@ -4,7 +4,7 @@
 
 unsigned char vdpTxtRegs[8] = { 
         0x04,   // reg.0: external video disabled
-        0x50,   // reg.1: text mode (40x24), enable display
+        0xd0,   // reg.1: text mode (40x24), enable display
         0x02,   // reg.2: name table set to $800 ($02x$400)
         0x00,   // reg.3: not used in text mode
         0x00,   // reg.4: pattern table set to $0000

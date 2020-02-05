@@ -68,7 +68,7 @@ F0 "graphicsProcessor" 50
 F1 "graphicsProcessor.sch" 50
 F2 "D[0..7]" B L 5050 3800 50 
 F3 "RESET" I L 5050 3950 50 
-F4 "A1" I L 5050 4100 50 
+F4 "A0" I L 5050 4100 50 
 F5 "RD" I L 5050 4250 50 
 F6 "WR" I L 5050 4400 50 
 F7 "IORQ" I L 5050 4550 50 
@@ -76,6 +76,7 @@ F8 "VD_SEL" I R 5950 4750 50
 F9 "INT" O L 5050 4750 50 
 F10 "EXTV" O R 5950 4500 50 
 F11 "COMVID" O R 5950 4650 50 
+F12 "CPUCLK" O R 5950 4350 50 
 $EndSheet
 $Sheet
 S 5050 2100 900  1250
@@ -88,9 +89,10 @@ F4 "A0" I L 5050 2300 50
 F5 "SND_SEL" I R 5950 3200 50 
 F6 "COMVID" I R 5950 3050 50 
 F7 "EXTVDP" I R 5950 2900 50 
+F8 "CPUCLK" I R 5950 2750 50 
 $EndSheet
 Wire Wire Line
-	1000 2300 5050 2300
+	1000 2300 4200 2300
 Wire Wire Line
 	1000 5300 1900 5300
 Wire Wire Line
@@ -164,10 +166,6 @@ Wire Wire Line
 Connection ~ 4950 2600
 Wire Wire Line
 	4950 2600 1700 2600
-Wire Wire Line
-	2400 5300 4200 5300
-Wire Wire Line
-	4200 5300 4200 4100
 Wire Wire Line
 	5050 4250 2950 4250
 Wire Wire Line
@@ -243,7 +241,7 @@ U 1 1 5DF3C247
 P 4500 5500
 F 0 "JP3" H 4500 5647 50  0000 C CNN
 F 1 "Jumper_NC_Dual" H 4500 5738 50  0000 C CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_1x03_P2.00mm_Vertical" H 4500 5500 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 4500 5500 50  0001 C CNN
 F 3 "~" H 4500 5500 50  0001 C CNN
 	1    4500 5500
 	-1   0    0    1   
@@ -262,6 +260,18 @@ Wire Wire Line
 	5100 5500 5100 6300
 Wire Wire Line
 	5100 6300 2400 6300
+NoConn ~ 2400 5300
+Connection ~ 4200 2300
+Wire Wire Line
+	4200 2300 5050 2300
+Wire Wire Line
+	4200 2300 4200 4100
+Wire Wire Line
+	5950 4350 6300 4350
+Wire Wire Line
+	6300 4350 6300 2750
+Wire Wire Line
+	6300 2750 5950 2750
 Wire Wire Line
 	2400 4700 2950 4700
 Wire Bus Line

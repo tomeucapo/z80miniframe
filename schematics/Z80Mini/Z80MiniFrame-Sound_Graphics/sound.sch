@@ -385,7 +385,7 @@ AR Path="/5D798A02" Ref="SPEAKER?"  Part="1"
 AR Path="/5D76ACBB/5D798A02" Ref="SPEAKER1"  Part="1" 
 F 0 "SPEAKER1" H 10472 2732 50  0000 R CNN
 F 1 "Conn_01x02_Male" H 10472 2823 50  0000 R CNN
-F 2 "Connector_Wire:SolderWirePad_1x02_P3.81mm_Drill1mm" H 10500 2850 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 10500 2850 50  0001 C CNN
 F 3 "~" H 10500 2850 50  0001 C CNN
 	1    10500 2850
 	-1   0    0    1   
@@ -543,44 +543,42 @@ D7
 $Comp
 L Oscillator:ACO-xxxMHz X1
 U 1 1 5E3763A5
-P 3550 6800
-F 0 "X1" H 3207 6846 50  0000 R CNN
-F 1 "ACO-2MHz" H 3207 6755 50  0000 R CNN
-F 2 "Oscillator:Oscillator_DIP-14" H 4000 6450 50  0001 C CNN
-F 3 "http://www.conwin.com/datasheets/cx/cx030.pdf" H 3450 6800 50  0001 C CNN
-	1    3550 6800
+P 3250 6900
+F 0 "X1" H 2907 6946 50  0000 R CNN
+F 1 "ACO-2MHz" H 2907 6855 50  0000 R CNN
+F 2 "Oscillator:Oscillator_DIP-14" H 3700 6550 50  0001 C CNN
+F 3 "http://www.conwin.com/datasheets/cx/cx030.pdf" H 3150 6900 50  0001 C CNN
+	1    3250 6900
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	3900 6800 3850 6800
 Wire Wire Line
 	3900 5150 3900 6800
 $Comp
 L power:VCC #PWR0147
 U 1 1 5E37FE16
-P 3550 6400
-F 0 "#PWR0147" H 3550 6250 50  0001 C CNN
-F 1 "VCC" H 3567 6573 50  0000 C CNN
-F 2 "" H 3550 6400 50  0001 C CNN
-F 3 "" H 3550 6400 50  0001 C CNN
-	1    3550 6400
+P 3250 6500
+F 0 "#PWR0147" H 3250 6350 50  0001 C CNN
+F 1 "VCC" H 3267 6673 50  0000 C CNN
+F 2 "" H 3250 6500 50  0001 C CNN
+F 3 "" H 3250 6500 50  0001 C CNN
+	1    3250 6500
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR0148
 U 1 1 5E380313
-P 3550 7200
-F 0 "#PWR0148" H 3550 6950 50  0001 C CNN
-F 1 "GND" H 3555 7027 50  0000 C CNN
-F 2 "" H 3550 7200 50  0001 C CNN
-F 3 "" H 3550 7200 50  0001 C CNN
-	1    3550 7200
+P 3250 7300
+F 0 "#PWR0148" H 3250 7050 50  0001 C CNN
+F 1 "GND" H 3255 7127 50  0000 C CNN
+F 2 "" H 3250 7300 50  0001 C CNN
+F 3 "" H 3250 7300 50  0001 C CNN
+	1    3250 7300
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3550 6500 3550 6400
+	3250 6600 3250 6500
 Wire Wire Line
-	3550 7200 3550 7100
+	3250 7300 3250 7200
 Wire Wire Line
 	7850 3450 8700 3450
 Connection ~ 7850 3450
@@ -614,7 +612,7 @@ U 1 1 5D7FB918
 P 6050 2850
 F 0 "JP1" V 6100 2650 50  0000 R CNN
 F 1 "PREAMP_MONO" H 6450 3100 50  0000 R CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_2x03_P2.00mm_Vertical" H 6050 2850 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 6050 2850 50  0001 C CNN
 F 3 "~" H 6050 2850 50  0001 C CNN
 	1    6050 2850
 	0    1    1    0   
@@ -659,7 +657,7 @@ U 1 1 5D798F32
 P 5350 2400
 F 0 "J3" V 5412 2544 50  0000 L CNN
 F 1 "Conn_01x03_Male" V 5503 2544 50  0000 L CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_1x03_P2.00mm_Vertical" H 5350 2400 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5350 2400 50  0001 C CNN
 F 3 "~" H 5350 2400 50  0001 C CNN
 	1    5350 2400
 	0    1    1    0   
@@ -822,6 +820,25 @@ Wire Wire Line
 	5200 5450 7600 5450
 Wire Wire Line
 	5200 5550 7700 5550
+$Comp
+L Device:Jumper_NC_Dual JP?
+U 1 1 5E21D650
+P 3900 6900
+AR Path="/5E21D650" Ref="JP?"  Part="1" 
+AR Path="/5D76ACBB/5E21D650" Ref="JP4"  Part="1" 
+F 0 "JP4" H 3900 7047 50  0000 C CNN
+F 1 "Jumper_NC_Dual" H 3900 7138 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 3900 6900 50  0001 C CNN
+F 3 "~" H 3900 6900 50  0001 C CNN
+	1    3900 6900
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	3550 6900 3650 6900
+Wire Wire Line
+	4150 6900 4700 6900
 Wire Bus Line
 	3900 3000 3900 4150
+Text HLabel 4700 6900 2    50   Input ~ 0
+CPUCLK
 $EndSCHEMATC

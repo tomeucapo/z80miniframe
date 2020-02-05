@@ -1,5 +1,5 @@
-Drill report for C:\Users\tomeu\OneDrive\Hardware\projectes\Z80\schematics\Z80Mini\Z80MiniFrame-Sound_Graphics\Z80MiniFrame-Sound_Graphics.kicad_pcb
-Created on 23/12/2019 21:25:45
+Drill report for C:/Users/tomeu/OneDrive/Hardware/projectes/Z80/schematics/Z80Mini/Z80MiniFrame-Sound_Graphics/Z80MiniFrame-Sound_Graphics.kicad_pcb
+Created on 21/01/2020 3:05:44
 
 Copper Layer Stackup:
     =============================================================
@@ -10,17 +10,17 @@ Copper Layer Stackup:
 Drill file 'Z80MiniFrame-Sound_Graphics-PTH.drl' contains
     plated through holes:
     =============================================================
-    T1  0,40mm  0,016"  (72 holes)
+    T1  0,40mm  0,016"  (77 holes)
     T2  0,75mm  0,030"  (3 holes)
-    T3  0,80mm  0,031"  (288 holes)
-    T4  1,00mm  0,039"  (2 holes)
+    T3  0,80mm  0,031"  (278 holes)
+    T4  1,00mm  0,039"  (17 holes)
     T5  1,02mm  0,040"  (20 holes)
     T6  1,30mm  0,051"  (3 holes)
     T7  1,55mm  0,061"  (2 holes)
     T8  2,85mm  0,112"  (4 holes)
     T9  3,20mm  0,126"  (4 holes)
 
-    Total plated holes count 398
+    Total plated holes count 408
 
 
 Drill file 'Z80MiniFrame-Sound_Graphics-NPTH.drl' contains
