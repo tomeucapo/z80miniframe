@@ -1,0 +1,29 @@
+Drill report for C:\Users\tomeu\OneDrive\Hardware\projectes\Z80\schematics\Z80Mini\backplane\Z80Backplane\Z80Backplane.kicad_pcb
+Created on 21/01/2020 2:51:54
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'Z80Backplane-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0,40mm  0,016"  (12 holes)
+    T2  0,75mm  0,030"  (3 holes)
+    T3  0,80mm  0,031"  (51 holes)  (with 3 slots)
+    T4  0,90mm  0,035"  (6 holes)
+    T5  1,00mm  0,039"  (173 holes)
+    T6  1,52mm  0,060"  (2 holes)
+    T7  3,00mm  0,118"  (4 holes)
+
+    Total plated holes count 251
+
+
+Drill file 'Z80Backplane-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  3,20mm  0,126"  (1 hole)
+
+    Total unplated holes count 1
