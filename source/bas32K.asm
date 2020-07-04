@@ -102,6 +102,30 @@ MULVAL  .EQU    WRKSPC+0F6H     ; Multiplier
 PROGST  .EQU    WRKSPC+0F9H     ; Start of program text area
 STLOOK  .EQU    WRKSPC+15DH     ; Start of memory test
 
+; Screen Variables
+SCR_SIZE_W      .EQU     STLOOK+$03      ; (1) screen width (it can be either 40 chars or 32 chars/bytes)
+SCR_SIZE_H      .EQU     SCR_SIZE_W+$01  ; (1) screen height (it can be 24/48/192: 24 for text, 48 for MC, 192 for graphics)
+SCR_MODE        .EQU     SCR_SIZE_H+$01  ; (1) screen mode (0=text, 1=G1, 2=G2, 3=MC, 4=ExG2)
+SCR_NAM_TB      .EQU     SCR_MODE+$02    ; (2) video name table address
+SCR_CURS_X      .EQU     SCR_NAM_TB+$02  ; (1) cursor X
+SCR_CURS_Y      .EQU     SCR_CURS_X+$01  ; (1) cursor Y
+SCR_CUR_NX      .EQU     SCR_CURS_Y+$01  ; (1) new cursor X position
+SCR_CUR_NY      .EQU     SCR_CUR_NX+$01  ; (1) new cursor Y position
+SCR_ORG_CHR     .EQU     SCR_CUR_NY+$01  ; (1) original char positioned under the cursor
+CRSR_STATE      .EQU     SCR_ORG_CHR+$01 ; (1) state of cursor (1=on, 0=off)
+LSTCSRSTA       .EQU     CRSR_STATE+$01  ; (1) last cursor state
+PRNTVIDEO       .EQU     LSTCSRSTA+$01   ; (1) print on video buffer (1=on / 0=off) set to off on graphic only modes
+CHR4VID         .EQU     PRNTVIDEO+$01   ; (1) char for video buffer
+FRGNDCLR        .EQU     CHR4VID+$01     ; (1) foreground color as set by SCREEN or COLOR commands
+BKGNDCLR        .EQU     FRGNDCLR+$01    ; (1) background color as set by SCREEN or COLOR commands
+TMPBFR1         .EQU     BKGNDCLR+$01    ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+TMPBFR2         .EQU     TMPBFR1+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+TMPBFR3         .EQU     TMPBFR2+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+TMPBFR4         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+VIDEOBUFF       .EQU     TMPBFR4+$02     ; (40) buffer used for video scrolling and other purposes
+VIDTMP1         .EQU     VIDEOBUFF+$28   ; (2) temporary video word
+VIDTMP2         .EQU     VIDTMP1+$02     ; (2) temporary video word
+
 ; BASIC ERROR CODE VALUES
 
 NF      .EQU    00H             ; NEXT without FOR
@@ -284,6 +308,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'P'+80H,"OKE"
         .BYTE   'D'+80H,"OKE"
         .BYTE   'S'+80H,"CREEN"
+        .BYTE   'C'+80H,"OLOR"
         .BYTE   'L'+80H,"INES"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
@@ -372,7 +397,8 @@ WORDTB: .WORD   PEND
         .WORD   DEF
         .WORD   POKE
         .WORD   DOKE
-        .WORD   REM
+        .WORD   SCREEN             ; Screen
+        .WORD   COLOR
         .WORD   LINES
         .WORD   CLS
         .WORD   WIDTH
@@ -383,11 +409,13 @@ WORDTB: .WORD   PEND
         .WORD   CONT
         .WORD   LIST
         .WORD   CLEAR
-        .WORD   REM
-        .WORD   REM
+        .WORD   REM             ; CLOAD
+        .WORD   REM             ; CSAVE
         .WORD   NEW
 
+
 ; RESERVED WORD TOKEN VALUES
+; Update values is need if new tokens are added. For example if you add new keyword, increase all values after ZREM.
 
 ZEND    .EQU    080H            ; END
 ZFOR    .EQU    081H            ; FOR
@@ -395,28 +423,28 @@ ZDATA   .EQU    083H            ; DATA
 ZGOTO   .EQU    088H            ; GOTO
 ZGOSUB  .EQU    08CH            ; GOSUB
 ZREM    .EQU    08EH            ; REM
-ZPRINT  .EQU    09EH            ; PRINT
-ZNEW    .EQU    0A4H            ; NEW
+ZPRINT  .EQU    09FH            ; PRINT         9E
+ZNEW    .EQU    0A5H            ; NEW           A4              
 
-ZTAB    .EQU    0A5H            ; TAB
-ZTO     .EQU    0A6H            ; TO
-ZFN     .EQU    0A7H            ; FN
-ZSPC    .EQU    0A8H            ; SPC
-ZTHEN   .EQU    0A9H            ; THEN
-ZNOT    .EQU    0AAH            ; NOT
-ZSTEP   .EQU    0ABH            ; STEP
+ZTAB    .EQU    0A6H            ; TAB
+ZTO     .EQU    0A7H            ; TO
+ZFN     .EQU    0A8H            ; FN
+ZSPC    .EQU    0A9H            ; SPC
+ZTHEN   .EQU    0B0H            ; THEN
+ZNOT    .EQU    0ABH            ; NOT
+ZSTEP   .EQU    0ACH            ; STEP
 
-ZPLUS   .EQU    0ACH            ; +
-ZMINUS  .EQU    0ADH            ; -
-ZTIMES  .EQU    0AEH            ; *
-ZDIV    .EQU    0AFH            ; /
-ZOR     .EQU    0B2H            ; OR
-ZGTR    .EQU    0B3H            ; >
-ZEQUAL  .EQU    0B4H            ; M
-ZLTH    .EQU    0B5H            ; <
-ZSGN    .EQU    0B6H            ; SGN
-ZPOINT  .EQU    0C7H            ; POINT
-ZLEFT   .EQU    0CDH +2         ; LEFT$
+ZPLUS   .EQU    0ADH            ; +
+ZMINUS  .EQU    0AEH            ; -
+ZTIMES  .EQU    0AFH            ; *
+ZDIV    .EQU    0B0H            ; /
+ZOR     .EQU    0B3H            ; OR
+ZGTR    .EQU    0B4H            ; >
+ZEQUAL  .EQU    0B5H            ; M
+ZLTH    .EQU    0B6H            ; <
+ZSGN    .EQU    0B7H            ; SGN
+ZPOINT  .EQU    0C8H            ; POINT
+ZLEFT   .EQU    0CEH +2         ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -4315,7 +4343,6 @@ JJUMP1:
 MONOUT: 
         JP      $0008           ; output a char
 
-
 MONITR: 
         JP      $0000           ; Restart (Normally Monitor Start)
 
@@ -4336,6 +4363,40 @@ TSTBIT: PUSH    AF              ; Save bit mask
 
 OUTNCR: CALL    OUTC            ; Output character in A
         JP      PRNTCRLF        ; Output CRLF
+
+COLOR:  CALL    GETINT          ; Get First value
+        CALL    CHKCLR          ; check if it's in range 1~15
+        SRL     A
+        SRL     A
+        SRL     A
+        SRL     A
+        LD      (TMPBFR1), A    ; store it
+        
+        CALL    CHKSYN          ; Make sure ',' follows
+        DEFB    ','
+        CALL    GETINT          ; get second value
+        CALL    CHKCLR          ; check if it's in range 1~15
+        
+        LD      (TMPBFR2), A    ; store it
+        LD      (BKGNDCLR), A
+        LD      C, A
+
+        LD      A, (TMPBFR1)
+        LD      (FRGNDCLR), A
+
+        OR      C
+        LD      B, A
+        JP      $0020             
+
+SCREEN:
+        RET
+
+; check if the color is not 0 and into the range 1~15
+CHKCLR: and     A               ; is it 0?
+        jp      Z,SNERR         ; yes, raise a SN error
+        cp      $10             ; is it in range 1~15?
+        jp      NC,SNERR        ; no, raise a SN error
+        ret    
 
 .end
 

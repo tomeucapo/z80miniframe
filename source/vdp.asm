@@ -74,6 +74,14 @@ LDWLCMMSG       ld a,(hl)           ; load char
                 inc hl
                 jr LDWLCMMSG        ; next char
                 ret 
+; set color
+;       A = Foreground and Background color
+VDP_SETCOLOR:
+        LD C, VDP_REG     ; Put color code
+        OUT (c), A
+        LD A, VDP_WREG+7  ; Reg 7. Change color
+        OUT (c), A        
+        RET
 
 ; set the address to place text at X/Y coordinate
 ;       A = X
@@ -113,7 +121,7 @@ VDPTXTREG       defb 00000000b    ; reg.0: external video disabled
                 defb $00          ; reg.4: pattern table set to $0000
                 defb $00          ; reg.5: not used in text mode
                 defb $00          ; reg.6: not used in text mode
-                defb $f1          ; reg.7: light blue text on white background
+                defb $f4          ; reg.7: light blue text on white background
 
 ;-------------------------------------------------------------------------------
 ;

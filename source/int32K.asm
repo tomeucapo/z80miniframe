@@ -61,6 +61,9 @@ RST10           JP      RXA
                  .ORG    0018H
 RST18            JP      CKINCHAR
 
+RST20            .ORG    0020H
+                 JP      VDP_SETCOLOR
+
 ;------------------------------------------------------------------------------
 ; RST 38 - INTERRUPT VECTOR [ for IM 1 ]
 
@@ -84,8 +87,8 @@ INIT:
                CALL		 INIT_IO
                CALL      VDP_INIT
                CALL      CHIMPSOUND
-
-			   IM        1
+			   
+               IM        1
                EI
                LD        HL,SIGNON1      ; Sign-on message
                CALL      PRINT           ; Output string

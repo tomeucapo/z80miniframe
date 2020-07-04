@@ -1228,7 +1228,7 @@ U 1 1 5EABC98E
 P 7700 4950
 F 0 "JP3" V 7654 4998 50  0000 L CNN
 F 1 "USB_POWER" V 7745 4998 50  0000 L CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_1x02_P2.00mm_Vertical" H 7700 4950 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7700 4950 50  0001 C CNN
 F 3 "~" H 7700 4950 50  0001 C CNN
 	1    7700 4950
 	0    1    1    0   
@@ -1252,7 +1252,7 @@ U 1 1 5EAC6911
 P 9450 1000
 F 0 "JP4" H 9450 1147 50  0000 C CNN
 F 1 "SELF_POWER" H 9450 1238 50  0000 C CNN
-F 2 "Connector_PinHeader_2.00mm:PinHeader_1x03_P2.00mm_Vertical" H 9450 1000 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 9450 1000 50  0001 C CNN
 F 3 "~" H 9450 1000 50  0001 C CNN
 	1    9450 1000
 	-1   0    0    1   

@@ -46,8 +46,20 @@ INIT_IO:        CALL INIT_PIO
 
 INIT_PIO:       LD      A,10011001B    ; A= IN, B= OUT C= IN
                 OUT     (PIO1CONT),A
+
+                LD      A, 4
+                OUT     (PIO1B), A
+                LD      BC, 500
+                CALL    PAUSE
+
+                LD      A, 8
+                OUT     (PIO1B), A
+                LD      BC, 500
+                CALL    PAUSE
+
                 LD      A,0
                 OUT	    (PIO1B), A
+
                 RET
 
 
@@ -108,6 +120,7 @@ notWrap:        LD       (serInPtr),HL
                 LD       (serBufUsed),A
                 CP       SER_FULLSIZE
                 JR       C,rts0
+
 				
 rts0:           LD       A, 0
 				OUT		 (PIO1B),A

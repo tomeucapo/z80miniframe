@@ -12,8 +12,8 @@ void main(void)
 	char helloTxt[9]={'K','B','D','T','S','T',' ','1',0};
         char keyCodes[8][8] = {
                 {0,   'N','5','V','V','1','X','3'},
-                {0, 0x1b, 'R','J','F','D','W','Q'},
-                {17, '6', 'B','4','4','Z','2','C'},
+                {0, 0x1b, 'R','J','F','.','W','Q'},
+                {17, '6', 'B','.','4','Z','2','.'},
                 {0,    0,'\\','K','-',',','9',';'},
                 {16,  37, 40, 32, 38,39,',','.'},
                 {0,   8,'O','P','U','I',']','['},
@@ -23,14 +23,20 @@ void main(void)
 	z80_outp(PIO1CTRL, 0x90);
 	vdp_init();
 	
-	vdp_gotoxy(1, 1);
-	vdp_print(helloTxt);
-
 	z80_outp(PIO1B, 4);
 	z80_delay_ms (200);
 	z80_outp(PIO1B, 8);
 	z80_delay_ms (200);
-
+        
+        vdp_print(helloTxt);
+        /*
+        for(char i = 0; i < 14; i++)
+        {
+                vdp_textcolor(i);
+	        vdp_gotoxy(1, 1+i);
+                
+        }
+        */
 	unsigned int cNum = 0; 
 	vdp_gotoxy(1,2);
 
@@ -63,6 +69,7 @@ void main(void)
 
                 if (keyPressed)
                 {
+                        z80_outp(PIO1B, 4);
                         vdp_putch(keyCodes[row][col]);
                         cNum++;
 
@@ -71,7 +78,7 @@ void main(void)
                                 cNum = 0;
                                 vdp_gotoxy(1, 2);
                         }
-
+                        z80_outp(PIO1B, 0);
                 }
         }
 }
