@@ -26,17 +26,22 @@ serInPtr        .EQU     serBuf+SER_BUFSIZE
 serRdPtr        .EQU     serInPtr+2
 serBufUsed      .EQU     serRdPtr+2
 basicStarted    .EQU     serBufUsed+1
-TEMPSTACK       .EQU     $80ED ; Top of BASIC line input buffer so is "free ram" when BASIC resets
+SCR_X           .EQU     basicStarted+1
+SCR_Y           .EQU     SCR_X+1
+
+
+TEMPSTACK       .EQU     $80F0      ; 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
 
 CR              .EQU     0DH
 LF              .EQU     0AH
 CS              .EQU     0CH             ; Clear screen
 
 ; MS-BASIC Addresses
-BASIC_COLD		.EQU	 $0828   ;$0368
-BASIC_WARM		.EQU	 $082B   ;$0388
+BASIC_COLD		.EQU	 $08B8   ;$0368
+BASIC_WARM		.EQU	 $08DB   ;$0388
 
                 .ORG $0000
+
 ;------------------------------------------------------------------------------
 ; Reset
 
@@ -47,8 +52,9 @@ RST00           DI                       ;Disable interrupts
 ; TX a character over RS232 
 
                 .ORG     0008H
-RST08           JP      TXA
-
+RST08           CALL     VDP_PUTCHAR
+                JP       TXA
+                
 ;------------------------------------------------------------------------------
 ; RX a character over RS232 Channel A [Console], hold here until char ready.
 
@@ -61,8 +67,24 @@ RST10           JP      RXA
                  .ORG    0018H
 RST18            JP      CKINCHAR
 
-RST20            .ORG    0020H
-                 JP      VDP_SETCOLOR
+;------------------------------------------------------------------------------
+; Main firmware interrupt service routine dispacher
+
+                .ORG    0020H
+
+RST20           
+                DI 
+
+                PUSH     AF
+                PUSH     HL
+                
+                CALL     DISPATCH_ROUTINE
+                
+                POP      HL
+                POP      AF
+                
+                EI
+                RETI            
 
 ;------------------------------------------------------------------------------
 ; RST 38 - INTERRUPT VECTOR [ for IM 1 ]
@@ -89,14 +111,24 @@ INIT:
                CALL      CHIMPSOUND
 			   
                IM        1
-               EI
+               EI                          
+
                LD        HL,SIGNON1      ; Sign-on message
                CALL      PRINT           ; Output string
-			
-               LD        A, 4
-               LD        D, 8            
-               LD        HL, WELCOME_MSG
-               CALL      VDP_PRINT
+		
+               ;LD        A, 0
+               ;LD        E, 0
+               ;CALL      VDP_SETPOS
+
+               ;LD        HL, WELCOME_MSG  ; Print string to screen
+               ;CALL      VDP_PRINT
+
+               ;LD        A, 0             ; Locate screen at 0,1
+               ;LD        E, 1
+               ;CALL      VDP_SETPOS
+
+               ;LD        HL, WELCOME_MSG2   ; Print second message
+               ;CALL      VDP_PRINT
 
 			   CALL		 MON_HELP
 			   CALL		 MON_LOOP
@@ -133,7 +165,9 @@ CHECKWARM:
 ; Simple sound generation with AY-3-8910 
 ;**************************************************************************************
 
-CHIMPSOUND:  PUSH   D
+CHIMPSOUND:  PUSH   DE
+             PUSH   AF
+             PUSH   BC
 
              LD     A, 7
              LD     C, 62
@@ -168,7 +202,9 @@ LOOP2PITCH:  LD     A, 1
              LD     C, 0
              CALL   AYREGWRITE   
 
-             POP    D
+             POP    BC
+             POP    AF
+             POP    DE
              RET
 
 PAUSE:       PUSH   AF
@@ -184,14 +220,46 @@ PAUSELOOP2:  DEC    A              ; DEC COUNTER. 4 T-states = 1 uS.
 PAUSESLUT:   POP    AF
              RET
 
+
+DISPATCH_ROUTINE:
+                EX      AF, AF'
+                LD      A, B
+                CP      0
+                JR      Z, _VDP_SETCOLOR
+                CP      1
+                JR      Z, _VDP_PRINT
+                CP      2
+                JR      Z, _VDP_SETPOS
+                CP      3
+                JR      Z, _VDP_CLRSCR
+                JP      END20
+
+_VDP_SETCOLOR:  EX      AF, AF'
+                CALL    VDP_SETCOLOR
+                JP      END20
+
+_VDP_PRINT:     EX      AF, AF'
+                CALL    VDP_PRINT
+                JP      END20
+
+_VDP_SETPOS:    EX      AF, AF'
+                CALL    VDP_SETPOS
+                JP      END20
+
+_VDP_CLRSCR:    EX      AF, AF'
+                CALL    VDP_CLRSCR
+
+END20:          RET
+
+
 SIGNON1:       .BYTE     CS
                .BYTE     "Z80 SBC By Grant Searle",CR,LF
-			   .BYTE     "UART 16650 and IO routines written by Tomeu Capó",CR,LF,0
+			   .BYTE     "Firmware v2.1 By Tomeu Capo",CR,LF,0
 SIGNON2:       .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
 
-WELCOME_MSG:   .BYTE     "Z80MiniFrame v1.1",0
-WELCOME_MSG2:  .BYTE     "TCC 2019 (C)",0
+WELCOME_MSG:   .BYTE     "Z80MiniFrame v2.1", 0
+WELCOME_MSG2:  .BYTE     "TCC 2020 (C)", 0
 			   
 include "ioroutines.asm"
 include "monitor.asm"

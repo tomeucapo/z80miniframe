@@ -37,7 +37,8 @@ DEL     .EQU    7FH             ; Delete
 
 ; BASIC WORK SPACE LOCATIONS
 
-WRKSPC  .EQU    8045H             ; BASIC Work space
+WRKSPC  .EQU    8048H               ; BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
+
 USR     .EQU    WRKSPC+3H           ; "USR (x)" jump
 OUTSUB  .EQU    WRKSPC+6H           ; "OUT p,n"
 OTPORT  .EQU    WRKSPC+7H           ; Port (p)
@@ -150,7 +151,7 @@ MO      .EQU    24H             ; Missing operand
 HX      .EQU    26H             ; HEX error
 BN      .EQU    28H             ; BIN error
 
-        .ORG    00828H    ;00368H
+        .ORG    008B8H    ;00368H
 
 COLD:   JP      STARTB          ; Jump for cold start
 WARM:   JP      WARMST          ; Jump for warm start
@@ -309,6 +310,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'D'+80H,"OKE"
         .BYTE   'S'+80H,"CREEN"
         .BYTE   'C'+80H,"OLOR"
+        .BYTE   'L'+80H,"LOCATE"
         .BYTE   'L'+80H,"INES"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
@@ -399,6 +401,7 @@ WORDTB: .WORD   PEND
         .WORD   DOKE
         .WORD   SCREEN             ; Screen
         .WORD   COLOR
+        .WORD   LOCATE
         .WORD   LINES
         .WORD   CLS
         .WORD   WIDTH
@@ -423,28 +426,28 @@ ZDATA   .EQU    083H            ; DATA
 ZGOTO   .EQU    088H            ; GOTO
 ZGOSUB  .EQU    08CH            ; GOSUB
 ZREM    .EQU    08EH            ; REM
-ZPRINT  .EQU    09FH            ; PRINT         9E
-ZNEW    .EQU    0A5H            ; NEW           A4              
+ZPRINT  .EQU    0A0H            ; PRINT         9E
+ZNEW    .EQU    0A6H            ; NEW           A4              
 
-ZTAB    .EQU    0A6H            ; TAB
-ZTO     .EQU    0A7H            ; TO
-ZFN     .EQU    0A8H            ; FN
-ZSPC    .EQU    0A9H            ; SPC
-ZTHEN   .EQU    0B0H            ; THEN
-ZNOT    .EQU    0ABH            ; NOT
-ZSTEP   .EQU    0ACH            ; STEP
+ZTAB    .EQU    0A7H            ; TAB
+ZTO     .EQU    0A8H            ; TO
+ZFN     .EQU    0A9H            ; FN
+ZSPC    .EQU    0AAH            ; SPC
+ZTHEN   .EQU    0B1H            ; THEN
+ZNOT    .EQU    0ACH            ; NOT
+ZSTEP   .EQU    0ADH            ; STEP
 
-ZPLUS   .EQU    0ADH            ; +
-ZMINUS  .EQU    0AEH            ; -
-ZTIMES  .EQU    0AFH            ; *
-ZDIV    .EQU    0B0H            ; /
-ZOR     .EQU    0B3H            ; OR
-ZGTR    .EQU    0B4H            ; >
-ZEQUAL  .EQU    0B5H            ; M
-ZLTH    .EQU    0B6H            ; <
-ZSGN    .EQU    0B7H            ; SGN
-ZPOINT  .EQU    0C8H            ; POINT
-ZLEFT   .EQU    0CEH +2         ; LEFT$
+ZPLUS   .EQU    0AEH            ; +
+ZMINUS  .EQU    0AFH            ; -
+ZTIMES  .EQU    0B0H            ; *
+ZDIV    .EQU    0B1H            ; /
+ZOR     .EQU    0B4H            ; OR
+ZGTR    .EQU    0B5H            ; >
+ZEQUAL  .EQU    0B6H            ; M
+ZLTH    .EQU    0B7H            ; <
+ZSGN    .EQU    0B8H            ; SGN
+ZPOINT  .EQU    0C9H            ; POINT
+ZLEFT   .EQU    0CFH +2         ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -4130,6 +4133,9 @@ GETINP: RST	    10H             ;input a character
         RET
 
 CLS: 
+        LD      B, 3
+        RST     $20
+        
         LD      A,CS            ; ASCII Clear screen
         JP      MONOUT          ; Output character
 
@@ -4366,27 +4372,37 @@ OUTNCR: CALL    OUTC            ; Output character in A
 
 COLOR:  CALL    GETINT          ; Get First value
         CALL    CHKCLR          ; check if it's in range 1~15
-        SRL     A
-        SRL     A
-        SRL     A
-        SRL     A
+        RLA
+	RLA
+	RLA
+	RLA
         LD      (TMPBFR1), A    ; store it
-        
+        LD      (FRGNDCLR), A
+
         CALL    CHKSYN          ; Make sure ',' follows
         DEFB    ','
         CALL    GETINT          ; get second value
         CALL    CHKCLR          ; check if it's in range 1~15
         
-        LD      (TMPBFR2), A    ; store it
         LD      (BKGNDCLR), A
-        LD      C, A
-
-        LD      A, (TMPBFR1)
-        LD      (FRGNDCLR), A
-
-        OR      C
         LD      B, A
-        JP      $0020             
+        LD      A, (TMPBFR1)
+        OR      B
+
+        LD      B, 0            ; Call service routine number 0 (VDP_SETCOLOR)
+        RST     $20          
+        RET   
+
+LOCATE: CALL    GETINT          ; Get First value put X into A
+        LD      (TMPBFR1), A
+        CALL    CHKSYN          ; Make sure ',' follows
+        DEFB    ','
+        CALL    GETINT          ; get second value put Y into A
+        LD      E, A            ; E <- A        
+        LD      A, (TMPBFR1)
+        LD      B, 1            ; Call service routine number 1 (VDP_SETPOS)
+        RST     $20    
+        RET 
 
 SCREEN:
         RET
@@ -4396,7 +4412,7 @@ CHKCLR: and     A               ; is it 0?
         jp      Z,SNERR         ; yes, raise a SN error
         cp      $10             ; is it in range 1~15?
         jp      NC,SNERR        ; no, raise a SN error
-        ret    
+        RET    
 
 .end
 

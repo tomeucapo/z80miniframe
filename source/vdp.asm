@@ -14,7 +14,14 @@ VDP_R5          equ 05h
 VDP_R6          equ 06h
 VDP_R7          equ 07h
 
-VDP_INIT:       ; set up registers for text mode
+; VDP Initialization routine
+
+VDP_INIT:      
+                LD A, 0
+                LD (SCR_X), A
+                LD (SCR_Y), A
+
+                ; set up registers for text mode
                 ld b,$08            ; 8 registers
                 ld hl,VDPTXTREG     ; pointer to registers settings
                 ld a,VDP_WREG+$00   ; start with REG0 ($80+register number)
@@ -26,7 +33,7 @@ LDREGVLS        ld d,(HL)           ; load register's value
                 inc hl              ; next value
                 djnz LDREGVLS       ; repeat for 8 registers
 
-                ; reset VRAM
+                ; Reset VRAM
                 ld c,VDP_REG        ; load VPD port value
                 ld hl,$4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
                 xor a,a
@@ -41,7 +48,7 @@ EMPTYVRAM:      out (VDP_RAM),a     ; after first byte, the VDP autoincrements V
                 jr nz,EMPTYVRAM     ; repeat until page is fully cleared
                 djnz EMPTYVRAM      ; repeat for $40 pages
 
-                ; load charset
+                ; Load charset
                 ld b,$ff            ; 127 chars to be loaded
                 ld hl,$4000         ; fist pattern cell $0000 (MSB must be 0 & 1)
                 ld c,VDP_REG        ; load VDP address into C
@@ -60,33 +67,104 @@ SENDCHRPTRNS:   ld a,(hl)           ; load byte to send to VDP
 ENDVDPINIT      ret                 ; return to caller
 
 
-; copy a null-terminated string to VRAM
-;       HL = ram source address
+; Clear text screen area
+
+VDP_CLRSCR:     PUSH DE
+
+                LD DE, $0BBD            ; Total text area = 24 * 40 + $800
+                LD A, 32
+
+CLRBUFF:        LD C, VDP_REG      
+                OUT (C), D       
+                OUT (C), E         
+                OUT (VDP_RAM), A
+                DEC DE            
+                JR NZ, CLRBUFF
+                
+                LD A, (SCR_Y)
+                XOR A, A
+                LD E, A
+                LD A, (SCR_X)
+                XOR A, A
+                CALL VDP_SETPOS
+
+                POP DE
+                RET
+
+; Put char to VDP
+;       A = Charater to output
+
+VDP_PUTCHAR:    PUSH AF
+
+                CP CS
+                JR Z, CLEARSCREEN
+                CP LF
+                JR Z, NEXT_LINE
+                CP CR
+                JR Z, PUTE
+                JR PUTC
+
+NEXT_LINE:      ld a, (SCR_Y)
+                inc a
+                ld e, a
+                ld a, (SCR_X)
+                xor a, a
+                ld (SCR_X),a 
+                CALL VDP_SETPOS
+                JR PUTE
+
+CLEARSCREEN:    CALL VDP_CLRSCR
+                JR PUTE
+                        
+PUTC:           OUT (VDP_RAM), A
+                LD A, (SCR_X)
+                INC A
+                LD (SCR_X), A
+                CP 40
+                JR Z, NEXT_LINE
+
+PUTE:           POP AF
+                RET
+
+; Copy a null-terminated string to VRAM
+;       HL = Initial string pointer address
+
 VDP_PRINT:      ; Print Message
-                ld c,VDP_REG        ; load VPD port value
-                out (c),a           ; low byte of address to VDP
-                out (c),d           ; high byte address to VDP
-LDWLCMMSG       ld a,(hl)           ; load char
-                cp $00              ; is it the end of message?
-                jr z,ENDVDPINIT     ; yes, exit
-                out (VDP_RAM),a     ; no, print char onto screen
-                nop
-                inc hl
-                jr LDWLCMMSG        ; next char
-                ret 
-; set color
+
+LDWLCMMSG:      LD A, (HL)           ; load char
+                CP $00               ; is it the end of message?
+                RET Z
+
+                CALL VDP_PUTCHAR
+
+                INC HL
+                JR LDWLCMMSG
+
+
+; Set color
 ;       A = Foreground and Background color
+
 VDP_SETCOLOR:
         LD C, VDP_REG     ; Put color code
-        OUT (c), A
+        OUT (C), A
         LD A, VDP_WREG+7  ; Reg 7. Change color
-        OUT (c), A        
+        OUT (C), A        
+
         RET
 
-; set the address to place text at X/Y coordinate
+; Set the address to place text at X/Y coordinate
 ;       A = X
 ;       E = Y
+
 VDP_SETPOS:
+        LD      (SCR_X), A
+        EX      AF, AF'        
+        LD      A, E
+        LD      (SCR_Y), A
+        EX      AF, AF'
+        
+        PUSH    HL
+
         ld      d, 0
         ld      hl, 0
         add     hl, de                  ; Y x 1
@@ -98,20 +176,25 @@ VDP_SETPOS:
         add     hl, hl                  ; Y x 40
         ld      e, a
         add     hl, de                  ; add column for final address
+        ld      b, 8
+        ld      c, 0
+        add     hl, bc
         ex      de, hl                  ; send address to TMS
         call    VDP_WRITEADDR
-        ret
 
-; set the next address of vram to write
-;       DE = address
+        POP     HL
+        RET
+
+; Set the next address of vram to write
+;       DE = VDP address
 VDP_WRITEADDR:
-        ld      a, e                    ; send lsb
-        out     (VDP_REG), a
-        ld      a, d                    ; mask off msb to max of 16KB
-        and     $3F
-        or      $40                     ; set second highest bit to indicate write
-        out     (VDP_REG), a             ; send msb
-        ret
+        LD      A, E                    ; send lsb
+        OUT     (VDP_REG), A
+        LD      A, D                    ; mask off msb to max of 16KB
+        ;and     $3F
+        ;or      $40                     ; set second highest bit to indicate write
+        OUT     (VDP_REG), A             ; send msb
+        RET
 
                 ; VDP registers settings to set up a text mode
 VDPTXTREG       defb 00000000b    ; reg.0: external video disabled
@@ -129,11 +212,19 @@ VDPTXTREG       defb 00000000b    ; reg.0: external video disabled
 ;
 ;-------------------------------------------------------------------------------
 ;
+;  00000000  00
+;  00111100  7E
+;  11111111  FF
+;  10111101  BD 
+;  11111111  FF
+;  10111101  BD
+;  01000010  42  
+;  00111100  3C
 
 CHARSET: equ $
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 0
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 1
-        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 2
+        defb 0x3C,0xFF,0xBD,0xFF,0xBD,0x42,0x3C,0x00 ; char 2
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 3
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 4
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 5

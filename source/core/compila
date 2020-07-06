@@ -1,0 +1,2 @@
+zcc +z80 -create-app -clib=new -o testkbd.bin -c vdp.c testkbd.c
+
