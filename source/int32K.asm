@@ -17,28 +17,33 @@
 ; have modified serial routines to adapt to UART 16650 and add PIO initialization routines
 ; by Tomeu Capó
 
-SER_BUFSIZE     .EQU     3FH
-SER_FULLSIZE    .EQU     30H
-SER_EMPTYSIZE   .EQU     5
+SER_BUFSIZE     .EQU     $3F
+SER_FULLSIZE    .EQU     $30
+SER_EMPTYSIZE   .EQU     $05
 
-serBuf          .EQU     $8000
-serInPtr        .EQU     serBuf+SER_BUFSIZE
-serRdPtr        .EQU     serInPtr+2
-serBufUsed      .EQU     serRdPtr+2
-basicStarted    .EQU     serBufUsed+1
-SCR_X           .EQU     basicStarted+1
-SCR_Y           .EQU     SCR_X+1
+serBuf          .EQU     $8000                    
+serInPtr        .EQU     serBuf+SER_BUFSIZE     ; $803F
+serRdPtr        .EQU     serInPtr+2             ; $8041
+serBufUsed      .EQU     serRdPtr+2             ; $8043
+basicStarted    .EQU     serBufUsed+1           ; $8044
+SCR_X           .EQU     basicStarted+1         ; $8045
+SCR_Y           .EQU     SCR_X+1                ; $8046
+SCR_SIZE_W      .EQU     SCR_Y+1                ; $8047
+SCR_SIZE_H      .EQU     SCR_SIZE_W+1           ; $8048
+SCR_MODE        .EQU     SCR_SIZE_H+1           ; $8049
 
+bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
-TEMPSTACK       .EQU     $80F0      ; 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
+TEMPSTACK       .EQU     $80AB      ;80F2      ; 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
 
 CR              .EQU     0DH
-LF              .EQU     0AH
+LF              .EQU     0AH                
 CS              .EQU     0CH             ; Clear screen
+BKSP            .EQU     08H
 
 ; MS-BASIC Addresses
-BASIC_COLD		.EQU	 $08B8   ;$0368
-BASIC_WARM		.EQU	 $08DB   ;$0388
+BASIC_COLD		.EQU	 $08E8   ;$0368
+BASIC_WARM		.EQU	 $08EC   ;$0388
 
                 .ORG $0000
 
@@ -72,8 +77,7 @@ RST18            JP      CKINCHAR
 
                 .ORG    0020H
 
-RST20           
-                DI 
+RST20           DI 
 
                 PUSH     AF
                 PUSH     HL
@@ -112,6 +116,10 @@ INIT:
 			   
                IM        1
                EI                          
+                
+               LD        A, 0
+               LD        E, 0
+               CALL      VDP_SETPOS
 
                LD        HL,SIGNON1      ; Sign-on message
                CALL      PRINT           ; Output string
@@ -230,9 +238,6 @@ DISPATCH_ROUTINE:
                 JR      Z, _VDP_PRINT
                 CP      2
                 JR      Z, _VDP_SETPOS
-                CP      3
-                JR      Z, _VDP_CLRSCR
-                JP      END20
 
 _VDP_SETCOLOR:  EX      AF, AF'
                 CALL    VDP_SETCOLOR
@@ -246,9 +251,6 @@ _VDP_SETPOS:    EX      AF, AF'
                 CALL    VDP_SETPOS
                 JP      END20
 
-_VDP_CLRSCR:    EX      AF, AF'
-                CALL    VDP_CLRSCR
-
 END20:          RET
 
 
@@ -257,8 +259,8 @@ SIGNON1:       .BYTE     CS
 			   .BYTE     "Firmware v2.1 By Tomeu Capo",CR,LF,0
 SIGNON2:       .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
-
-WELCOME_MSG:   .BYTE     "Z80MiniFrame v2.1", 0
+                         
+WELCOME_MSG:   .BYTE     "Z80MiniFrame v2.1 ***********************", 0
 WELCOME_MSG2:  .BYTE     "TCC 2020 (C)", 0
 			   
 include "ioroutines.asm"

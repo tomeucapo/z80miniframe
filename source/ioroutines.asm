@@ -109,7 +109,7 @@ READ_UART:		IN		 A,(UART5)    	 ;Fetch the control register
 notFull:        LD       HL,(serInPtr)
                 INC      HL
                 LD       A,L             ; Only need to check low byte becasuse buffer<256 bytes
-                CP       (serBuf+SER_BUFSIZE) & $FF
+                CP       bufWrap
                 JR       NZ, notWrap
                 LD       HL,serBuf
 notWrap:        LD       (serInPtr),HL
@@ -152,7 +152,7 @@ RXA:            LD       A,(serBufUsed)
                 LD       HL,(serRdPtr)
                 INC      HL
                 LD       A,L             ; Only need to check low byte becasuse buffer<256 bytes
-                CP       (serBuf+SER_BUFSIZE) & $FF
+                CP       bufWrap
                 JR       NZ, notRdWrap
                 LD       HL,serBuf
 notRdWrap:      DI

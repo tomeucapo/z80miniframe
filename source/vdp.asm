@@ -1,18 +1,25 @@
-;label defining for VDP (Video Display Processor)
-VDP_RAM         equ $2e
-VDP_REG         equ $2f
+;******************************************************************
+; VDP Routines for TMS9918
+; Tomeu Capó 2020                      
+;******************************************************************
 
-VDP_WREG        equ 10000000b   ; to be added to the REG value
-VDP_RRAM        equ 00000000b   ; to be added to the ADRS value
-VDP_WRAM        equ 01000000b   ; to be added to the ADRS value
-VDP_R0          equ 00h
-VDP_R1          equ 01h
-VDP_R2          equ 02h
-VDP_R3          equ 03h
-VDP_R4          equ 04h
-VDP_R5          equ 05h
-VDP_R6          equ 06h
-VDP_R7          equ 07h
+
+; label defining for VDP (Video Display Processor)
+
+VDP_RAM         .EQU    $2E
+VDP_REG         .EQU    $2F
+
+VDP_WREG        .EQU    10000000b   ; to be added to the REG value
+VDP_RRAM        .EQU    00000000b   ; to be added to the ADRS value
+VDP_WRAM        .EQU    01000000b   ; to be added to the ADRS value
+VDP_R0          .EQU    00h
+VDP_R1          .EQU    01h
+VDP_R2          .EQU    02h
+VDP_R3          .EQU    03h
+VDP_R4          .EQU    04h
+VDP_R5          .EQU    05h
+VDP_R6          .EQU    06h
+VDP_R7          .EQU    07h
 
 ; VDP Initialization routine
 
@@ -20,6 +27,11 @@ VDP_INIT:
                 LD A, 0
                 LD (SCR_X), A
                 LD (SCR_Y), A
+
+                LD A, 40
+                LD (SCR_SIZE_W), A    
+                LD A, 24
+                LD (SCR_SIZE_H), A
 
                 ; set up registers for text mode
                 ld b,$08            ; 8 registers
@@ -66,35 +78,44 @@ SENDCHRPTRNS:   ld a,(hl)           ; load byte to send to VDP
 
 ENDVDPINIT      ret                 ; return to caller
 
+VDP_SCROLL_UP:  
+                RET
 
 ; Clear text screen area
 
-VDP_CLRSCR:     PUSH DE
+VDP_CLRSCR:     PUSH BC
 
-                LD DE, $0BBD            ; Total text area = 24 * 40 + $800
-                LD A, 32
-
-CLRBUFF:        LD C, VDP_REG      
-                OUT (C), D       
-                OUT (C), E         
+                LD HL, $0800
+                LD C, VDP_REG      
+                SET 6, H
+                OUT (C), L      
+                OUT (C), H    
+               
+                LD BC, 960           ; Total text area = 24 * 40
+CLRBUFF:        LD A, 32
                 OUT (VDP_RAM), A
-                DEC DE            
+                NOP
+                DEC BC
+                LD A, B
+                OR C
                 JR NZ, CLRBUFF
-                
+
                 LD A, (SCR_Y)
                 XOR A, A
                 LD E, A
                 LD A, (SCR_X)
                 XOR A, A
                 CALL VDP_SETPOS
-
-                POP DE
+                
+                POP BC
                 RET
 
 ; Put char to VDP
 ;       A = Charater to output
 
 VDP_PUTCHAR:    PUSH AF
+                PUSH DE
+                PUSH HL
 
                 CP CS
                 JR Z, CLEARSCREEN
@@ -102,15 +123,26 @@ VDP_PUTCHAR:    PUSH AF
                 JR Z, NEXT_LINE
                 CP CR
                 JR Z, PUTE
+                CP BKSP
+                JP Z, DELCHAR
                 JR PUTC
 
-NEXT_LINE:      ld a, (SCR_Y)
-                inc a
-                ld e, a
-                ld a, (SCR_X)
-                xor a, a
-                ld (SCR_X),a 
-                CALL VDP_SETPOS
+NEXT_LINE:      LD A, (SCR_Y)
+                INC A
+                LD E, A
+                LD A, (SCR_X)
+                XOR A, A
+                ld (SCR_X), A 
+                JR SETPOS
+
+DELCHAR:        LD A, (SCR_Y)
+                LD E, A
+                LD A, (SCR_X)
+                DEC A
+                JP M, BEGIN_LINE
+                JR SETPOS
+BEGIN_LINE:     LD A, 0
+SETPOS:         CALL VDP_SETPOS
                 JR PUTE
 
 CLEARSCREEN:    CALL VDP_CLRSCR
@@ -123,33 +155,38 @@ PUTC:           OUT (VDP_RAM), A
                 CP 40
                 JR Z, NEXT_LINE
 
-PUTE:           POP AF
+PUTE:           POP HL
+                POP DE
+                POP AF
                 RET
 
 ; Copy a null-terminated string to VRAM
 ;       HL = Initial string pointer address
 
-VDP_PRINT:      ; Print Message
+VDP_PRINT:      
+                PUSH HL
 
-LDWLCMMSG:      LD A, (HL)           ; load char
+LDWLCMMSG:      LD A, (HL)           
                 CP $00               ; is it the end of message?
-                RET Z
+                JR Z, ENDPRT
 
                 CALL VDP_PUTCHAR
 
                 INC HL
                 JR LDWLCMMSG
+                
+ENDPRT:         POP HL
+                RET
 
 
 ; Set color
 ;       A = Foreground and Background color
 
 VDP_SETCOLOR:
-        LD C, VDP_REG     ; Put color code
+        LD C, VDP_REG          ; Put color code
         OUT (C), A
-        LD A, VDP_WREG+7  ; Reg 7. Change color
+        LD A, VDP_WREG+VDP_R7  ; Reg 7. Change color
         OUT (C), A        
-
         RET
 
 ; Set the address to place text at X/Y coordinate
@@ -211,15 +248,6 @@ VDPTXTREG       defb 00000000b    ; reg.0: external video disabled
 ;               C  H  A  R  S  E  T
 ;
 ;-------------------------------------------------------------------------------
-;
-;  00000000  00
-;  00111100  7E
-;  11111111  FF
-;  10111101  BD 
-;  11111111  FF
-;  10111101  BD
-;  01000010  42  
-;  00111100  3C
 
 CHARSET: equ $
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 0
@@ -283,7 +311,7 @@ CHARSET: equ $
         defb 0x00,0x30,0x30,0x00,0x30,0x30,0x00,0x00 ; :
         defb 0x00,0x30,0x30,0x00,0x30,0x10,0x20,0x00 ; ;
         defb 0x10,0x20,0x40,0x80,0x40,0x20,0x10,0x00 ; <
-        defb 0x14,0x14,0x14,0x14,0x14,0x00,0x00,0x00 ; =
+        defb 0x00,0x00,0xf8,0x00,0xf8,0x00,0x00,0x00 ; =
         defb 0x40,0x20,0x10,0x08,0x10,0x20,0x40,0x00 ; >
         defb 0x70,0x88,0x08,0x10,0x20,0x00,0x20,0x00 ; ?
         defb 0x70,0x88,0x08,0x68,0xa8,0xa8,0x70,0x00 ; @

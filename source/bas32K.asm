@@ -37,7 +37,7 @@ DEL     .EQU    7FH             ; Delete
 
 ; BASIC WORK SPACE LOCATIONS
 
-WRKSPC  .EQU    8048H               ; BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
+WRKSPC  .EQU    804AH               ; BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
 
 USR     .EQU    WRKSPC+3H           ; "USR (x)" jump
 OUTSUB  .EQU    WRKSPC+6H           ; "OUT p,n"
@@ -104,28 +104,13 @@ PROGST  .EQU    WRKSPC+0F9H     ; Start of program text area
 STLOOK  .EQU    WRKSPC+15DH     ; Start of memory test
 
 ; Screen Variables
-SCR_SIZE_W      .EQU     STLOOK+$03      ; (1) screen width (it can be either 40 chars or 32 chars/bytes)
-SCR_SIZE_H      .EQU     SCR_SIZE_W+$01  ; (1) screen height (it can be 24/48/192: 24 for text, 48 for MC, 192 for graphics)
-SCR_MODE        .EQU     SCR_SIZE_H+$01  ; (1) screen mode (0=text, 1=G1, 2=G2, 3=MC, 4=ExG2)
-SCR_NAM_TB      .EQU     SCR_MODE+$02    ; (2) video name table address
-SCR_CURS_X      .EQU     SCR_NAM_TB+$02  ; (1) cursor X
-SCR_CURS_Y      .EQU     SCR_CURS_X+$01  ; (1) cursor Y
-SCR_CUR_NX      .EQU     SCR_CURS_Y+$01  ; (1) new cursor X position
-SCR_CUR_NY      .EQU     SCR_CUR_NX+$01  ; (1) new cursor Y position
-SCR_ORG_CHR     .EQU     SCR_CUR_NY+$01  ; (1) original char positioned under the cursor
-CRSR_STATE      .EQU     SCR_ORG_CHR+$01 ; (1) state of cursor (1=on, 0=off)
-LSTCSRSTA       .EQU     CRSR_STATE+$01  ; (1) last cursor state
-PRNTVIDEO       .EQU     LSTCSRSTA+$01   ; (1) print on video buffer (1=on / 0=off) set to off on graphic only modes
-CHR4VID         .EQU     PRNTVIDEO+$01   ; (1) char for video buffer
-FRGNDCLR        .EQU     CHR4VID+$01     ; (1) foreground color as set by SCREEN or COLOR commands
+FRGNDCLR        .EQU     STLOOK+$01     ; (1) foreground color as set by SCREEN or COLOR commands
 BKGNDCLR        .EQU     FRGNDCLR+$01    ; (1) background color as set by SCREEN or COLOR commands
-TMPBFR1         .EQU     BKGNDCLR+$01    ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+TMPBFR1         .EQU     BKGNDCLR+$02    ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR2         .EQU     TMPBFR1+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR3         .EQU     TMPBFR2+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR4         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
-VIDEOBUFF       .EQU     TMPBFR4+$02     ; (40) buffer used for video scrolling and other purposes
-VIDTMP1         .EQU     VIDEOBUFF+$28   ; (2) temporary video word
-VIDTMP2         .EQU     VIDTMP1+$02     ; (2) temporary video word
+
 
 ; BASIC ERROR CODE VALUES
 
@@ -151,7 +136,7 @@ MO      .EQU    24H             ; Missing operand
 HX      .EQU    26H             ; HEX error
 BN      .EQU    28H             ; BIN error
 
-        .ORG    008B8H    ;00368H
+        .ORG    008E8H    ;00368H
 
 COLD:   JP      STARTB          ; Jump for cold start
 WARM:   JP      WARMST          ; Jump for warm start
@@ -247,7 +232,7 @@ BRKRET: CALL    CLREG           ; Clear registers and stack
 BFREE:  .BYTE   " Bytes free",CR,LF,0,0
 
 SIGNON: .BYTE   "Z80 BASIC Ver 4.7b",CR,LF
-        .BYTE   "Copyright ",40,"C",41
+        .BYTE   "Copyright (C)"
         .BYTE   " 1978 by Microsoft",CR,LF,0,0
 
 MEMMSG: .BYTE   "Memory top",0
@@ -4133,12 +4118,9 @@ GETINP: RST	    10H             ;input a character
         RET
 
 CLS: 
-        LD      B, 3
-        RST     $20
-        
         LD      A,CS            ; ASCII Clear screen
         JP      MONOUT          ; Output character
-
+        
 WIDTH:  CALL    GETINT          ; Get integer 0-255
         LD      A,E             ; Width to A
         LD      (LWIDTH),A      ; Set width
