@@ -136,7 +136,7 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 LD DE, (VIDTMP2)
                 LD (VIDTMP1), DE
                 DJNZ SCROLL_LOOP
-
+                
                 POP DE
                 POP HL
                 RET
