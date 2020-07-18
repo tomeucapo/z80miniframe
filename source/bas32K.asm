@@ -37,7 +37,7 @@ DEL     .EQU    7FH             ; Delete
 
 ; BASIC WORK SPACE LOCATIONS
 
-WRKSPC  .EQU    804AH               ; BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
+WRKSPC  .EQU    807EH               ; 804A, 8045 BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
 
 USR     .EQU    WRKSPC+3H           ; "USR (x)" jump
 OUTSUB  .EQU    WRKSPC+6H           ; "OUT p,n"
@@ -136,7 +136,7 @@ MO      .EQU    24H             ; Missing operand
 HX      .EQU    26H             ; HEX error
 BN      .EQU    28H             ; BIN error
 
-        .ORG    008E8H    ;00368H
+        .ORG    02678H    ;00368H
 
 COLD:   JP      STARTB          ; Jump for cold start
 WARM:   JP      WARMST          ; Jump for warm start
@@ -202,7 +202,7 @@ SETTOP: DEC     HL              ; Back one byte
         LD      DE,STLOOK-1     ; See if enough RAM
         CALL    CPDEHL          ; Compare DE with HL
         JP      C,MSIZE         ; Ask again if not enough RAM
-        LD      DE,0-50         ; 50 Bytes string space
+        LD      DE,0-100        ; 100 Bytes string space
         LD      (LSTRAM),HL     ; Save last available RAM
         ADD     HL,DE           ; Allocate string space
         LD      (STRSPC),HL     ; Save string space

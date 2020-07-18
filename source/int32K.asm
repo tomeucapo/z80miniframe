@@ -21,20 +21,24 @@ SER_BUFSIZE     .EQU     $3F
 SER_FULLSIZE    .EQU     $30
 SER_EMPTYSIZE   .EQU     $05
 
-serBuf          .EQU     $8000                    
-serInPtr        .EQU     serBuf+SER_BUFSIZE     ; $803F
-serRdPtr        .EQU     serInPtr+2             ; $8041
-serBufUsed      .EQU     serRdPtr+2             ; $8043
-basicStarted    .EQU     serBufUsed+1           ; $8044
-SCR_X           .EQU     basicStarted+1         ; $8045
-SCR_Y           .EQU     SCR_X+1                ; $8046
-SCR_SIZE_W      .EQU     SCR_Y+1                ; $8047
-SCR_SIZE_H      .EQU     SCR_SIZE_W+1           ; $8048
-SCR_MODE        .EQU     SCR_SIZE_H+1           ; $8049
+serBuf          .EQU     $8000                    ; $8000  
+serInPtr        .EQU     serBuf+SER_BUFSIZE+1     ; $8040
+serRdPtr        .EQU     serInPtr+2               ; $8042
+serBufUsed      .EQU     serRdPtr+2               ; $8044
+basicStarted    .EQU     serBufUsed+1             ; $8045
+
+SCR_X           .EQU     basicStarted+1           ; $8046
+SCR_Y           .EQU     SCR_X+1                  ; $8047
+SCR_SIZE_W      .EQU     SCR_Y+1                  ; $8048
+SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $8049
+SCR_MODE        .EQU     SCR_SIZE_H+1             ; $804A
+VIDEOBUFF       .EQU     SCR_MODE+2               ; $804C (40) buffer used for video scrolling and other purposes
+VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8074 (2) temporary video word
+VIDTMP2         .EQU     VIDTMP1+$02              ; $8076 (2) temporary video word
 
 bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
-TEMPSTACK       .EQU     $80AB      ;80F2      ; 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
+TEMPSTACK       .EQU     $80DF                  ; $81E6, $80AB, 80F2, 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
 
 CR              .EQU     0DH
 LF              .EQU     0AH                
@@ -42,8 +46,8 @@ CS              .EQU     0CH             ; Clear screen
 BKSP            .EQU     08H
 
 ; MS-BASIC Addresses
-BASIC_COLD		.EQU	 $08E8   ;$0368
-BASIC_WARM		.EQU	 $08EC   ;$0388
+BASIC_COLD		.EQU	 $2678  
+BASIC_WARM		.EQU	 $267B   
 
                 .ORG $0000
 
@@ -57,7 +61,9 @@ RST00           DI                       ;Disable interrupts
 ; TX a character over RS232 
 
                 .ORG     0008H
-RST08           CALL     VDP_PUTCHAR
+RST08           DI
+                CALL     VDP_PUTCHAR
+                EI
                 JP       TXA
                 
 ;------------------------------------------------------------------------------
@@ -111,8 +117,10 @@ INIT:
                LD        SP,HL           ; Set up a temporary stack
             
                CALL		 INIT_IO
-               CALL      VDP_INIT
                CALL      CHIMPSOUND
+
+               LD        E, 0            ; Initialize VPD with TEXT MODE
+               CALL      VDP_INIT
 			   
                IM        1
                EI                          
@@ -123,20 +131,6 @@ INIT:
 
                LD        HL,SIGNON1      ; Sign-on message
                CALL      PRINT           ; Output string
-		
-               ;LD        A, 0
-               ;LD        E, 0
-               ;CALL      VDP_SETPOS
-
-               ;LD        HL, WELCOME_MSG  ; Print string to screen
-               ;CALL      VDP_PRINT
-
-               ;LD        A, 0             ; Locate screen at 0,1
-               ;LD        E, 1
-               ;CALL      VDP_SETPOS
-
-               ;LD        HL, WELCOME_MSG2   ; Print second message
-               ;CALL      VDP_PRINT
 
 			   CALL		 MON_HELP
 			   CALL		 MON_LOOP

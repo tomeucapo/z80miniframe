@@ -1,10 +1,10 @@
 ;******************************************************************
-; VDP Routines for TMS9918
+; VDP (Video Display Processor) Routines for TMS9918
 ; Tomeu Capó 2020                      
 ;******************************************************************
 
 
-; label defining for VDP (Video Display Processor)
+; Addresses of Data and Register configuration of VDP
 
 VDP_RAM         .EQU    $2E
 VDP_REG         .EQU    $2F
@@ -23,8 +23,7 @@ VDP_R7          .EQU    07h
 
 ; VDP Initialization routine
 
-VDP_INIT:      
-                LD A, 0
+VDP_INIT:       LD A, 0
                 LD (SCR_X), A
                 LD (SCR_Y), A
 
@@ -33,19 +32,34 @@ VDP_INIT:
                 LD A, 24
                 LD (SCR_SIZE_H), A
 
-                ; set up registers for text mode
-                ld b,$08            ; 8 registers
-                ld hl,VDPTXTREG     ; pointer to registers settings
-                ld a,VDP_WREG+$00   ; start with REG0 ($80+register number)
-                ld c,VDP_REG        ; VDP port for registers access
-LDREGVLS        ld d,(HL)           ; load register's value
-                out (c),d           ; send data to VDP
-                out (c),a           ; indicate the register to send data to
-                inc a               ; next register
-                inc hl              ; next value
-                djnz LDREGVLS       ; repeat for 8 registers
+                PUSH DE
+                CALL VDP_RESET_VRAM
+                CALL VDP_SET_MODE
+                POP DE
+
+                CALL VDP_LOADCHARSET
+                RET
+
+                ; Setup Register for TEXTMODE
+
+VDP_SET_MODE:   LD B, $08            ; 8 registers
+                LD HL, VDPMODESCONF  ; pointer to registers settings
+                SLA E
+                SLA E
+                SLA E
+                ADD HL, DE
+                LD A, VDP_WREG+$00   ; start with REG0 ($80+register number)
+                LD C, VDP_REG        ; VDP port for registers access
+LDREGVLS        LD D, (HL)           ; load register's value
+                OUT (C), D           ; send data to VDP
+                OUT (C), A           ; indicate the register to send data to
+                INC A               ; next register
+                INC HL              ; next value
+                DJNZ LDREGVLS       ; repeat for 8 registers
 
                 ; Reset VRAM
+
+VDP_RESET_VRAM:
                 ld c,VDP_REG        ; load VPD port value
                 ld hl,$4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
                 xor a,a
@@ -60,8 +74,12 @@ EMPTYVRAM:      out (VDP_RAM),a     ; after first byte, the VDP autoincrements V
                 jr nz,EMPTYVRAM     ; repeat until page is fully cleared
                 djnz EMPTYVRAM      ; repeat for $40 pages
 
+                RET
+
                 ; Load charset
-                ld b,$ff            ; 127 chars to be loaded
+
+VDP_LOADCHARSET: 
+                ld b,$81            ; 128 chars to be loaded
                 ld hl,$4000         ; fist pattern cell $0000 (MSB must be 0 & 1)
                 ld c,VDP_REG        ; load VDP address into C
                 out (c),l           ; send low byte of address
@@ -75,21 +93,60 @@ SENDCHRPTRNS:   ld a,(hl)           ; load byte to send to VDP
                 dec d               ; 8 bytes sents (1 char)?
                 jr nz,SENDCHRPTRNS  ; no, continue
                 djnz NXTCHAR        ; yes, decrement chars counter and continue for all the 127 chars
+                RET                
 
-ENDVDPINIT      ret                 ; return to caller
+; Text area scrollup 
 
-VDP_SCROLL_UP:  
+VDP_SCROLL_UP:  PUSH HL
+                PUSH DE
+
+                LD DE, $0800
+                LD (VIDTMP1), DE
+                LD A, (SCR_SIZE_H)
+                DEC A
+                LD B, A
+
+SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
+                LD L, A
+                LD H, 0
+                ADD HL, DE
+                EX DE, HL
+                CALL VDP_WRITEADDR
+                LD (VIDTMP2), DE
+
+                PUSH BC
+                LD B, A                         ; Get next row content and save to VIDEOBUFF buffer
+                DEC B
+                LD HL, VIDEOBUFF
+                LD C, VDP_RAM
+                INIR
+                POP BC
+
+                LD DE, (VIDTMP1)                        
+                CALL VDP_WRITEADDR              ; Jump to previous row
+
+                PUSH BC
+                LD B, A                         ; Put VIDEOBUFF buffer on previous row
+                DEC B
+                LD HL, VIDEOBUFF
+                LD C, VDP_RAM
+                OTIR 
+                POP BC
+
+                LD DE, (VIDTMP2)
+                LD (VIDTMP1), DE
+                DJNZ SCROLL_LOOP
+
+                POP DE
+                POP HL
                 RET
 
 ; Clear text screen area
 
 VDP_CLRSCR:     PUSH BC
 
-                LD HL, $0800
-                LD C, VDP_REG      
-                SET 6, H
-                OUT (C), L      
-                OUT (C), H    
+                LD DE, $0800
+                CALL VDP_WRITEADDR
                
                 LD BC, 960           ; Total text area = 24 * 40
 CLRBUFF:        LD A, 32
@@ -100,14 +157,17 @@ CLRBUFF:        LD A, 32
                 OR C
                 JR NZ, CLRBUFF
 
-                LD A, (SCR_Y)
+                CALL VDP_HOME
+                
+                POP BC
+                RET
+
+VDP_HOME:       LD A, (SCR_Y)
                 XOR A, A
                 LD E, A
                 LD A, (SCR_X)
                 XOR A, A
                 CALL VDP_SETPOS
-                
-                POP BC
                 RET
 
 ; Put char to VDP
@@ -117,30 +177,41 @@ VDP_PUTCHAR:    PUSH AF
                 PUSH DE
                 PUSH HL
 
-                CP CS
+                ; Read control charaters to do something different
+
+                CP CS                          
                 JR Z, CLEARSCREEN
                 CP LF
-                JR Z, NEXT_LINE
+                JR Z, NEW_LINE
                 CP CR
                 JR Z, PUTE
                 CP BKSP
                 JP Z, DELCHAR
+
+                ; Otherwise print character
                 JR PUTC
 
-NEXT_LINE:      LD A, (SCR_Y)
+                ; New line
+NEW_LINE:       LD A, (SCR_Y)
                 INC A
+                CP 24
+                JR Z, SCROLLUP
                 LD E, A
                 LD A, (SCR_X)
                 XOR A, A
-                ld (SCR_X), A 
                 JR SETPOS
 
+                ; Delte character
 DELCHAR:        LD A, (SCR_Y)
                 LD E, A
                 LD A, (SCR_X)
                 DEC A
                 JP M, BEGIN_LINE
-                JR SETPOS
+                CALL VDP_SETPOS
+                LD A, 32
+                OUT (VDP_RAM), A
+                NOP
+                JR PUTE
 BEGIN_LINE:     LD A, 0
 SETPOS:         CALL VDP_SETPOS
                 JR PUTE
@@ -148,12 +219,18 @@ SETPOS:         CALL VDP_SETPOS
 CLEARSCREEN:    CALL VDP_CLRSCR
                 JR PUTE
                         
+SCROLLUP:       CALL VDP_SCROLL_UP
+                LD A, (SCR_SIZE_H)
+                DEC A
+                LD E, A
+                LD A, 0
+                CALL VDP_SETPOS
+
 PUTC:           OUT (VDP_RAM), A
                 LD A, (SCR_X)
                 INC A
-                LD (SCR_X), A
-                CP 40
-                JR Z, NEXT_LINE
+                CP 40                   ; TODO: LOAD VALUE FROM SCR_SIZE_W
+                JR Z, NEW_LINE
 
 PUTE:           POP HL
                 POP DE
@@ -225,28 +302,76 @@ VDP_SETPOS:
 ; Set the next address of vram to write
 ;       DE = VDP address
 VDP_WRITEADDR:
-        LD      A, E                    ; send lsb
-        OUT     (VDP_REG), A
-        LD      A, D                    ; mask off msb to max of 16KB
-        ;and     $3F
-        ;or      $40                     ; set second highest bit to indicate write
-        OUT     (VDP_REG), A             ; send msb
+        PUSH    BC
+        PUSH    DE
+
+        LD      C, VDP_REG                  
+        SET     6, D 
+        OUT     (C), E
+        OUT     (C), D            
+
+        POP     DE
+        POP     BC
         RET
 
                 ; VDP registers settings to set up a text mode
-VDPTXTREG       defb 00000000b    ; reg.0: external video disabled
+
+VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
                 defb 11010000b    ; reg.1: text mode (40x24), enable display
                 defb $02          ; reg.2: name table set to $800 ($02x$400)
                 defb $00          ; reg.3: not used in text mode
                 defb $00          ; reg.4: pattern table set to $0000
                 defb $00          ; reg.5: not used in text mode
                 defb $00          ; reg.6: not used in text mode
-                defb $f4          ; reg.7: light blue text on white background
+                defb $f5          ; reg.7: light blue text on white background
+
+                 ; VDP register settings for a graphics 1 mode
+
+                defb    00000000b       ; reg.0: ext. video off
+                defb    11000000b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
+                defb    $06             ; reg.2: name table address: $1800
+                defb    $80             ; reg.3: color table address: $2000
+                defb    $00             ; reg.4: pattern table address: $0000
+                defb    $36             ; reg.5: sprite attr. table address: $1B00
+                defb    $07             ; reg.6: sprite pattern table addr.: $3800
+                defb    $05             ; reg.7: backdrop color (light blue)
+
+                ; VDP register settings for a graphics 2 mode
+                
+                defb    00000010b       ; reg.0: graphics 2 mode, ext. video dis.
+                defb    11000000b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
+                defb    $06             ; reg.2: name table addr.: $1800
+                defb    $FF             ; reg.3: color table addr.: $2000
+                defb    $03             ; reg.4: pattern table addr.: $0000
+                defb    $36             ; reg.5: sprite attr. table addr.: $1B00
+                defb    $07             ; reg.6: sprite pattern table addr.: $3800
+                defb    $05             ; reg.7: backdrop color: light blue
+
+                ; VDP register settings for a multicolor mode
+
+                defb    00000000b       ; reg.0: ext. video dis.
+                defb    11001011b       ; reg.1: 16K VRAM, video on, INT off, multicolor mode, sprite size 8x8, sprite magn. 0
+                defb    $02             ; reg.2: name table addr.: $0800
+                defb    $00             ; reg.3: don't care
+                defb    $00             ; reg.4: pattern table addr.: $0000
+                defb    $36             ; reg.5: sprite attr. table addr.: $1B00
+                defb    $07             ; reg.6: sprite pattern table addr.: $3800
+                defb    $0F             ; reg.7: backdrop color (white)
+
+                ; VDP register settings for an extended graphics 2 mode
+
+                defb    00000010b       ; reg.0: graphics 2 mode, ext. video dis.
+                defb    11000000b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
+                defb    $0E             ; reg.2: name table addr.: $3800
+                defb    $9F             ; reg.3: color table addr.: $2000
+                defb    $00             ; reg.4: pattern table addr.: $0000
+                defb    $76             ; reg.5: sprite attr. table addr.: $3B00
+                defb    $03             ; reg.6: sprite pattern table addr.: $1800
+                defb    $05             ; reg.7: backdrop color: light blue
+
 
 ;-------------------------------------------------------------------------------
-;
-;               C  H  A  R  S  E  T
-;
+; CHARSET DEFINITION TABLE
 ;-------------------------------------------------------------------------------
 
 CHARSET: equ $
@@ -377,5 +502,5 @@ CHARSET: equ $
         defb 0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x00 ; |
         defb 0x20,0x10,0x10,0x08,0x10,0x10,0x20,0x00 ; }
         defb 0x00,0x28,0x50,0x00,0x00,0x00,0x00,0x00 ; ~ (127th char, last ASCII char)
-
+        defb $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
 .END

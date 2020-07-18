@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "msx.h": "c",
+        "z80.h": "c",
+        "vdp.h": "c"
+    }
+}

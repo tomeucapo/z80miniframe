@@ -202,9 +202,7 @@ PRINT:          LD       A,(HL)          ; Get character
 ; Sound generator register/data control
 ;**************************************************************
 
-AYREGWRITE:     PUSH       BC
-                OUT (AYCTRL), A
-                POP        BC
+AYREGWRITE:     OUT (AYCTRL), A
                 LD         A, C
                 OUT (AYDATA), A
                 RET

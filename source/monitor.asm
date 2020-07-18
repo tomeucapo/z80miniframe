@@ -9,10 +9,13 @@ MON_PRMPT:		.BYTE   CR,LF,">",0
 MON_MENU:		.BYTE	"Monitor 1.0",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
-				.BYTE	"R - Reset memory",CR,LF,0
+				.BYTE   "T - Test", CR, LF, 0
 
 MDC_1: 			.BYTE CR,LF,"Memory Dump Command",CR,LF
 				.BYTE "Start location?",CR,LF,0
+
+MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
+MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
 
 MON_HELP:		LD	 HL, MON_MENU
 				CALL PRINT
@@ -22,7 +25,7 @@ MON_LOOP:		LD	      HL, MON_PRMPT
 				CALL	  PRINT
 				CALL	  GET_CHAR
 				LD		  H,A
-				CALL	  PRINT_CHAR
+				RST		  8	  
 				CALL	  MON_OPTIONS
 				JP		  MON_LOOP
 						
@@ -30,8 +33,35 @@ MON_OPTIONS:	CP        'B'
 				CALL	  Z, BASIC_INIT
 				CP		  'M'
 				CALL	  Z, MON_DUMP_CMD
+				CP		  'T'
+				CALL	  Z, MON_TEST
 				RET
 				
+MON_TEST:		LD	 HL, MON_TEST_SND_MSG
+				CALL PRINT
+
+				LD     BC, 200
+            	CALL   PAUSE
+
+				;CALL CHIMPSOUND				
+
+				LD	 HL, MON_TEST_VID_MSG
+				CALL PRINT
+
+				LD     BC, 200
+            	CALL   PAUSE
+				
+				LD	   BC, $0120
+				OUT    (C), C
+				
+				LD     BC, 200
+            	CALL   PAUSE
+				
+				LD	   BC, $0120
+				OUT    (C), C
+				
+				RET
+
 MON_DUMP_CMD:	LD 		HL,MDC_1			;Print some messages 
 				CALL    PRINT   
 				CALL    GET_HEX_WORD		;HL now points to databyte location	
