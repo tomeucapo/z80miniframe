@@ -122,7 +122,8 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 INIR
                 POP BC
 
-                LD DE, (VIDTMP1)                        
+                LD DE, (VIDTMP1)            
+                DEC DE       
                 CALL VDP_WRITEADDR              ; Jump to previous row
 
                 PUSH BC
@@ -137,6 +138,28 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 LD (VIDTMP1), DE
                 DJNZ SCROLL_LOOP
                 
+                ; Clear new line
+
+                LD A, (SCR_SIZE_H)
+                DEC A
+                LD E, A
+                LD A, 0
+                CALL VDP_SETPOS
+
+                LD A, (SCR_SIZE_W)
+                DEC A
+                LD B, A
+
+                LD A, 32
+CLR_LAST_LINE:  OUT (VDP_RAM), A
+                DJNZ CLR_LAST_LINE
+
+                LD A, (SCR_SIZE_H)
+                DEC A
+                LD E, A
+                LD A, 0
+                CALL VDP_SETPOS
+
                 POP DE
                 POP HL
                 RET
@@ -220,11 +243,11 @@ CLEARSCREEN:    CALL VDP_CLRSCR
                 JR PUTE
                         
 SCROLLUP:       CALL VDP_SCROLL_UP
-                LD A, (SCR_SIZE_H)
-                DEC A
-                LD E, A
-                LD A, 0
-                CALL VDP_SETPOS
+                ;LD A, (SCR_SIZE_H)
+                ;DEC A
+                ;LD E, A
+                ;LD A, 0
+                ;CALL VDP_SETPOS
 
 PUTC:           OUT (VDP_RAM), A
                 LD A, (SCR_X)
