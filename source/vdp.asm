@@ -243,13 +243,9 @@ CLEARSCREEN:    CALL VDP_CLRSCR
                 JR PUTE
                         
 SCROLLUP:       CALL VDP_SCROLL_UP
-                ;LD A, (SCR_SIZE_H)
-                ;DEC A
-                ;LD E, A
-                ;LD A, 0
-                ;CALL VDP_SETPOS
 
 PUTC:           OUT (VDP_RAM), A
+                NOP
                 LD A, (SCR_X)
                 INC A
                 CP 40                   ; TODO: LOAD VALUE FROM SCR_SIZE_W
@@ -259,6 +255,7 @@ PUTE:           POP HL
                 POP DE
                 POP AF
                 RET
+
 
 ; Copy a null-terminated string to VRAM
 ;       HL = Initial string pointer address
@@ -287,6 +284,7 @@ VDP_SETCOLOR:
         OUT (C), A
         LD A, VDP_WREG+VDP_R7  ; Reg 7. Change color
         OUT (C), A        
+        NOP
         RET
 
 ; Set the address to place text at X/Y coordinate

@@ -4354,10 +4354,10 @@ OUTNCR: CALL    OUTC            ; Output character in A
 
 COLOR:  CALL    GETINT          ; Get First value
         CALL    CHKCLR          ; check if it's in range 1~15
-        RLA
-	RLA
-	RLA
-	RLA
+        SLA     A
+	SLA     A
+	SLA     A
+	SLA     A
         LD      (TMPBFR1), A    ; store it
         LD      (FRGNDCLR), A
 
