@@ -1,4 +1,4 @@
-# Z80MiniFram
+# Z80MiniFrame
 Core firmware source code and schematics from Z80MiniFrame hardware. This is a Z80 based microcomputer based system.
 
 ## Required tools
