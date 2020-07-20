@@ -203,8 +203,12 @@ PRINT:          LD       A,(HL)          ; Get character
 ;**************************************************************
 
 AYREGWRITE:     OUT (AYCTRL), A
+                NOP
+                NOP
                 LD         A, C
                 OUT (AYDATA), A
+                NOP
+                NOP
                 RET
 
 ; Baud lookup table based on SW connected to PA0..3 port

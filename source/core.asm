@@ -1,21 +1,7 @@
-;==================================================================================
-; Contents of this file are copyright Grant Searle
-;
-; You have permission to use this for NON COMMERCIAL USE ONLY
-; If you wish to use it elsewhere, please include an acknowledgement to myself.
-;
-; http://searle.hostei.com/grant/index.html
-;
-; eMail: home.micros01@btinternet.com
-;
-; If the above don't work, please perform an Internet search to see if I have
-; updated the web page hosting service.
-;
-;==================================================================================
-
-; The original Grant Searle code only supports 6850 ACIA driven serial. This code
-; have modified serial routines to adapt to UART 16650 and add PIO initialization routines
-; by Tomeu Capó
+;******************************************************************
+; Firmware main code
+; Tomeu Capó 2020                      
+;******************************************************************
 
 SER_BUFSIZE     .EQU     $3F
 SER_FULLSIZE    .EQU     $30
@@ -111,17 +97,27 @@ RST20           DI
                 EI
                 RETI
 
+; NMI Routine
+                .ORG    $66
+                
+                PUSH     AF
+                LD       A, $0C
+				OUT		 (PIO1B),A
+                POP      AF
+
+                RETN
+
 ;------------------------------------------------------------------------------
 INIT:
                LD        HL,TEMPSTACK    ; Temp stack
                LD        SP,HL           ; Set up a temporary stack
             
                CALL		 INIT_IO
-               CALL      CHIMPSOUND
-
+              
                LD        E, 0            ; Initialize VPD with TEXT MODE
                CALL      VDP_INIT
-			   
+			   CALL      CHIMPSOUND
+
                IM        1
                EI                          
                 
@@ -225,6 +221,7 @@ PAUSESLUT:   POP    AF
 
 DISPATCH_ROUTINE:
                 EX      AF, AF'
+
                 LD      A, B
                 CP      0
                 JR      Z, _VDP_SETCOLOR
@@ -232,6 +229,11 @@ DISPATCH_ROUTINE:
                 JR      Z, _VDP_PRINT
                 CP      2
                 JR      Z, _VDP_SETPOS
+                CP      3
+                JR      Z, _VDP_MODE
+
+                EX      AF, AF'
+                JP      END20
 
 _VDP_SETCOLOR:  EX      AF, AF'
                 CALL    VDP_SETCOLOR
@@ -245,18 +247,19 @@ _VDP_SETPOS:    EX      AF, AF'
                 CALL    VDP_SETPOS
                 JP      END20
 
+_VDP_MODE:      EX      AF, AF'
+                LD      E, A            
+                CALL    VDP_SET_MODE
+
 END20:          RET
 
 
 SIGNON1:       .BYTE     CS
                .BYTE     "Z80 SBC By Grant Searle",CR,LF
-			   .BYTE     "Firmware v2.1 By Tomeu Capo",CR,LF,0
+			   .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
 SIGNON2:       .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
                          
-WELCOME_MSG:   .BYTE     "Z80MiniFrame v2.1 ***********************", 0
-WELCOME_MSG2:  .BYTE     "TCC 2020 (C)", 0
-			   
 include "ioroutines.asm"
 include "monitor.asm"
 include "vdp.asm"

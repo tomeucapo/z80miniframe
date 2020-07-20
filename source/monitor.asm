@@ -6,7 +6,7 @@
 
 MON_PRMPT:		.BYTE   CR,LF,">",0
 
-MON_MENU:		.BYTE	"Monitor 1.0",CR,LF,CR,LF
+MON_MENU:		.BYTE	"Monitor v1.0",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
 				.BYTE   "T - Test", CR, LF, 0

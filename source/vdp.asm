@@ -23,21 +23,13 @@ VDP_R7          .EQU    07h
 
 ; VDP Initialization routine
 
-VDP_INIT:       LD A, 0
-                LD (SCR_X), A
-                LD (SCR_Y), A
-
-                LD A, 40
-                LD (SCR_SIZE_W), A    
-                LD A, 24
-                LD (SCR_SIZE_H), A
-
-                PUSH DE
+VDP_INIT:       PUSH DE
+                
                 CALL VDP_RESET_VRAM
                 CALL VDP_SET_MODE
-                POP DE
-
                 CALL VDP_LOADCHARSET
+
+                POP DE
                 RET
 
                 ; Setup Register for TEXTMODE
@@ -46,16 +38,33 @@ VDP_SET_MODE:   LD B, $08            ; 8 registers
                 LD HL, VDPMODESCONF  ; pointer to registers settings
                 SLA E
                 SLA E
+                PUSH DE
                 SLA E
                 ADD HL, DE
                 LD A, VDP_WREG+$00   ; start with REG0 ($80+register number)
                 LD C, VDP_REG        ; VDP port for registers access
-LDREGVLS        LD D, (HL)           ; load register's value
+LDREGVLS:       LD D, (HL)           ; load register's value
                 OUT (C), D           ; send data to VDP
                 OUT (C), A           ; indicate the register to send data to
                 INC A               ; next register
                 INC HL              ; next value
                 DJNZ LDREGVLS       ; repeat for 8 registers
+                
+                POP DE
+                LD HL, VDPMODESSIZES  ; pointer to screen mode sizes
+                ADD HL, DE
+
+                LD A, (HL)
+                LD (SCR_SIZE_W), A    
+                INC HL
+                LD A, (HL)
+                LD (SCR_SIZE_H), A
+                
+                LD A, 0
+                LD (SCR_X), A
+                LD (SCR_Y), A
+
+                RET
 
                 ; Reset VRAM
 
@@ -73,13 +82,12 @@ EMPTYVRAM:      out (VDP_RAM),a     ; after first byte, the VDP autoincrements V
                 inc d               ; next cell
                 jr nz,EMPTYVRAM     ; repeat until page is fully cleared
                 djnz EMPTYVRAM      ; repeat for $40 pages
-
                 RET
 
                 ; Load charset
 
 VDP_LOADCHARSET: 
-                ld b,$81            ; 128 chars to be loaded
+                ld b,$9A            ; 154 chars to be loaded
                 ld hl,$4000         ; fist pattern cell $0000 (MSB must be 0 & 1)
                 ld c,VDP_REG        ; load VDP address into C
                 out (c),l           ; send low byte of address
@@ -224,7 +232,7 @@ NEW_LINE:       LD A, (SCR_Y)
                 XOR A, A
                 JR SETPOS
 
-                ; Delte character
+                ; Delete character
 DELCHAR:        LD A, (SCR_Y)
                 LD E, A
                 LD A, (SCR_X)
@@ -335,10 +343,18 @@ VDP_WRITEADDR:
         POP     BC
         RET
 
+VDPMODESSIZES:  ; Screen mode dimensions
+
+                .DEFB 40, 24
+                .DEFB 32, 24
+                .DEFB 0, 192      ; 0=256 x 192
+                .DEFB 64, 48
+                .DEFB 32, 24
+
                 ; VDP registers settings to set up a text mode
 
 VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
-                defb 11010000b    ; reg.1: text mode (40x24), enable display
+                defb 11110000b    ; reg.1: text mode (40x24), enable display
                 defb $02          ; reg.2: name table set to $800 ($02x$400)
                 defb $00          ; reg.3: not used in text mode
                 defb $00          ; reg.4: pattern table set to $0000
@@ -366,7 +382,7 @@ VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
                 defb    $03             ; reg.4: pattern table addr.: $0000
                 defb    $36             ; reg.5: sprite attr. table addr.: $1B00
                 defb    $07             ; reg.6: sprite pattern table addr.: $3800
-                defb    $05             ; reg.7: backdrop color: light blue
+                defb    $C5             ; reg.7: backdrop color: light blue
 
                 ; VDP register settings for a multicolor mode
 
@@ -398,7 +414,7 @@ VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
 CHARSET: equ $
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 0
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 1
-        defb 0x3C,0xFF,0xBD,0xFF,0xBD,0x42,0x3C,0x00 ; char 2
+        defb 0x70,0xF8,0xA8,0xF8,0xA8,0xD8,0x70,0x00 ; char 2
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 3
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 4
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; char 5
@@ -523,5 +539,31 @@ CHARSET: equ $
         defb 0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x00 ; |
         defb 0x20,0x10,0x10,0x08,0x10,0x10,0x20,0x00 ; }
         defb 0x00,0x28,0x50,0x00,0x00,0x00,0x00,0x00 ; ~ (127th char, last ASCII char)
-        defb $FF,$FF,$FF,$FF,$FF,$FF,$FF,$FF
+        defb 0x70,0x88,0x80,0x80,0x88,0x70,0x20,0x40 ; Ç 
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; 130
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; 140
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 ; 150
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00 
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0xFF
+        defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+
 .END

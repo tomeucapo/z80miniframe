@@ -4382,11 +4382,13 @@ LOCATE: CALL    GETINT          ; Get First value put X into A
         CALL    GETINT          ; get second value put Y into A
         LD      E, A            ; E <- A        
         LD      A, (TMPBFR1)
-        LD      B, 1            ; Call service routine number 1 (VDP_SETPOS)
+        LD      B, 2            ; Call service routine number 1 (VDP_SETPOS)
         RST     $20    
         RET 
 
-SCREEN:
+SCREEN: CALL    GETINT          ; Get First value put X into A
+        LD      B, 3            ; Call service routine number 1 (VDP_SET_MODE)
+        RST     $20    
         RET
 
 ; check if the color is not 0 and into the range 1~15
