@@ -48,18 +48,27 @@ MON_TEST:		LD	 HL, MON_TEST_SND_MSG
 				LD	 HL, MON_TEST_VID_MSG
 				CALL PRINT
 
+				
+				DI
+
 				LD     BC, 200
             	CALL   PAUSE
 				
-				LD	   BC, $0120
-				OUT    (C), C
-				
+				LD	   B, 1
+				LD	   C, 0
+				OUT    (C), B
+				LD	   B, 1
+				LD	   C, 1
+				OUT    (C), B
+				LD	   B, 1
+				LD	   C, 2
+				OUT    (C), B
+
 				LD     BC, 200
             	CALL   PAUSE
-				
-				LD	   BC, $0120
-				OUT    (C), C
-				
+
+				EI
+
 				RET
 
 MON_DUMP_CMD:	LD 		HL,MDC_1			;Print some messages 

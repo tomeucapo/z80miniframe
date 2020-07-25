@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:Z80Mini-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1857,26 +1856,26 @@ F 3 "http://www.ti.com/lit/gpn/sn74HC14" H 5050 6500 50  0001 C CNN
 	2    5050 6500
 	1    0    0    -1  
 $EndComp
+Text GLabel 5500 6500 2    50   Output ~ 0
+IO_RESET
+Wire Wire Line
+	5350 6500 5500 6500
+Wire Bus Line
+	4250 3750 4250 5050
 Wire Bus Line
 	7500 2750 7500 3050
-Wire Bus Line
-	5850 1850 5850 3250
-Wire Bus Line
-	6150 1850 6150 3950
 Wire Bus Line
 	7500 3050 7500 5050
 Wire Bus Line
 	5650 3650 5650 5050
 Wire Bus Line
-	4250 3750 4250 5050
+	5850 1850 5850 3250
 Wire Bus Line
 	3950 4300 3950 5050
 Wire Bus Line
 	4250 1850 4250 3450
 Wire Bus Line
 	3950 1850 3950 3900
-Text GLabel 5500 6500 2    50   Output ~ 0
-IO_RESET
-Wire Wire Line
-	5350 6500 5500 6500
+Wire Bus Line
+	6150 1850 6150 3950
 $EndSCHEMATC

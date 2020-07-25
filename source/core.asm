@@ -1,5 +1,5 @@
 ;******************************************************************
-; Firmware main code
+; Firmware core main code
 ; Tomeu Capó 2020                      
 ;******************************************************************
 
@@ -22,6 +22,10 @@ VIDEOBUFF       .EQU     SCR_MODE+2               ; $804C (40) buffer used for v
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8074 (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8076 (2) temporary video word
 
+KBDROW          .EQU     VIDTMP2+1
+KBDCOLMSK       .EQU     KBDROW+1
+KBDSIZE         .EQU     8
+
 bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
 TEMPSTACK       .EQU     $80DF                  ; $81E6, $80AB, 80F2, 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
@@ -30,6 +34,7 @@ CR              .EQU     0DH
 LF              .EQU     0AH                
 CS              .EQU     0CH             ; Clear screen
 BKSP            .EQU     08H
+
 
 ; MS-BASIC Addresses
 BASIC_COLD		.EQU	 $2678  
@@ -97,14 +102,33 @@ RST20           DI
                 EI
                 RETI
 
+;------------------------------------------------------------------------------
 ; NMI Routine
+
                 .ORG    $66
                 
-                PUSH     AF
-                LD       A, $0C
-				OUT		 (PIO1B),A
-                POP      AF
+                ;DI
+                ;PUSH     AF
+                ;PUSH     HL
 
+                ;LD  A, (KBDROW)
+                ;CP  8
+                ;JR Z, OFF
+
+                ;LD       A, 8
+				;OUT		 (PIO1B),A
+               ; JP       EXITNMI
+
+OFF:            ;LD       A, 0
+				;OUT		 (PIO1B), A
+                
+                ;CALL     READ_KEYBOARD
+
+
+EXITNMI:        ;LD       (KBDROW), A
+                ;POP      HL
+                ;POP      AF
+                ;EI
                 RETN
 
 ;------------------------------------------------------------------------------

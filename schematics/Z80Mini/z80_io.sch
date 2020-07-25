@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:Z80Mini-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1223,19 +1222,6 @@ $EndComp
 Wire Wire Line
 	10050 1400 10050 1450
 $Comp
-L Device:Jumper_NO_Small JP3
-U 1 1 5EABC98E
-P 7700 4950
-F 0 "JP3" V 7654 4998 50  0000 L CNN
-F 1 "USB_POWER" V 7745 4998 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7700 4950 50  0001 C CNN
-F 3 "~" H 7700 4950 50  0001 C CNN
-	1    7700 4950
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	7700 5050 7700 5450
-$Comp
 L power:VCC #PWR0103
 U 1 1 5EAC606A
 P 9450 850
@@ -1259,8 +1245,6 @@ F 3 "~" H 9450 1000 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	9450 900  9450 850 
-Wire Wire Line
-	7700 2500 7700 4850
 $Comp
 L power:VCC #PWR0132
 U 1 1 5EBF7733
@@ -1334,9 +1318,22 @@ Wire Wire Line
 	11000 1000 11000 2500
 Connection ~ 9150 2500
 Wire Wire Line
-	8950 1000 8950 2500
-Wire Wire Line
 	8950 1000 9200 1000
+Wire Wire Line
+	7700 2500 7700 4850
+Wire Wire Line
+	8950 1000 8950 2500
+$Comp
+L Device:Jumper JP3
+U 1 1 5F4EAF1C
+P 7700 5150
+F 0 "JP3" V 7654 5277 50  0000 L CNN
+F 1 "USB_VBUS" V 7745 5277 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7700 5150 50  0001 C CNN
+F 3 "~" H 7700 5150 50  0001 C CNN
+	1    7700 5150
+	0    1    1    0   
+$EndComp
 Wire Bus Line
 	650  1200 650  3100
 Wire Bus Line

@@ -44,7 +44,7 @@ INIT_IO:        CALL INIT_PIO
 ; Init PIO 82C55
 ;**************************************************************
 
-INIT_PIO:       LD      A,10011001B    ; A= IN, B= OUT C= IN
+INIT_PIO:       LD      A,10011001B    ; A= IN, B= OUT C= IN 10011001
                 OUT     (PIO1CONT),A
 
                 LD      A, 4
@@ -57,9 +57,11 @@ INIT_PIO:       LD      A,10011001B    ; A= IN, B= OUT C= IN
                 LD      BC, 500
                 CALL    PAUSE
 
-                LD      A,0
+                LD      A, 0
                 OUT	    (PIO1B), A
 
+                LD      A, KBDSIZE
+                LD      (KBDROW), A
                 RET
 
 
@@ -95,8 +97,8 @@ READ_UART:		IN		 A,(UART5)    	 ;Fetch the control register
 				BIT 	 0,A
                 JR       Z,rts0          ; if not, ignore
 
-				LD       A, 4
-				OUT		 (PIO1B),A
+				;LD       A, 4
+				;OUT		 (PIO1B),A
 				
 				IN       A,(UART0)
                 PUSH     AF
@@ -122,8 +124,8 @@ notWrap:        LD       (serInPtr),HL
                 JR       C,rts0
 
 				
-rts0:           LD       A, 0
-				OUT		 (PIO1B),A
+rts0:           ;LD       A, 0
+				;OUT		 (PIO1B),A
 				RET
 				
 ;**************************************************************
@@ -199,16 +201,47 @@ PRINT:          LD       A,(HL)          ; Get character
                 RET
 
 ;**************************************************************
+; Read keyboard routines
+;**************************************************************
+
+
+READ_KEYBOARD:  PUSH BC
+
+                LD A, (KBDCOLMSK)      
+                
+                SLA A
+                LD (KBDCOLMSK), A
+                
+                CPL
+                OUT (PIO1C), A
+                LD A, (KBDROW)
+                OUT (PIO1B), A
+                LD C, A
+
+                IN A, (PIO1A) 
+                AND $80
+                JR NZ, NEXT
+                
+                LD       A, 48
+                CALL     VDP_PUTCHAR            
+
+NEXT:           DEC C
+                LD A, C
+                JP P, NEXTEXIT
+                LD A, KBDSIZE
+
+NEXTEXIT:       LD (KBDROW), A
+
+                POP BC
+                RET
+
+;**************************************************************
 ; Sound generator register/data control
 ;**************************************************************
 
 AYREGWRITE:     OUT (AYCTRL), A
-                NOP
-                NOP
                 LD         A, C
                 OUT (AYDATA), A
-                NOP
-                NOP
                 RET
 
 ; Baud lookup table based on SW connected to PA0..3 port
