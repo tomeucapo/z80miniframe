@@ -175,8 +175,16 @@ TXA:            CALL  UART_TX_RDY
                 RET
 
 GET_CHAR:	    CALL  RXA
-				AND   11011111b
-				RET
+				CALL  TO_UPPER           ;AND   11011111b
+				RET 
+
+TO_UPPER:       
+			    CP      'a'             	; Nothing to do if not lower case
+                RET     C
+                CP      'z' + 1         	; > 'z'?
+                RET     NC              	; Nothing to do, either
+                AND     $5F             	; Convert to upper case
+                RET	
 
 			
 CKINCHAR        LD       A,(serBufUsed)
@@ -204,6 +212,7 @@ PRINT:          LD       A,(HL)          ; Get character
 ; Read keyboard routines
 ;**************************************************************
 
+; TODO: Implementation stage
 
 READ_KEYBOARD:  PUSH BC
 

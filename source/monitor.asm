@@ -6,13 +6,15 @@
 
 MON_PRMPT:		.BYTE   CR,LF,">",0
 
-MON_MENU:		.BYTE	"Monitor v1.0",CR,LF,CR,LF
+MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
-				.BYTE   "T - Test", CR, LF, 0
+				.BYTE   "T - Tests", CR, LF
+				.BYTE	"? - This help", CR, LF, 0
 
 MDC_1: 			.BYTE CR,LF,"Memory Dump Command",CR,LF
-				.BYTE "Start location?",CR,LF,0
+	   			.BYTE "Location to start in 4 digit HEX:",CR,LF,0
+MDC_3: 			.BYTE "     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F",CR,LF,0
 
 MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
 MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
@@ -32,78 +34,61 @@ MON_LOOP:		LD	      HL, MON_PRMPT
 MON_OPTIONS:	CP        'B'
 				CALL	  Z, BASIC_INIT
 				CP		  'M'
-				CALL	  Z, MON_DUMP_CMD
+				CALL	  Z, MEMORY_DUMP_COMMAND
 				CP		  'T'
 				CALL	  Z, MON_TEST
-				RET
-				
-MON_TEST:		LD	 HL, MON_TEST_SND_MSG
-				CALL PRINT
-
-				LD     BC, 200
-            	CALL   PAUSE
-
-				;CALL CHIMPSOUND				
-
-				LD	 HL, MON_TEST_VID_MSG
-				CALL PRINT
-
-				
-				DI
-
-				LD     BC, 200
-            	CALL   PAUSE
-				
-				LD	   B, 1
-				LD	   C, 0
-				OUT    (C), B
-				LD	   B, 1
-				LD	   C, 1
-				OUT    (C), B
-				LD	   B, 1
-				LD	   C, 2
-				OUT    (C), B
-
-				LD     BC, 200
-            	CALL   PAUSE
-
-				EI
-
+				CP		  '?'
+				CALL	  Z, MON_HELP
 				RET
 
-MON_DUMP_CMD:	LD 		HL,MDC_1			;Print some messages 
-				CALL    PRINT   
-				CALL    GET_HEX_WORD		;HL now points to databyte location	
-				PUSH	HL					;Save HL that holds databyte location on stack
-				POP		HL					;Restore HL that holds databyte location on stack
-				LD		C,10				;Register C holds counter of dump lines to print
+
+MEMORY_DUMP_COMMAND:
+			LD 		HL,MDC_1			;Print some messages 
+			CALL    PRINT
+			CALL    GET_HEX_WORD		;HL now points to databyte location	
+			PUSH	HL					;Save HL that holds databyte location on stack
+			
+			LD		A,CR				;Print spacer
+			CALL	PRINT_CHAR
+			LD		A,LF				;Print spacer
+			CALL	PRINT_CHAR
+			
+			LD 		HL,MDC_3	
+			CALL    PRINT
+			POP		HL					;Restore HL that holds databyte location on stack
+			LD		C,10				;Register C holds counter of dump lines to print
 MEMORY_DUMP_LINE:	
-				LD		B,16				;Register B holds counter of dump bytes to print
-				CALL	PRINT_HEX_WORD		;Print dump line address in hex form
-				LD		A,' '				;Print spacer
-				CALL	PRINT_CHAR
-				DEC		C					;Decrement C to keep track of number of lines printed
+			LD		B,16				;Register B holds counter of dump bytes to print
+			CALL	PRINT_HEX_WORD		;Print dump line address in hex form
+			LD		A,' '				;Print spacer
+			CALL	PRINT_CHAR
+			DEC		C					;Decrement C to keep track of number of lines printed
 MEMORY_DUMP_BYTES:
-				LD		A,(HL)				;Load Acc with databyte HL points to
-				CALL	PRINT_HEX_BYTE		;Print databyte in HEX form 
-				LD		A,' '				;Print spacer
-				CALL	PRINT_CHAR	
-				INC 	HL					;Increase HL to next address pointer
-				DJNZ	MEMORY_DUMP_BYTES	;Print 16 bytes out since B holds 16
-				LD		B,C					;Load B with C to keep track of number of lines printed
-				CALL    PRINT_NEW_LINE		;Get ready for next dump line
-				DJNZ	MEMORY_DUMP_LINE	;Print 10 line out since C holds 10 and we load B with C
-				LD		A,$FF				;Load $FF into Acc so MON_COMMAND finishes
-				RET
-
-
-CHAR_ISHEX:	CP      'F' + 1       		;(Acc) > 'F'? 
+			LD		A,(HL)				;Load Acc with databyte HL points to
+			CALL	PRINT_HEX_BYTE		;Print databyte in HEX form 
+			LD		A,' '				;Print spacer
+			CALL	PRINT_CHAR		
+			INC 	HL					;Increase HL to next address pointer
+			DJNZ	MEMORY_DUMP_BYTES	;Print 16 bytes out since B holds 16
+			LD		B,C					;Load B with C to keep track of number of lines printed
+			CALL    PRINT_NEW_LINE		;Get ready for next dump line
+			DJNZ	MEMORY_DUMP_LINE	;Print 10 line out since C holds 10 and we load B with C
+			LD		A,$FF				;Load $FF into Acc so MON_COMMAND finishes
+			RET
+;***************************************************************************
+;CHAR_ISHEX
+;Function: Checks if value in A is a hexadecimal digit, C flag set if true
+;***************************************************************************		
+CHAR_ISHEX:         
+										;Checks if Acc between '0' and 'F'
+			CP      'F' + 1       		;(Acc) > 'F'? 
             RET     NC              	;Yes - Return / No - Continue
             CP      '0'             	;(Acc) < '0'?
             JP      NC,CHAR_ISHEX_1 	;Yes - Jump / No - Continue
             CCF                     	;Complement carry (clear it)
             RET
 CHAR_ISHEX_1:       
+										;Checks if Acc below '9' and above 'A'
 			CP      '9' + 1         	;(Acc) < '9' + 1?
             RET     C               	;Yes - Return / No - Continue (meaning Acc between '0' and '9')
             CP      'A'             	;(Acc) > 'A'?
@@ -208,6 +193,42 @@ PRINT_HEX_WORD:
             CALL    PRINT_HEX_BYTE		;Print low byte
             POP		AF
 			POP		HL
-            RET			
+            RET		
+
+; Test hardware routine
+
+MON_TEST:		LD	 HL, MON_TEST_SND_MSG
+				CALL PRINT
+
+				LD     BC, 200
+            	CALL   PAUSE
+
+				;CALL CHIMPSOUND				
+
+				LD	 HL, MON_TEST_VID_MSG
+				CALL PRINT
+
+				
+				DI
+
+				LD     BC, 200
+            	CALL   PAUSE
+				
+				LD	   B, 1
+				LD	   C, 0
+				OUT    (C), B
+				LD	   B, 1
+				LD	   C, 1
+				OUT    (C), B
+				LD	   B, 1
+				LD	   C, 2
+				OUT    (C), B
+
+				LD     BC, 200
+            	CALL   PAUSE
+
+				EI
+
+				RET	
 			
 .END

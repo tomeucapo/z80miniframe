@@ -207,6 +207,7 @@ VDP_HOME:       LD A, (SCR_Y)
 VDP_PUTCHAR:    PUSH AF
                 PUSH DE
                 PUSH HL
+                PUSH BC
 
                 ; Read control charaters to do something different
 
@@ -217,34 +218,28 @@ VDP_PUTCHAR:    PUSH AF
                 CP CR
                 JR Z, PUTE
                 CP BKSP
-                JP Z, DELCHAR
+                JR Z, DELCHAR
 
                 ; Otherwise print character
                 JR PUTC
-
-                ; New line
-NEW_LINE:       LD A, (SCR_Y)
-                INC A
-                CP 24
-                JR Z, SCROLLUP
-                LD E, A
-                LD A, (SCR_X)
-                XOR A, A
-                JR SETPOS
 
                 ; Delete character
 DELCHAR:        LD A, (SCR_Y)
                 LD E, A
                 LD A, (SCR_X)
                 DEC A
-                JP M, BEGIN_LINE
+                PUSH DE
+                PUSH AF
+
                 CALL VDP_SETPOS
+                LD B, A
                 LD A, 32
                 OUT (VDP_RAM), A
                 NOP
-                JR PUTE
-BEGIN_LINE:     LD A, 0
-SETPOS:         CALL VDP_SETPOS
+                
+                POP AF
+                POP DE
+                CALL VDP_SETPOS
                 JR PUTE
 
 CLEARSCREEN:    CALL VDP_CLRSCR
@@ -256,10 +251,25 @@ PUTC:           OUT (VDP_RAM), A
                 NOP
                 LD A, (SCR_X)
                 INC A
-                CP 40                   ; TODO: LOAD VALUE FROM SCR_SIZE_W
+                LD (SCR_X), A
+                LD B, A
+                LD A, (SCR_SIZE_W)
+                CP B                
                 JR Z, NEW_LINE
+                JR PUTE
+                
+                ; New line
+NEW_LINE:       LD A, (SCR_Y)
+                INC A
+                CP 24
+                JR Z, SCROLLUP
+                LD E, A
+                LD A, (SCR_X)
+                XOR A, A
+                CALL VDP_SETPOS
 
-PUTE:           POP HL
+PUTE:           POP BC
+                POP HL
                 POP DE
                 POP AF
                 RET

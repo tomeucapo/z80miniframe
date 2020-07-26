@@ -279,7 +279,7 @@ END20:          RET
 
 
 SIGNON1:       .BYTE     CS
-               .BYTE     "Z80 SBC By Grant Searle",CR,LF
+               .BYTE     "Z80MiniFrame 32K",CR,LF
 			   .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
 SIGNON2:       .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
