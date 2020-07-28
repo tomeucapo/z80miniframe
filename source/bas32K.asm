@@ -96,21 +96,21 @@ NXTDAT  .EQU    WRKSPC+0DCH          ; Next data item
 FNRGNM  .EQU    WRKSPC+0DEH          ; Name of FN argument
 FNARG   .EQU    WRKSPC+0E0H          ; FN argument value
 FPREG   .EQU    WRKSPC+0E4H          ; Floating point register
-FPEXP   .EQU    FPREG+3         ; Floating point exponent
-SGNRES  .EQU    WRKSPC+0E8H     ; Sign of result
-PBUFF   .EQU    WRKSPC+0E9H     ; Number print buffer
-MULVAL  .EQU    WRKSPC+0F6H     ; Multiplier
-PROGST  .EQU    WRKSPC+0F9H     ; Start of program text area
-STLOOK  .EQU    WRKSPC+15DH     ; Start of memory test
+FPEXP   .EQU    FPREG+3              ; Floating point exponent
+SGNRES  .EQU    FPEXP+1              ; (1) Sign of result   
 
 ; Screen Variables
-FRGNDCLR        .EQU     STLOOK+$01     ; (1) foreground color as set by SCREEN or COLOR commands
+FRGNDCLR        .EQU     SGNRES+$01     ; (1) foreground color as set by SCREEN or COLOR commands
 BKGNDCLR        .EQU     FRGNDCLR+$01    ; (1) background color as set by SCREEN or COLOR commands
 TMPBFR1         .EQU     BKGNDCLR+$02    ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR2         .EQU     TMPBFR1+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR3         .EQU     TMPBFR2+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR4         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 
+PBUFF   .EQU    TMPBFR4+1     ; Number print buffer
+MULVAL  .EQU    PBUFF+$0D     ; Multiplier
+PROGST  .EQU    MULVAL+$03    ; Start of program text area
+STLOOK  .EQU    PROGST+$64    ; Start of memory test
 
 ; BASIC ERROR CODE VALUES
 

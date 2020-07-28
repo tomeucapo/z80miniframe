@@ -28,7 +28,7 @@ VDP_INIT:       PUSH DE
                 CALL VDP_RESET_VRAM
                 CALL VDP_SET_MODE
                 CALL VDP_LOADCHARSET
-
+                
                 POP DE
                 RET
 
@@ -59,7 +59,8 @@ LDREGVLS:       LD D, (HL)           ; load register's value
                 INC HL
                 LD A, (HL)
                 LD (SCR_SIZE_H), A
-                
+
+
                 LD A, 0
                 LD (SCR_X), A
                 LD (SCR_Y), A
@@ -155,7 +156,6 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 CALL VDP_SETPOS
 
                 LD A, (SCR_SIZE_W)
-                DEC A
                 LD B, A
 
                 LD A, 32
