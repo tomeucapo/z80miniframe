@@ -60,10 +60,13 @@ LDREGVLS:       LD D, (HL)           ; load register's value
                 LD A, (HL)
                 LD (SCR_SIZE_H), A
 
-                LD A, 0
+                LD A, 1         
                 LD (SCR_X), A
+                LD A, 0
                 LD (SCR_Y), A
+                LD A, 1 
                 LD (SCR_CUR_X), A
+                LD A, 0
                 LD (SCR_CUR_Y), A
 
                 LD A, 1
@@ -197,11 +200,8 @@ CLRBUFF:        LD A, 32
                 POP BC
                 RET
 
-VDP_HOME:       LD A, (SCR_Y)
-                XOR A, A
-                LD E, A
-                LD A, (SCR_X)
-                XOR A, A
+VDP_HOME:       LD A, 1
+                LD E, 0
                 CALL VDP_SETPOS
                 RET
 
