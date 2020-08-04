@@ -8,6 +8,7 @@ MON_PRMPT:		.BYTE   CR,LF,">",0
 
 MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
+				.BYTE   "C - CP/M BOOT",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
 				.BYTE   "T - Tests", CR, LF
 				.BYTE	"? - This help", CR, LF, 0
@@ -18,6 +19,7 @@ MDC_3: 			.BYTE "     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F",CR,LF,0
 
 MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
 MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
+MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
 
 MON_HELP:		LD	 HL, MON_MENU
 				CALL PRINT
@@ -33,6 +35,8 @@ MON_LOOP:		LD	      HL, MON_PRMPT
 						
 MON_OPTIONS:	CP        'B'
 				CALL	  Z, BASIC_INIT
+				CP		  'C'
+				CALL	  Z, BOOT_CPM
 				CP		  'M'
 				CALL	  Z, MEMORY_DUMP_COMMAND
 				CP		  'T'
@@ -197,35 +201,27 @@ PRINT_HEX_WORD:
 
 ; Test hardware routine
 
-MON_TEST:		LD	 HL, MON_TEST_SND_MSG
-				CALL PRINT
-
-				LD     BC, 200
-            	CALL   PAUSE
-
-				;CALL CHIMPSOUND				
-
-				LD	 HL, MON_TEST_VID_MSG
+MON_TEST:		LD	 HL, MON_TEST_KBD_MSG
 				CALL PRINT
 
 				
 				DI
-
-				LD     BC, 200
-            	CALL   PAUSE
 				
-				LD	   B, 1
-				LD	   C, 0
-				OUT    (C), B
-				LD	   B, 1
-				LD	   C, 1
-				OUT    (C), B
-				LD	   B, 1
-				LD	   C, 2
-				OUT    (C), B
+				LD  A, (KBDROW)
+                CP  8
+                JR Z, OFF
 
-				LD     BC, 200
-            	CALL   PAUSE
+                LD       A, 8
+				OUT		 (PIO1B),A
+                JP       EXITTST
+
+OFF:            LD       A, 0
+				OUT		 (PIO1B), A
+                
+                CALL     READ_KEYBOARD
+
+
+EXITTST:        LD       (KBDROW), A
 
 				EI
 

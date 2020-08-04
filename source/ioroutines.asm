@@ -44,7 +44,7 @@ INIT_IO:        CALL INIT_PIO
 ; Init PIO 82C55
 ;**************************************************************
 
-INIT_PIO:       LD      A,10011001B    ; A= IN, B= OUT C= IN 10011001
+INIT_PIO:       LD      A,10010000B    ; A=IN, B=OUT C=OUT 10010001
                 OUT     (PIO1CONT),A
 
                 LD      A, 4

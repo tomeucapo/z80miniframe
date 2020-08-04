@@ -15,14 +15,17 @@ basicStarted    .EQU     serBufUsed+1             ; $8045
 
 SCR_X           .EQU     basicStarted+1           ; $8046
 SCR_Y           .EQU     SCR_X+1                  ; $8047
-SCR_SIZE_W      .EQU     SCR_Y+1                  ; $8048
-SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $8049
-SCR_MODE        .EQU     SCR_SIZE_H+1             ; $804A
-VIDEOBUFF       .EQU     SCR_MODE+2               ; $804C (40) buffer used for video scrolling and other purposes
-VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8074 (2) temporary video word
-VIDTMP2         .EQU     VIDTMP1+$02              ; $8076 (2) temporary video word
+SCR_CUR_X       .EQU     SCR_Y+1                  ; $8048
+SCR_CUR_Y       .EQU     SCR_CUR_X+1              ; $8049
+SCR_SIZE_W      .EQU     SCR_CUR_Y+1              ; $804A
+SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $804B
+SCR_MODE        .EQU     SCR_SIZE_H+1             ; $804C
+VIDEOBUFF       .EQU     SCR_MODE+2               ; $804E (40) buffer used for video scrolling and other purposes
+VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
+VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 
-KBDROW          .EQU     VIDTMP2+1
+CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
+KBDROW          .EQU     CURSORSTATE+1          
 KBDCOLMSK       .EQU     KBDROW+1
 KBDSIZE         .EQU     8
 
@@ -39,6 +42,7 @@ BKSP            .EQU     08H
 ; MS-BASIC Addresses
 BASIC_COLD		.EQU	 $2678  
 BASIC_WARM		.EQU	 $267B   
+BOOT_CPM        .EQU     $4348
 
                 .ORG $0000
 
@@ -111,21 +115,7 @@ RST20           DI
                 ;PUSH     AF
                 ;PUSH     HL
 
-                ;LD  A, (KBDROW)
-                ;CP  8
-                ;JR Z, OFF
-
-                ;LD       A, 8
-				;OUT		 (PIO1B),A
-               ; JP       EXITNMI
-
-OFF:            ;LD       A, 0
-				;OUT		 (PIO1B), A
                 
-                ;CALL     READ_KEYBOARD
-
-
-EXITNMI:        ;LD       (KBDROW), A
                 ;POP      HL
                 ;POP      AF
                 ;EI
