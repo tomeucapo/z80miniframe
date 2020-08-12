@@ -12,6 +12,7 @@ VDP_REG         .EQU    $002F
 VDP_WREG        .EQU    10000000b   ; to be added to the REG value
 VDP_RRAM        .EQU    00000000b   ; to be added to the ADRS value
 VDP_WRAM        .EQU    01000000b   ; to be added to the ADRS value
+
 VDP_R0          .EQU    00h
 VDP_R1          .EQU    01h
 VDP_R2          .EQU    02h
@@ -21,7 +22,10 @@ VDP_R5          .EQU    05h
 VDP_R6          .EQU    06h
 VDP_R7          .EQU    07h
 
-; VDP Initialization routine
+
+; ************************************************************************************
+; VDP_INIT - VDP Initialization routine
+;       E = Mode number
 
 VDP_INIT:       PUSH DE
                 
@@ -35,7 +39,9 @@ VDP_INIT:       PUSH DE
                 POP DE
                 RET
 
-                ; Setup Register for TEXTMODE
+; ************************************************************************************
+; VDP_SET_MODE - Change VDP Mode
+;       E = Mode number
 
 VDP_SET_MODE:   LD B, $08            ; 8 registers
                 LD HL, VDPMODESCONF  ; pointer to registers settings
@@ -68,7 +74,7 @@ LDREGVLS:       LD D, (HL)          ; load register's value
                 LD A, (HL)
                 LD (SCR_SIZE_H), A
 
-                LD A, 1         
+                LD A, 1                ; Initialize screen coordinate variables
                 LD (SCR_X), A
                 LD A, 0
                 LD (SCR_Y), A
@@ -82,7 +88,8 @@ LDREGVLS:       LD D, (HL)          ; load register's value
 
                 RET
 
-                ; Reset VRAM
+; ************************************************************************************
+; VDP_RESET_VRAM - Clear VRAM content
 
 VDP_RESET_VRAM: LD HL, $4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
                 XOR A, A
@@ -104,7 +111,8 @@ EMPTYVRAM:      PUSH BC
                 DJNZ EMPTYVRAM      ; repeat for $40 pages
                 RET
 
-                ; Load charset
+; ************************************************************************************
+; VDP_LOADCHARSET - Load charset
 
 VDP_LOADCHARSET:
                 LD HL, $4000         ; fist pattern cell $0000 (MSB must be 0 & 1)
@@ -129,7 +137,8 @@ SENDCHRPTRNS:   LD A, (HL)           ; load byte to send to VDP
                 DJNZ NXTCHAR        ; yes, decrement chars counter and continue for all the 127 chars
                 RET                
 
-; Text area scrollup 
+; ************************************************************************************
+; VDP_SCROLL_UP - Scroll up text area routine
 
 VDP_SCROLL_UP:  PUSH HL
                 PUSH DE
@@ -224,7 +233,8 @@ CLR_LAST_LINE:  OUT (VDP_RAM), A
                 POP HL
                 RET
 
-; Clear text screen area
+; ************************************************************************************
+; VDP_CLRSCR - Clear text screen area routine
 
 VDP_CLRSCR:     PUSH BC
 
@@ -250,8 +260,9 @@ VDP_HOME:       LD A, 1
                 CALL VDP_SETPOS
                 RET
 
-; Put char to VDP
-;       A = Charater to output
+; ************************************************************************************
+; VDP_PUTCHAR - Output character to VDP routine with character control decisions
+;       A = Character to output
 
 VDP_PUTCHAR:    PUSH AF
                 PUSH DE
@@ -284,7 +295,7 @@ NEW_LINE:       PUSH AF
 
                 LD A, (SCR_Y)
                 INC A
-                CP 24
+                CP 24                           ; TODO: Read from configuration of actual mode!
                 JR Z, SCROLLUP
                 LD E, A
                 LD A, (SCR_X)
@@ -296,6 +307,7 @@ SCROLLUP:       CALL VDP_SCROLL_UP
                 JP PUTC
 
                 ; Delete character
+
 DELCHAR:        LD A, 0
                 CALL VDP_CURSOR
                 
@@ -351,6 +363,9 @@ PUTEND:         POP BC
                 RET
 
 
+; ************************************************************************************
+; VDP_BLINK_CURSOR - Change state of cursor to make blink and show or not.
+
 VDP_BLINK_CURSOR:
                 PUSH AF
                 PUSH DE
@@ -375,6 +390,9 @@ SHOWCURSOR:     LD (CURSORSTATE), A
                 POP AF
                 RET
 
+; ************************************************************************************
+; VDP_CURSOR - Paint cursor to their position
+;       A - Temporary state of cursor
 
 VDP_CURSOR:     CALL VDP_LOCATE_CURSOR
                 CP 0
@@ -399,6 +417,9 @@ ENDCURSOR:      CALL VDP_LOCATE_CURSOR
                 RET 
 
 
+; ************************************************************************************
+; VDP_LOCATE_CURSOR - Place cursor on screen based SRC_CUR_X and SCR_CUR_Y vars
+
 VDP_LOCATE_CURSOR:
                 PUSH AF
                 LD A, (SCR_CUR_Y)
@@ -408,7 +429,8 @@ VDP_LOCATE_CURSOR:
                 POP AF
                 RET
                 
-; Copy a null-terminated string to VRAM
+; ************************************************************************************
+; VDP_PRINT - Copy a null-terminated string to VRAM
 ;       HL = Initial string pointer address
 
 VDP_PRINT:      
@@ -427,7 +449,8 @@ ENDPRT:         POP HL
                 RET
 
 
-; Set color
+; ************************************************************************************
+; VDP_SETCOLOR - Set color
 ;       A = Foreground and Background color
 
 VDP_SETCOLOR:
@@ -440,8 +463,8 @@ VDP_SETCOLOR:
         NOP
         RET
 
-
-; Set the address to place text at X/Y coordinate and update memory variables
+; ************************************************************************************
+; VDP_SETPOS - Set the address to place text at X/Y coordinate and update memory variables
 ;       A = X
 ;       E = Y
 
@@ -459,7 +482,8 @@ VDP_SETPOS:
         CALL    VDP_SCR_GOTOXY
         RET
 
-; Set the address to place text at X/Y coordinate
+; ************************************************************************************
+; VDP_SETPOS - Set the address to place text at X/Y coordinate
 ;       A = X
 ;       E = Y
 
@@ -487,8 +511,10 @@ VDP_SCR_GOTOXY:
         RET
 
 
-; Set the next address of vram to write
+; ************************************************************************************
+; VDP_WRITEADDR - Set the next address of vram to write
 ;       DE = VDP address
+
 VDP_WRITEADDR:
         PUSH    BC
         PUSH    DE
