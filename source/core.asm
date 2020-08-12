@@ -25,13 +25,20 @@ VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary vid
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
-KBDROW          .EQU     CURSORSTATE+1          
-KBDCOLMSK       .EQU     KBDROW+1
+KBDROW          .EQU     CURSORSTATE+1            ; $807A
+KBDCOLMSK       .EQU     KBDROW+1                 ; $807B
+TMRCNT          .EQU     KBDCOLMSK+$01            ; $807C (4) TMR counter for 1/100 seconds
+CTC0IV          .EQU     TMRCNT+$04               ; $8080 (3) CTC0 interrupt vector
+CTC1IV          .EQU     CTC0IV+$03               ; $8083 (3) CTC1 interrupt vector
+CTC2IV          .EQU     CTC1IV+$03               ; $8086 (3) CTC2 interrupt vector
+CTC3IV          .EQU     CTC2IV+$03               ; $8089 (3) CTC3 interrupt vector
+ENABLEDCURSOR   .EQU     CTC3IV+$01
+
 KBDSIZE         .EQU     8
 
 bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
-TEMPSTACK       .EQU     $80DF                  ; $81E6, $80AB, 80F2, 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
+TEMPSTACK       .EQU     $8151                  ; 80DF, $81E6, $80AB, 80F2, 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
 
 CR              .EQU     0DH
 LF              .EQU     0AH                
@@ -64,19 +71,19 @@ RST08           DI
 ;------------------------------------------------------------------------------
 ; RX a character over RS232 Channel A [Console], hold here until char ready.
 
-                .ORG    0010H
+                .ORG    $0010
 RST10           JP      RXA
 
 ;------------------------------------------------------------------------------
 ; Check serial status
 
-                 .ORG    0018H
+                 .ORG    $0018
 RST18            JP      CKINCHAR
 
 ;------------------------------------------------------------------------------
 ; Main firmware interrupt service routine dispacher
 
-                .ORG    0020H
+                .ORG    $0020
 
 RST20           DI 
 
@@ -108,17 +115,24 @@ RST20           DI
 
 ;------------------------------------------------------------------------------
 ; NMI Routine
-
-                .ORG    $66
+                .ORG    $0066
                 
-                ;DI
-                ;PUSH     AF
-                ;PUSH     HL
+                EX AF, AF'
+                EXX
 
+                LD A, (ENABLEDCURSOR)
+                CP 0
+                JR Z, EXITNMI
+
+                CALL    LEDBLINK
+                CALL    VDP_BLINK_CURSOR
                 
-                ;POP      HL
-                ;POP      AF
-                ;EI
+EXITNMI:      
+                ;CALL    TMRCNTCTRL
+            
+                EXX
+                EX AF, AF'            
+                EI
                 RETN
 
 ;------------------------------------------------------------------------------
@@ -127,12 +141,18 @@ INIT:
                LD        SP,HL           ; Set up a temporary stack
             
                CALL		 INIT_IO
-              
+               CALL      INIT_CTC
+
                LD        E, 0            ; Initialize VPD with TEXT MODE
                CALL      VDP_INIT
+
 			   CALL      CHIMPSOUND
 
-               IM        1
+               ;XOR       A
+               ;LD        I, A
+               ;IM        2
+               
+               IM   1
                EI                          
                 
                LD        A, 0
@@ -268,6 +288,33 @@ _VDP_MODE:      EX      AF, AF'
 END20:          RET
 
 
+LEDBLINK:
+        LD A, (CURSORSTATE)
+        SLA A
+        SLA A
+        SLA A
+        OUT (PIO1B), A      
+        RET              
+
+
+TMRCNTCTRL:
+        EX  AF, AF'
+        EXX
+
+        LD HL, TMRCNT
+        LD B, $04
+INCTMR: INC (HL)
+        JR NZ, ENDINC
+        INC HL
+        DJNZ INCTMR
+
+ENDINC: ;CALL READ_KEYBOARD        
+        ;CALL BLINKCURSOR
+
+        EXX
+        EX AF, AF'
+        RET
+				
 SIGNON1:       .BYTE     CS
                .BYTE     "Z80MiniFrame 32K",CR,LF
 			   .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
@@ -276,6 +323,8 @@ SIGNON2:       .BYTE     CR,LF
                          
 include "ioroutines.asm"
 include "monitor.asm"
+include "ctc.asm"
 include "vdp.asm"
+
 
 .END

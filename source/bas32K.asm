@@ -37,7 +37,7 @@ DEL     .EQU    7FH             ; Delete
 
 ; BASIC WORK SPACE LOCATIONS
 
-WRKSPC  .EQU    807EH               ; 804A, 8045 BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
+WRKSPC  .EQU    80F0H               ; 807E, 804A, 8045 BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
 
 USR     .EQU    WRKSPC+3H           ; "USR (x)" jump
 OUTSUB  .EQU    WRKSPC+6H           ; "OUT p,n"
@@ -418,7 +418,7 @@ ZTAB    .EQU    0A7H            ; TAB
 ZTO     .EQU    0A8H            ; TO
 ZFN     .EQU    0A9H            ; FN
 ZSPC    .EQU    0AAH            ; SPC
-ZTHEN   .EQU    0B1H            ; THEN
+ZTHEN   .EQU    0ABH            ; THEN
 ZNOT    .EQU    0ACH            ; NOT
 ZSTEP   .EQU    0ADH            ; STEP
 

@@ -6,8 +6,8 @@
 
 ; Addresses of Data and Register configuration of VDP
 
-VDP_RAM         .EQU    $2E
-VDP_REG         .EQU    $2F
+VDP_RAM         .EQU    $002E
+VDP_REG         .EQU    $002F
 
 VDP_WREG        .EQU    10000000b   ; to be added to the REG value
 VDP_RRAM        .EQU    00000000b   ; to be added to the ADRS value
@@ -29,6 +29,9 @@ VDP_INIT:       PUSH DE
                 CALL VDP_SET_MODE
                 CALL VDP_LOADCHARSET
                 
+                LD A, 1
+                LD (ENABLEDCURSOR), A
+
                 POP DE
                 RET
 
@@ -41,11 +44,16 @@ VDP_SET_MODE:   LD B, $08            ; 8 registers
                 PUSH DE
                 SLA E
                 ADD HL, DE
-                LD A, VDP_WREG+$00   ; start with REG0 ($80+register number)
-                LD C, VDP_REG        ; VDP port for registers access
-LDREGVLS:       LD D, (HL)           ; load register's value
-                OUT (C), D           ; send data to VDP
-                OUT (C), A           ; indicate the register to send data to
+                LD A, VDP_WREG+$00  ; start with REG0 ($80+register number)
+                
+LDREGVLS:       LD D, (HL)          ; load register's value
+                
+                PUSH BC
+                LD BC, VDP_REG      ; VDP port for registers access
+                OUT (C), D          ; send data to VDP
+                OUT (C), A          ; indicate the register to send data to
+                POP BC
+
                 INC A               ; next register
                 INC HL              ; next value
                 DJNZ LDREGVLS       ; repeat for 8 registers
@@ -76,45 +84,58 @@ LDREGVLS:       LD D, (HL)           ; load register's value
 
                 ; Reset VRAM
 
-VDP_RESET_VRAM:
-                ld c,VDP_REG        ; load VPD port value
-                ld hl,$4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
-                xor a,a
-                out (c),l           ; low byte of address to VDP
-                out (c),h           ; high byte address to VDP
-                ld b,$40            ; $40 pages of RAM...
-                ld d,a              ; ...each one with $100 cells (tot. $4000 bytes)
-EMPTYVRAM:      out (VDP_RAM),a     ; after first byte, the VDP autoincrements VRAM pointer
-                nop
-                nop
-                inc d               ; next cell
-                jr nz,EMPTYVRAM     ; repeat until page is fully cleared
-                djnz EMPTYVRAM      ; repeat for $40 pages
+VDP_RESET_VRAM: LD HL, $4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
+                XOR A, A
+                
+                LD BC, VDP_REG       ; load VPD port value
+                OUT (C), L           ; low byte of address to VDP
+                OUT (C), H           ; high byte address to VDP
+                
+                LD B, $40            ; $40 pages of RAM...
+                LD D, A              ; ...each one with $100 cells (tot. $4000 bytes)
+EMPTYVRAM:      PUSH BC
+                LD BC, VDP_RAM
+                OUT (C), A     ; after first byte, the VDP autoincrements VRAM pointer
+                POP BC
+                NOP
+                NOP
+                INC D               ; next cell
+                JR NZ, EMPTYVRAM     ; repeat until page is fully cleared
+                DJNZ EMPTYVRAM      ; repeat for $40 pages
                 RET
 
                 ; Load charset
 
-VDP_LOADCHARSET: 
-                ld b,0              ; 0 = 256 chars to be loaded
-                ld hl,$4000         ; fist pattern cell $0000 (MSB must be 0 & 1)
-                ld c,VDP_REG        ; load VDP address into C
-                out (c),l           ; send low byte of address
-                out (c),h           ; send high byte
-                ld hl,CHARSET       ; address of first byte of first pattern into ROM
-NXTCHAR:        ld d,$08            ; 8 bytes per pattern char
-SENDCHRPTRNS:   ld a,(hl)           ; load byte to send to VDP
-                out (VDP_RAM),a     ; send byte to VRAM
-                nop
-                inc hl              ; inc byte pointer
-                dec d               ; 8 bytes sents (1 char)?
-                jr nz,SENDCHRPTRNS  ; no, continue
-                djnz NXTCHAR        ; yes, decrement chars counter and continue for all the 127 chars
+VDP_LOADCHARSET:
+                LD HL, $4000         ; fist pattern cell $0000 (MSB must be 0 & 1)
+                LD BC, VDP_REG      ; load VDP address into C
+                OUT (C), L          ; send low byte of address
+                OUT (C), H          ; send high byte
+
+                LD B, 0              ; 0 = 256 chars to be loaded
+                LD HL, CHARSET       ; address of first byte of first pattern into ROM
+NXTCHAR:        LD D, $08            ; 8 bytes per pattern char
+SENDCHRPTRNS:   LD A, (HL)           ; load byte to send to VDP
+                
+                PUSH BC
+                LD BC, VDP_RAM
+                OUT (C), A           ; send byte to VRAM
+                POP BC
+                NOP
+                
+                INC HL              ; inc byte pointer
+                DEC D               ; 8 bytes sents (1 char)?
+                JR NZ, SENDCHRPTRNS  ; no, continue
+                DJNZ NXTCHAR        ; yes, decrement chars counter and continue for all the 127 chars
                 RET                
 
 ; Text area scrollup 
 
 VDP_SCROLL_UP:  PUSH HL
                 PUSH DE
+
+                LD A, 0
+                LD (ENABLEDCURSOR), A
 
                 LD DE, $0800
                 LD (VIDTMP1), DE
@@ -131,11 +152,21 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 LD (VIDTMP2), DE
 
                 PUSH BC
+
                 LD B, A                         ; Get next row content and save to VIDEOBUFF buffer
                 DEC B
                 LD HL, VIDEOBUFF
-                LD C, VDP_RAM
-                INIR
+                PUSH AF
+
+COPYROW:        PUSH BC
+                LD BC, VDP_RAM
+                IN A, (C)
+                POP BC
+                LD (HL), A
+                INC HL
+                DJNZ COPYROW
+
+                POP AF
                 POP BC
 
                 LD DE, (VIDTMP1)            
@@ -143,11 +174,22 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 CALL VDP_WRITEADDR              ; Jump to previous row
 
                 PUSH BC
+
                 LD B, A                         ; Put VIDEOBUFF buffer on previous row
                 DEC B
                 LD HL, VIDEOBUFF
-                LD C, VDP_RAM
-                OTIR 
+                
+                PUSH AF
+
+PASTEROW:       PUSH BC
+                LD BC, VDP_RAM
+                LD A, (HL)
+                OUT (C), A
+                POP BC
+                INC HL
+                DJNZ PASTEROW
+
+                POP AF
                 POP BC
 
                 LD DE, (VIDTMP2)
@@ -174,6 +216,9 @@ CLR_LAST_LINE:  OUT (VDP_RAM), A
                 LD E, A
                 LD A, 0
                 CALL VDP_SETPOS
+
+                LD A, 1
+                LD (ENABLEDCURSOR), A
 
                 POP DE
                 POP HL
@@ -282,8 +327,12 @@ PUTC:           PUSH AF                         ; Save character
                 
                 POP AF
 
-                OUT (VDP_RAM), A
+                PUSH BC
+                LD BC, VDP_RAM
+                OUT (C), A
                 NOP
+                POP BC
+
                 LD A, (SCR_X)
                 INC A
                 LD (SCR_X), A
@@ -302,19 +351,48 @@ PUTEND:         POP BC
                 RET
 
 
-VDP_CURSOR:     CALL VDP_LOCATE_CURSOR
+VDP_BLINK_CURSOR:
+                PUSH AF
+                PUSH DE
+                PUSH HL
+                PUSH BC
+               
+                LD A, (CURSORSTATE)
+                CP 0
+                JR Z, CURSORSTATE1
 
-                LD (CURSORSTATE), A
+CURSORSTATE0:   LD A, 0
+                JP SHOWCURSOR
+
+CURSORSTATE1:   LD A, 1
+                 
+SHOWCURSOR:     LD (CURSORSTATE), A
+                CALL VDP_CURSOR
+                
+                POP BC
+                POP HL
+                POP DE
+                POP AF
+                RET
+
+
+VDP_CURSOR:     CALL VDP_LOCATE_CURSOR
                 CP 0
                 JR Z, DROPCURSOR
                 
                 LD A, $FF 
-                OUT (VDP_RAM), A
+                PUSH BC
+                LD BC, VDP_RAM
+                OUT (C), A
                 NOP
+                POP BC
                 JP ENDCURSOR
                 
 DROPCURSOR:     LD A, 32
-                OUT (VDP_RAM), A
+                PUSH BC
+                LD BC, VDP_RAM
+                OUT (C), A
+                POP BC
                 NOP
 
 ENDCURSOR:      CALL VDP_LOCATE_CURSOR
@@ -353,10 +431,12 @@ ENDPRT:         POP HL
 ;       A = Foreground and Background color
 
 VDP_SETCOLOR:
-        LD C, VDP_REG          ; Put color code
+        PUSH BC
+        LD BC, VDP_REG          ; Put color code
         OUT (C), A
         LD A, VDP_WREG+VDP_R7  ; Reg 7. Change color
         OUT (C), A        
+        POP BC
         NOP
         RET
 
@@ -413,7 +493,7 @@ VDP_WRITEADDR:
         PUSH    BC
         PUSH    DE
 
-        LD      C, VDP_REG                  
+        LD      BC, VDP_REG                  
         SET     6, D 
         OUT     (C), E
         OUT     (C), D            
@@ -747,4 +827,3 @@ CHARSET: equ $
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
         defb 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
         defb 0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x00
-.END
