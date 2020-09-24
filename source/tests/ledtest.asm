@@ -1,4 +1,8 @@
-CH0         .EQU 0FF00h
+; PIO 82C55 I/O
+PIO1A:       	.EQU    $00              ; (INPUT)  IN 1-8
+PIO1B:       	.EQU    $01              ; (OUTPUT) OUT TO LEDS
+PIO1C:       	.EQU    $02              ; (INPUT)
+PIO1CONT:    	.EQU    $03              ; CONTROL BYTE PIO 82C55
 
             .ORG $0000
             JP INIT
@@ -6,6 +10,8 @@ CH0         .EQU 0FF00h
             .ORG $0038
             EX AF, AF'
             EXX
+            
+            NOP
 
             EXX
             EX AF, AF'
@@ -17,16 +23,19 @@ INIT:       LD SP, 0xffff        ; set the stack pointer to top of RAM
             IM 1
             EI
 
-MAIN:       LD  B, 15
+MAIN:       LD      A,10010000B    ; A=IN, B=OUT C=OUT 10010001
+            OUT     (PIO1CONT),A
 
-LOOP:       LD A, B
+LOOP:       LD      A, 4
+            OUT     (PIO1B), A
+            LD      BC, 500
+            CALL    PAUSE
 
-            LD  BC, CH0
-            OUT (C), A
-
-            LD B, A
-            DJNZ LOOP
-            JP MAIN
+            LD      A, 8
+            OUT     (PIO1B), A
+            LD      BC, 500
+            CALL    PAUSE
+            JP      MAIN
 
 
 PAUSE:       PUSH   AF

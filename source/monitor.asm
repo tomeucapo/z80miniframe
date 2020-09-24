@@ -4,22 +4,9 @@
 ; Tomeu Capó 2019
 ;****************************************************************************
 
-MON_PRMPT:		.BYTE   CR,LF,">",0
-
-MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
-				.BYTE	"B - Z80 BASIC",CR,LF
-				.BYTE   "C - CP/M BOOT",CR,LF
-				.BYTE	"M - Dump memory",CR,LF
-				.BYTE   "T - Tests", CR, LF
-				.BYTE	"? - This help", CR, LF, 0
-
-MDC_1: 			.BYTE CR,LF,"Memory Dump Command",CR,LF
-	   			.BYTE "Location to start in 4 digit HEX:",CR,LF,0
-MDC_3: 			.BYTE "     00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F",CR,LF,0
-
-MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
-MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
-MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
+MON_HEX_LEN:	.EQU		$80EC
+MON_HEX_TYPE:	.EQU		MON_HEX_LEN+1
+MON_HEX_ADDR:	.EQU		MON_HEX_TYPE+1
 
 MON_HELP:		LD	 HL, MON_MENU
 				CALL PRINT
@@ -39,11 +26,80 @@ MON_OPTIONS:	CP        'B'
 				CALL	  Z, BOOT_CPM
 				CP		  'M'
 				CALL	  Z, MEMORY_DUMP_COMMAND
+				CP		  'R'
+				CALL	  Z, RECEIVE_HEX_COMMAND
+				CP		  'G'
+				CALL	  Z, GO_COMMAND
 				CP		  'T'
 				CALL	  Z, MON_TEST
 				CP		  '?'
 				CALL	  Z, MON_HELP
 				RET
+
+GO_COMMAND:
+			CALL MON_NEW_LINE
+			LD  A,'*'
+			RST 8
+
+			; Get Address to write
+			CALL GET_HEX_WORD
+			JP (HL)
+
+
+RECEIVE_HEX_COMMAND:
+			CALL MON_NEW_LINE
+			LD  A,'*'
+			RST 8
+
+WAIT_BEGIN: CALL	GET_CHAR
+			CP  	ESCAPE
+			RET 	Z
+			CP		':'
+			JR 		NZ, WAIT_BEGIN
+
+			; Get length of data
+			CALL GET_HEX_BYTE
+			LD (MON_HEX_LEN), A
+	
+			LD A, ' '
+			RST 8
+
+			; Get Address to write
+			CALL GET_HEX_WORD
+			LD (MON_HEX_ADDR), HL
+
+			LD A, ' '
+			RST 8
+			
+			; Get record type: 0 = Data, 1 = End of file
+			CALL GET_HEX_BYTE
+			CP 1
+			RET Z
+
+			LD A, ' '
+			RST 8
+			
+			LD A, (MON_HEX_LEN)
+			LD B, A
+HEX_READ_DATA:	
+			PUSH BC
+			CALL GET_HEX_BYTE
+
+			LD HL, (MON_HEX_ADDR) 
+			LD (HL), A
+			INC HL
+			LD (MON_HEX_ADDR), HL 
+			
+			LD A, ' '
+			RST 8
+
+			POP BC	
+			DJNZ HEX_READ_DATA 
+			
+			CALL MON_NEW_LINE
+			JP RECEIVE_HEX_COMMAND
+
+			RET
 
 
 MEMORY_DUMP_COMMAND:
@@ -52,30 +108,25 @@ MEMORY_DUMP_COMMAND:
 			CALL    GET_HEX_WORD		;HL now points to databyte location	
 			PUSH	HL					;Save HL that holds databyte location on stack
 			
-			LD		A,CR				;Print spacer
-			CALL	PRINT_CHAR
-			LD		A,LF				;Print spacer
-			CALL	PRINT_CHAR
+			CALL MON_NEW_LINE
 			
-			LD 		HL,MDC_3	
-			CALL    PRINT
 			POP		HL					;Restore HL that holds databyte location on stack
-			LD		C,10				;Register C holds counter of dump lines to print
+			LD		C,11				;Register C holds counter of dump lines to print
 MEMORY_DUMP_LINE:	
-			LD		B,16				;Register B holds counter of dump bytes to print
+			LD		B,10				;Register B holds counter of dump bytes to print
 			CALL	PRINT_HEX_WORD		;Print dump line address in hex form
 			LD		A,' '				;Print spacer
-			CALL	PRINT_CHAR
+			RST		8
 			DEC		C					;Decrement C to keep track of number of lines printed
 MEMORY_DUMP_BYTES:
 			LD		A,(HL)				;Load Acc with databyte HL points to
 			CALL	PRINT_HEX_BYTE		;Print databyte in HEX form 
 			LD		A,' '				;Print spacer
-			CALL	PRINT_CHAR		
+			RST		8		
 			INC 	HL					;Increase HL to next address pointer
 			DJNZ	MEMORY_DUMP_BYTES	;Print 16 bytes out since B holds 16
 			LD		B,C					;Load B with C to keep track of number of lines printed
-			CALL    PRINT_NEW_LINE		;Get ready for next dump line
+			CALL    MON_NEW_LINE		;Get ready for next dump line
 			DJNZ	MEMORY_DUMP_LINE	;Print 10 line out since C holds 10 and we load B with C
 			LD		A,$FF				;Load $FF into Acc so MON_COMMAND finishes
 			RET
@@ -110,9 +161,12 @@ CHAR_ISHEX_2:
 ;***************************************************************************
 GET_HEX_NIB:      
 			CALL	GET_CHAR
+			CP		ESCAPE
+			JP		Z, MON_LOOP
+
             CALL    CHAR_ISHEX      	;Is it a hex digit?
             JP      NC,GET_HEX_NIB  	;Yes - Jump / No - Continue
-			CALL    PRINT_CHAR
+			RST		8
 			CP      '9' + 1         	;Is it a digit less or equal '9' + 1?
             JP      C,GET_HEX_NIB_1 	;Yes - Jump / No - Continue
             SUB     $07             	;Adjust for A-F digits
@@ -161,7 +215,7 @@ PRINT_HEX_NIB:
             JP      C,PRINT_HEX_NIB_1	;Yes - Jump / No - Continue
             ADD     A,'A' - '0' - $0A 	;Adjust for A-F
 PRINT_HEX_NIB_1:
-			CALL	PRINT_CHAR        		;Print the nibble
+			RST 	8	        		;Print the nibble
 			POP		AF
 			RET
 				
@@ -227,4 +281,32 @@ EXITTST:        LD       (KBDROW), A
 
 				RET	
 			
+MON_NEW_LINE:
+		LD		A,CR			
+		RST		8
+		LD		A,LF
+		RST 	8
+		RET
+
+
+MON_PRMPT:		.BYTE   CR,LF,">",0
+
+MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
+				.BYTE	"B - Z80 BASIC",CR,LF
+				.BYTE   "C - CP/M BOOT",CR,LF
+				.BYTE	"M - Dump memory",CR,LF
+				.BYTE   "R - Receive HEX",CR,LF
+				.BYTE   "G - Go",CR,LF
+				.BYTE   "T - Tests", CR, LF
+				.BYTE	"? - This help", CR, LF, 0
+
+MDC_1: 			.BYTE CR,LF,"Memory Dump Command",CR,LF
+	   			.BYTE "Location to start in 4 digit HEX:",CR,LF,0
+
+MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
+MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
+MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
+
+
+
 .END

@@ -1,10 +1,15 @@
 ASM=zmac
 SREC=srec_cat
+MEMTYPE=27256
+COMEPROM=COM13
 
 all: core.hex bas32k.hex cbios.hex firmware.hex
 
 clean:
 	rm -f bin/*.hex
+
+burn:
+	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
 
 core.hex: 
 	$(ASM) core.asm -o bin/core.hex  

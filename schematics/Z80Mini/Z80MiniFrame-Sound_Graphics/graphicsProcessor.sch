@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:Z80MiniFrame-Sound_Graphics-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -1640,6 +1639,8 @@ Wire Wire Line
 	4100 4100 4100 5800
 Wire Wire Line
 	4100 5800 3150 5800
+Text HLabel 3150 5800 0    50   Output ~ 0
+CPUCLK
 Wire Wire Line
 	3950 2350 4250 2350
 Wire Wire Line
@@ -1668,6 +1669,4 @@ Wire Bus Line
 	7350 1050 7350 3700
 Wire Bus Line
 	5850 1050 5850 5550
-Text HLabel 3150 5800 0    50   Output ~ 0
-CPUCLK
 $EndSCHEMATC

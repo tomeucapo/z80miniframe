@@ -665,7 +665,6 @@ Wire Wire Line
 	4050 4200 4050 5650
 Wire Wire Line
 	3950 4200 4050 4200
-NoConn ~ 3950 4100
 $Comp
 L Video:TMS9918A U1
 U 1 1 5DECA710
@@ -1614,34 +1613,6 @@ Wire Wire Line
 Wire Wire Line
 	2800 3800 3000 3800
 Connection ~ 7700 3000
-Wire Bus Line
-	7700 2450 7700 3000
-Wire Bus Line
-	7700 3000 7700 6850
-Wire Bus Line
-	4150 1050 4150 3050
-Wire Wire Line
-	3950 2350 4250 2350
-Wire Bus Line
-	2800 1050 2800 2950
-Wire Bus Line
-	4150 3350 4150 6850
-Wire Bus Line
-	5850 1050 5850 5550
-Wire Bus Line
-	7350 1050 7350 3700
-Wire Wire Line
-	9000 1450 9800 1450
-Wire Bus Line
-	9250 1050 9250 1950
-Wire Wire Line
-	9000 1950 9700 1950
-Wire Wire Line
-	7550 1350 8000 1350
-Wire Bus Line
-	7800 1050 7800 2150
-Wire Bus Line
-	9250 2350 9250 3000
 $Comp
 L Z80MiniFrame-Sound_Graphics-rescue:AS6C62256-55PCN-Memory_RAM U5
 U 1 1 5D7A4B8E
@@ -1663,4 +1634,40 @@ F 11 "http://uk.rs-online.com/web/p/products/0538148" H 8850 550 50  0001 L CNN 
 $EndComp
 Wire Bus Line
 	7700 3000 9250 3000
+Wire Wire Line
+	3950 4100 4100 4100
+Wire Wire Line
+	4100 4100 4100 5800
+Wire Wire Line
+	4100 5800 3150 5800
+Wire Wire Line
+	3950 2350 4250 2350
+Wire Wire Line
+	9000 1450 9800 1450
+Wire Wire Line
+	9000 1950 9700 1950
+Wire Wire Line
+	7550 1350 8000 1350
+Wire Bus Line
+	7700 2450 7700 3000
+Wire Bus Line
+	9250 2350 9250 3000
+Wire Bus Line
+	9250 1050 9250 1950
+Wire Bus Line
+	7700 3000 7700 6850
+Wire Bus Line
+	4150 1050 4150 3050
+Wire Bus Line
+	2800 1050 2800 2950
+Wire Bus Line
+	4150 3350 4150 6850
+Wire Bus Line
+	7800 1050 7800 2150
+Wire Bus Line
+	7350 1050 7350 3700
+Wire Bus Line
+	5850 1050 5850 5550
+Text HLabel 3150 5800 0    50   Output ~ 0
+CPUCLK
 $EndSCHEMATC

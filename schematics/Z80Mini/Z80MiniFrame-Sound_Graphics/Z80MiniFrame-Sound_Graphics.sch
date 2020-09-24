@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:Z80MiniFrame-Sound_Graphics-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -90,6 +89,7 @@ F5 "SND_SEL" I R 5950 3200 50
 F6 "COMVID" I R 5950 3050 50 
 F7 "EXTVDP" I R 5950 2900 50 
 F8 "CPUCLK" I R 5950 2750 50 
+F9 "WR" I L 5050 2800 50 
 $EndSheet
 Wire Wire Line
 	1000 2300 4200 2300
@@ -193,8 +193,6 @@ NoConn ~ 1900 6100
 NoConn ~ 1900 6200
 NoConn ~ 1900 6300
 Wire Wire Line
-	4300 5200 4300 4400
-Wire Wire Line
 	2400 5200 4300 5200
 Wire Wire Line
 	4300 4400 5050 4400
@@ -273,9 +271,16 @@ Wire Wire Line
 Wire Wire Line
 	6300 2750 5950 2750
 Wire Wire Line
+	4300 2800 5050 2800
+Wire Wire Line
+	4300 2800 4300 4400
+Wire Wire Line
 	2400 4700 2950 4700
 Wire Bus Line
 	1600 3800 1600 5100
 Wire Bus Line
 	2700 3800 2700 5000
+Connection ~ 4300 4400
+Wire Wire Line
+	4300 4400 4300 5200
 $EndSCHEMATC

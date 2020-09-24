@@ -191,7 +191,7 @@ print_hello:
 
 end_print_hello:
 
-	ei			;enable the interrupt system
+	;ei			;enable the interrupt system
 	LD	A,(cdisk)	;get current disk number
 	cp	disks		;see if valid disk number
 	jp	c,diskok	;disk valid, go to ccp

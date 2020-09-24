@@ -7,6 +7,8 @@ SER_BUFSIZE     .EQU     $3F
 SER_FULLSIZE    .EQU     $30
 SER_EMPTYSIZE   .EQU     $05
 
+; Firmware memory variables stars at $8000 RAM Address
+
 serBuf          .EQU     $8000                    ; $8000  
 serInPtr        .EQU     serBuf+SER_BUFSIZE+1     ; $8040
 serRdPtr        .EQU     serInPtr+2               ; $8042
@@ -32,24 +34,39 @@ CTC0IV          .EQU     TMRCNT+$04               ; $8080 (3) CTC0 interrupt vec
 CTC1IV          .EQU     CTC0IV+$03               ; $8083 (3) CTC1 interrupt vector
 CTC2IV          .EQU     CTC1IV+$03               ; $8086 (3) CTC2 interrupt vector
 CTC3IV          .EQU     CTC2IV+$03               ; $8089 (3) CTC3 interrupt vector
-ENABLEDCURSOR   .EQU     CTC3IV+$01
+ENABLEDCURSOR   .EQU     CTC3IV+$01               ; $808A
+ENABLECTC       .EQU     ENABLEDCURSOR+$01        ; $808B
+CHASNDDTN       .EQU     ENABLECTC+$02            ; $808D
+CHBSNDDTN       .EQU     CHASNDDTN+$02            ; $808F
+CHCSNDDTN       .EQU     CHBSNDDTN+$02            ; $8091
+KBDNPT          .EQU     CHCSNDDTN+$02            ; $8093 (1) temp cell used to flag if input comes from keyboard
+KBTMP           .EQU     KBDNPT+$01               ; $8094 (1) temp cell used by keyboard scanner
+TMPKEYBFR       .EQU     KBTMP+$01                ; $8095 (1) temp buffer for last key pressed
+LASTKEYPRSD     .EQU     TMPKEYBFR+$01            ; $8096 (1) last key code pressed
+CONTROLKEYS     .EQU     LASTKEYPRSD+$01          ; $8097 (1) flags for control keys (bit#0=SHIFT; bit#1=CTRL; bit#2=C=)
+CHR4VID         .EQU     CONTROLKEYS+$01          ; $8098
+
 
 KBDSIZE         .EQU     8
 
 bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
-TEMPSTACK       .EQU     $8151                  ; 80DF, $81E6, $80AB, 80F2, 80ED Top of BASIC line input buffer so is "free ram" when BASIC resets
+TEMPSTACK       .EQU     $8151                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets (old addresses used: 80DF, $81E6, $80AB, 80F2, 80ED)
 
+CTRLC           .EQU     03H
 CR              .EQU     0DH
 LF              .EQU     0AH                
 CS              .EQU     0CH             ; Clear screen
 BKSP            .EQU     08H
+ESCAPE          .EQU     1BH
 
 
 ; MS-BASIC Addresses
 BASIC_COLD		.EQU	 $2678  
 BASIC_WARM		.EQU	 $267B   
-BOOT_CPM        .EQU     $4348
+
+; CP/M CBIOS Address
+BOOT_CPM                .EQU     $4348
 
                 .ORG $0000
 
@@ -81,7 +98,7 @@ RST10           JP      RXA
 RST18            JP      CKINCHAR
 
 ;------------------------------------------------------------------------------
-; Main firmware interrupt service routine dispacher
+; Main firmware interrupt service routine dispatcher
 
                 .ORG    $0020
 
@@ -99,77 +116,99 @@ RST20           DI
                 RETI            
 
 ;------------------------------------------------------------------------------
-; RST 38 - INTERRUPT VECTOR [ for IM 1 ]
+; Interrupt mode 1 routine
 
-                .ORG   $38            ; Int mode 1
+                .ORG   $0038            
 
                 PUSH     AF
                 PUSH     HL
 
-				CALL	 READ_UART
+		CALL	 READ_UART
 				
-				POP      HL
+		POP      HL
                 POP      AF
                 EI
                 RETI
 
 ;------------------------------------------------------------------------------
-; NMI Routine
+; NMI Interrupt vector
+
                 .ORG    $0066
-                
                 EX AF, AF'
                 EXX
+
+                LD A, (ENABLECTC)
+                CP 0
+                JR Z, EXITNMI
 
                 LD A, (ENABLEDCURSOR)
                 CP 0
                 JR Z, EXITNMI
 
                 CALL    LEDBLINK
-                CALL    VDP_BLINK_CURSOR
-                
+                CALL    VDP_BLINK_CURSOR       
 EXITNMI:      
-                ;CALL    TMRCNTCTRL
-            
                 EXX
                 EX AF, AF'            
                 EI
                 RETN
 
 ;------------------------------------------------------------------------------
+
 INIT:
                LD        HL,TEMPSTACK    ; Temp stack
                LD        SP,HL           ; Set up a temporary stack
             
-               CALL		 INIT_IO
-               CALL      INIT_CTC
+               CALL	 INIT_IO         ; Initialize I/O subsystem (PIO and UART)
 
+               CALL      GETSWSTATE      ; Check if CTC are disabled or not
+               LD        A, B
+               LD        (ENABLECTC), A
+               CP        0
+               JR        Z, WITHOUT_CTC
+
+               CALL      INIT_CTC        ; Initialize CTC
+
+WITHOUT_CTC:
                LD        E, 0            ; Initialize VPD with TEXT MODE
                CALL      VDP_INIT
-
-			   CALL      CHIMPSOUND
+               ;CALL      PSG_INIT
+               
+               CALL      CHIMPSOUND
 
                ;XOR       A
                ;LD        I, A
                ;IM        2
                
-               IM   1
+               IM   1                   ; Enable interrupt mode 1
                EI                          
                 
-               LD        A, 0
+               LD        A, 0           ; Locate on top of screen
                LD        E, 0
                CALL      VDP_SETPOS
 
-               LD        HL,SIGNON1      ; Sign-on message
-               CALL      PRINT           ; Output string
+               LD        HL,WELCOMEMSG  ; Print welcome message      
+               CALL      PRINT          
 
-			   CALL		 MON_HELP
-			   CALL		 MON_LOOP
-			   
-BASIC_INIT:	   LD        A,(basicStarted); Check the BASIC STARTED flag
+               LD        A, (ENABLECTC)
+               CP        0
+               JR        Z, MAIN_LOOP
+
+               LD        HL,CTCENABLEDMSG    
+               CALL      PRINT
+               
+MAIN_LOOP:
+	       CALL      MON_LOOP       ; Go to monitor main loop awaiting for command
+
+;**************************************************************************************
+; Decide if start BASIC in Warm or Cold start mode
+;**************************************************************************************
+
+BASIC_INIT:    LD        A,(basicStarted); Check the BASIC STARTED flag
                CP        'Y'             ; to see if this is power-up
                JR        NZ,COLDSTART    ; If not BASIC started then always do cold start
-               LD		 HL, SIGNON2
-			   CALL		 PRINT
+               LD        HL, BASICSTARTMSG
+               CALL      PRINT
 CORW:
                CALL      RXA
                AND       11011111b       ; lower to uppercase
@@ -192,52 +231,6 @@ CHECKWARM:
                LD        A,$0A
                RST       08H
                JP        BASIC_WARM           ; Start BASIC WARM
-
-;**************************************************************************************
-; Simple sound generation with AY-3-8910 
-;**************************************************************************************
-
-CHIMPSOUND:  PUSH   DE
-             PUSH   AF
-             PUSH   BC
-
-             LD     A, 7
-             LD     C, 62
-             CALL   AYREGWRITE
-             LD     D, 1
-
-LOOP1VOL:    LD     A, 8
-             LD     C, D
-             CALL   AYREGWRITE
-
-             LD     E, 0
-LOOP2PITCH:  LD     A, 1
-             LD     C, E
-             CALL   AYREGWRITE
-             LD     BC,200
-             CALL   PAUSE
-             INC    E
-             LD     A, 7
-             CP     E
-             JR     NZ, LOOP2PITCH   
-
-             LD     A, 8
-             LD     C, 0
-             CALL   AYREGWRITE   
-
-             INC    D
-             LD     A, 8
-             CP     D
-             JR     NZ, LOOP1VOL
-
-             LD     A, 8
-             LD     C, 0
-             CALL   AYREGWRITE   
-
-             POP    BC
-             POP    AF
-             POP    DE
-             RET
 
 PAUSE:       PUSH   AF
              INC    B
@@ -314,17 +307,26 @@ ENDINC: ;CALL READ_KEYBOARD
         EXX
         EX AF, AF'
         RET
-				
-SIGNON1:       .BYTE     CS
+
+;**************************************************************************************
+; NMI Routine code
+;**************************************************************************************
+;NMI_ROUTINE:
+
+
+WELCOMEMSG:    .BYTE     CS
                .BYTE     "Z80MiniFrame 32K",CR,LF
-			   .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
-SIGNON2:       .BYTE     CR,LF
+               .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
+
+BASICSTARTMSG: .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
+
+CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
                          
 include "ioroutines.asm"
 include "monitor.asm"
 include "ctc.asm"
+include "psg.asm"
 include "vdp.asm"
-
 
 .END
