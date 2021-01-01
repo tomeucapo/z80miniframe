@@ -105,9 +105,9 @@ BKGNDCLR        .EQU     FRGNDCLR+$01    ; (1) background color as set by SCREEN
 TMPBFR1         .EQU     BKGNDCLR+$02    ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR2         .EQU     TMPBFR1+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR3         .EQU     TMPBFR2+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
-TMPBFR4         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+SCRMODE         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 
-PBUFF   .EQU    TMPBFR4+1     ; Number print buffer
+PBUFF   .EQU    SCRMODE+1     ; Number print buffer
 MULVAL  .EQU    PBUFF+$0D     ; Multiplier
 PROGST  .EQU    MULVAL+$03    ; Start of program text area
 STLOOK  .EQU    PROGST+$64    ; Start of memory test
@@ -152,7 +152,10 @@ CSTART: LD      HL,WRKSPC       ; Start of workspace RAM
         LD      SP,HL           ; Set up a temporary stack
         JP      INITST          ; Go to initialise
 
-INIT:   LD      DE,INITAB       ; Initialise workspace
+INIT:   LD      A, 0
+        LD      (SCRMODE), A
+        
+        LD      DE,INITAB       ; Initialise workspace
         LD      B,INITBE-INITAB+3; Bytes to copy
         LD      HL,WRKSPC       ; Into workspace RAM
 COPY:   LD      A,(DE)          ; Get source
@@ -164,7 +167,7 @@ COPY:   LD      A,(DE)          ; Get source
         LD      SP,HL           ; Temporary stack
         CALL    CLREG           ; Clear registers and stack
         CALL    PRNTCRLF        ; Output CRLF
-        LD      (BUFFER+72+1),A ; Mark end of buffer
+        LD      (BUFFER+88+1),A ; Mark end of buffer                    ; 72
         LD      (PROGST),A      ; Initialise program area
 MSIZE:  LD      HL,MEMMSG       ; Point to message
         CALL    PRS             ; Output "Memory size"
@@ -4370,7 +4373,20 @@ COLOR:  CALL    GETINT          ; Get First value
         LD      B, A
         LD      A, (TMPBFR1)
         OR      B
+        LD      (TMPBFR2), A
 
+        LD      A, (SCRMODE)
+        CP      0
+        JR      Z, SET_COLOR
+
+        CALL    CHKSYN          ; Make sure ',' follows 
+        DEFB    ','
+        CALL    GETINT          ; get second value
+        CALL    CHKCLR          ; check if it's in range 1~15
+        LD      E, A
+
+SET_COLOR:
+        LD      A, (TMPBFR2)
         LD      B, 0            ; Call service routine number 0 (VDP_SETCOLOR)
         RST     $20          
         RET   
@@ -4387,6 +4403,7 @@ LOCATE: CALL    GETINT          ; Get First value put X into A
         RET 
 
 SCREEN: CALL    GETINT          ; Get First value put X into A
+        LD      (SCRMODE), A
         LD      B, 3            ; Call service routine number 1 (VDP_SET_MODE)
         RST     $20    
         RET

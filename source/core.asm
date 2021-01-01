@@ -66,7 +66,7 @@ BASIC_COLD		.EQU	 $2678
 BASIC_WARM		.EQU	 $267B   
 
 ; CP/M CBIOS Address
-BOOT_CPM                .EQU     $4348
+BOOT_CPM                .EQU     $4368
 
                 .ORG $0000
 
@@ -276,7 +276,7 @@ _VDP_SETPOS:    EX      AF, AF'
 
 _VDP_MODE:      EX      AF, AF'
                 LD      E, A            
-                CALL    VDP_SET_MODE
+                CALL    VDP_INIT
 
 END20:          RET
 
@@ -288,25 +288,6 @@ LEDBLINK:
         SLA A
         OUT (PIO1B), A      
         RET              
-
-
-TMRCNTCTRL:
-        EX  AF, AF'
-        EXX
-
-        LD HL, TMRCNT
-        LD B, $04
-INCTMR: INC (HL)
-        JR NZ, ENDINC
-        INC HL
-        DJNZ INCTMR
-
-ENDINC: ;CALL READ_KEYBOARD        
-        ;CALL BLINKCURSOR
-
-        EXX
-        EX AF, AF'
-        RET
 
 ;**************************************************************************************
 ; NMI Routine code

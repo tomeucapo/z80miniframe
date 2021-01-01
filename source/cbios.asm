@@ -7,7 +7,7 @@ cdisk:	.EQU	0004h		;address of current disk number 0=a,... l5=p
 iobyte:	.EQU	0003h		;intel i/o byte
 disks:	.EQU	04h		 ;number of disks in the system
 ;
-	    .ORG	$4348    ;bios		;origin of this program
+	    .ORG	$4368    ;bios		;origin of this program
 
 nsects:	.EQU	($-ccp)/128	;warm start sector count
 ;
