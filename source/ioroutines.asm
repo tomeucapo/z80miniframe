@@ -136,6 +136,17 @@ BUFF_NOT_WRAP:  LD       (serInPtr),HL
                 ;JR       C,rts0
               	RET
 				
+READ_KEYBOARD:  LD      BC, $100
+                IN      A, (C)
+                BIT     0, A
+                RET     Z
+
+                LD      BC, $101
+                IN      A, (C)
+                CALL     BUFFER_PUTC
+                RET
+
+
 ;**************************************************************
 ; TX/RX Ready routines
 ;**************************************************************
@@ -183,7 +194,7 @@ TXA:            CALL  UART_TX_RDY
                 RET
 
 GET_CHAR:	    CALL  RXA
-				CALL  TO_UPPER           ;AND   11011111b
+				CALL  TO_UPPER          
 				RET 
 
 TO_UPPER:       
@@ -216,46 +227,6 @@ PRINT:          LD       A,(HL)          ; Get character
                 JR       PRINT           ; Continue until $00
                 RET
 
-;**************************************************************
-; Read keyboard routines
-;**************************************************************
-
-; TODO: Implementation stage
-
-READ_KEYBOARD:  PUSH BC
-
-                ;LD A, (KBDCOLMSK)      
-                ;SLA A
-                ;LD (KBDCOLMSK), A
-                ;CPL
-                ;OUT (PIO1C), A
-                
-                LD B, 7
-
-ROWSCAN:        LD A, B
-                SLA A           
-                SLA A           
-                SLA A           
-                SLA A           
-                OUT (PIO1B), A
-                DJNZ ROWSCAN
-
-                XOR A, A
-                OUT (PIO1B), A
-                ;IN A, (PIO1A) 
-                ;AND $80
-                ;JR NZ, NEXT
-                
-                ;LD       A, 48
-                ;CALL     VDP_PUTCHAR            
-
-NEXT:           ;DEC C
-                ;LD A, C
-                ;JP P, NEXTEXIT
-                ;LD A, KBDSIZE
-
-NEXTEXIT:       POP BC
-                RET
 ;**************************************************************
 ; Get configuration switch states
 ;   B = LSB switches (2,3)

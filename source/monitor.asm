@@ -255,29 +255,48 @@ PRINT_HEX_WORD:
 
 ; Test hardware routine
 
-MON_TEST:		LD	 HL, MON_TEST_KBD_MSG
+MON_TEST:		LD	 HL, MON_TEST_VID_MSG
 				CALL PRINT
-
 				
-				DI
+				LD BC, 700
+				CALL PAUSE
+
+				LD B, 3			; Set text mode
+				LD E, 0
+				RST $20
+
+				LD HL, MON_TST_VID_MODE0
+				CALL PRINT
+				CALL MON_NEW_LINE
+
+				LD BC, 700
+				CALL PAUSE
+
+				LD C, 0
+				LD A, $F0
+				LD B, 0
+
+MON_TEST_COLOR:	
+				OR C
+				LD D, B
+				LD B, 0
+				RST $20
+				INC C
+
+				LD B, D
+
+				PUSH BC
+
+				LD BC, 900
+				CALL PAUSE
 				
-				LD  A, (KBDROW)
-                CP  8
-                JR Z, OFF
+				POP BC
 
-                LD       A, 8
-				OUT		 (PIO1B),A
-                JP       EXITTST
+				DJNZ MON_TEST_COLOR
 
-OFF:            LD       A, 0
-				OUT		 (PIO1B), A
-                
-                CALL     READ_KEYBOARD
-
-
-EXITTST:        LD       (KBDROW), A
-
-				EI
+				LD B, 0
+				LD A, $F5
+				RST $20
 
 				RET	
 			
@@ -307,6 +326,8 @@ MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
 MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
 MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
 
+
+MON_TST_VID_MODE0:	.BYTE "MODE 0",0
 
 
 .END

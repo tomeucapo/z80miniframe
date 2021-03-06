@@ -296,6 +296,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'D'+80H,"EF"
         .BYTE   'P'+80H,"OKE"
         .BYTE   'D'+80H,"OKE"
+        .BYTE   'V'+80H,"POKE"
         .BYTE   'S'+80H,"CREEN"
         .BYTE   'C'+80H,"OLOR"
         .BYTE   'L'+80H,"OCATE"
@@ -387,6 +388,7 @@ WORDTB: .WORD   PEND
         .WORD   DEF
         .WORD   POKE
         .WORD   DOKE
+        .WORD   VPOKE
         .WORD   SCREEN             ; Screen
         .WORD   COLOR
         .WORD   LOCATE
@@ -413,29 +415,29 @@ ZFOR    .EQU    081H            ; FOR
 ZDATA   .EQU    083H            ; DATA
 ZGOTO   .EQU    088H            ; GOTO
 ZGOSUB  .EQU    08CH            ; GOSUB
-ZREM    .EQU    08EH            ; REM
-ZPRINT  .EQU    0A0H            ; PRINT         9E
-ZNEW    .EQU    0A6H            ; NEW           A4              
+ZREM    .EQU    08EH            ; REM           
+ZPRINT  .EQU    0A1H            ; PRINT         A0
+ZNEW    .EQU    0A7H            ; NEW                         
 
-ZTAB    .EQU    0A7H            ; TAB
-ZTO     .EQU    0A8H            ; TO
-ZFN     .EQU    0A9H            ; FN
-ZSPC    .EQU    0AAH            ; SPC
-ZTHEN   .EQU    0ABH            ; THEN
-ZNOT    .EQU    0ACH            ; NOT
-ZSTEP   .EQU    0ADH            ; STEP
+ZTAB    .EQU    0A8H            ; TAB
+ZTO     .EQU    0A9H            ; TO
+ZFN     .EQU    0B0H            ; FN
+ZSPC    .EQU    0ABH            ; SPC
+ZTHEN   .EQU    0ACH            ; THEN
+ZNOT    .EQU    0ADH            ; NOT
+ZSTEP   .EQU    0AEH            ; STEP
 
-ZPLUS   .EQU    0AEH            ; +
-ZMINUS  .EQU    0AFH            ; -
-ZTIMES  .EQU    0B0H            ; *
-ZDIV    .EQU    0B1H            ; /
-ZOR     .EQU    0B4H            ; OR
-ZGTR    .EQU    0B5H            ; >
-ZEQUAL  .EQU    0B6H            ; M
-ZLTH    .EQU    0B7H            ; <
-ZSGN    .EQU    0B8H            ; SGN
-ZPOINT  .EQU    0C9H            ; POINT
-ZLEFT   .EQU    0CFH +2         ; LEFT$
+ZPLUS   .EQU    0AFH            ; +
+ZMINUS  .EQU    0B0H            ; -
+ZTIMES  .EQU    0B1H            ; *
+ZDIV    .EQU    0B2H            ; /
+ZOR     .EQU    0B5H            ; OR
+ZGTR    .EQU    0B6H            ; >
+ZEQUAL  .EQU    0B7H            ; M
+ZLTH    .EQU    0B8H            ; <
+ZSGN    .EQU    0B9H            ; SGN
+ZPOINT  .EQU    0CAH            ; POINT
+ZLEFT   .EQU    0D0H +2         ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -4355,7 +4357,7 @@ TSTBIT: PUSH    AF              ; Save bit mask
 OUTNCR: CALL    OUTC            ; Output character in A
         JP      PRNTCRLF        ; Output CRLF
 
-COLOR:  CALL    GETINT          ; Get First value
+COLOR:  CALL    GETINT          ; Get First value (foreground color)
         CALL    CHKCLR          ; check if it's in range 1~15
         SLA     A
 	SLA     A
@@ -4366,7 +4368,7 @@ COLOR:  CALL    GETINT          ; Get First value
 
         CALL    CHKSYN          ; Make sure ',' follows
         DEFB    ','
-        CALL    GETINT          ; get second value
+        CALL    GETINT          ; get second value (backgroud color)
         CALL    CHKCLR          ; check if it's in range 1~15
         
         LD      (BKGNDCLR), A
@@ -4375,13 +4377,13 @@ COLOR:  CALL    GETINT          ; Get First value
         OR      B
         LD      (TMPBFR2), A
 
-        LD      A, (SCRMODE)
+        LD      A, (SCRMODE)    ; Make sure if is in TEXT MODE
         CP      0
         JR      Z, SET_COLOR
 
         CALL    CHKSYN          ; Make sure ',' follows 
         DEFB    ','
-        CALL    GETINT          ; get second value
+        CALL    GETINT          ; get third value (backdrop color)
         CALL    CHKCLR          ; check if it's in range 1~15
         LD      E, A
 
@@ -4398,15 +4400,30 @@ LOCATE: CALL    GETINT          ; Get First value put X into A
         CALL    GETINT          ; get second value put Y into A
         LD      E, A            ; E <- A        
         LD      A, (TMPBFR1)
-        LD      B, 2            ; Call service routine number 1 (VDP_SETPOS)
+        LD      B, 2            ; Call service routine number 2 (VDP_SET_COLOR)
         RST     $20    
         RET 
 
 SCREEN: CALL    GETINT          ; Get First value put X into A
-        LD      (SCRMODE), A
+        LD      (SCRMODE), A    ; Store selected mode into BASIC workspace
         LD      B, 3            ; Call service routine number 1 (VDP_SET_MODE)
         RST     $20    
         RET
+
+VPOKE:  CALL    GETNUM          ; Get memory address
+        CALL    DEINT           ; Get integer -32768 to 3276
+        PUSH    DE              ; Save memory address
+        CALL    CHKSYN          ; Make sure ',' follows
+        .BYTE      ','
+        CALL    GETINT          ; Get integer 0-255
+        POP     DE              ; Restore memory address
+        EX      DE,HL           ; Copy address into HL
+        
+        LD      B, 4
+        RST     $20
+        
+        EX      DE,HL           ; Restore HL
+        RET                     ; Return to caller
 
 ; check if the color is not 0 and into the range 1~15
 CHKCLR: and     A               ; is it 0?

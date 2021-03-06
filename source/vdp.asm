@@ -5,7 +5,7 @@
 
 ; Addresses of Data and Register configuration of VDP
 
-VDP_RAM         .EQU    $002E
+VDP_DATA        .EQU    $002E
 VDP_REG         .EQU    $002F
 
 VDP_WREG        .EQU    10000000b   ; to be added to the REG value
@@ -74,7 +74,7 @@ LDREGVLS:       LD D, (HL)          ; load register's value
                 LD HL, VDPMODESSIZES  ; pointer to screen mode sizes
                 ADD HL, DE
 
-                LD A, (HL)
+                LD A, (HL)             ; Initialize screen size variables
                 LD (SCR_SIZE_W), A    
                 INC HL
                 LD A, (HL)
@@ -106,7 +106,7 @@ VDP_SET_COLOR_TABLE:
 
                 LD      B, $20           ; 32 bytes of colors
 LDCLRTBMD1:     PUSH    BC
-                LD      BC,VDP_RAM      ; VDP data mode
+                LD      BC,VDP_DATA      ; VDP data mode
                 OUT     (C),A           ; after first byte, the VDP autoincrements VRAM pointer
                 POP     BC
                 NOP
@@ -129,7 +129,7 @@ VDP_RESET_VRAM: LD HL, $4000         ; first RAM cell $0000 (MSBs must be 0 & 1,
                 LD B, $40            ; $40 pages of RAM...
                 LD D, A              ; ...each one with $100 cells (tot. $4000 bytes)
 EMPTYVRAM:      PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 OUT (C), A     ; after first byte, the VDP autoincrements VRAM pointer
                 POP BC
                 NOP
@@ -160,7 +160,7 @@ NXTCHAR:        LD D, $08            ; 8 bytes per pattern char
 SENDCHRPTRNS:   LD A, (HL)           ; load byte to send to VDP
                 
                 PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 OUT (C), A           ; send byte to VRAM
                 POP BC
                 NOP
@@ -187,7 +187,7 @@ VDP_SCROLL_UP:  PUSH HL
                 LD A, 0
                 LD (ENABLEDCURSOR), A
 
-                CALL VDP_GETTABLENAME
+                CALL VDP_GETTABLENAME           ; Get correct screen address depends on mode
                 LD D, B
                 LD E, C
 
@@ -212,7 +212,7 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 PUSH AF
 
 COPYROW:        PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 IN A, (C)
                 POP BC
                 LD (HL), A
@@ -235,7 +235,7 @@ COPYROW:        PUSH BC
                 PUSH AF
 
 PASTEROW:       PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 LD A, (HL)
                 OUT (C), A
                 NOP
@@ -262,10 +262,13 @@ PASTEROW:       PUSH BC
                 LD A, (SCR_SIZE_W)
                 LD B, A
 
-                LD A, 32
-CLR_LAST_LINE:  OUT (VDP_RAM), A
+                LD A, 0
+CLR_LAST_LINE:  PUSH BC
+                LD BC, VDP_DATA
+                OUT (C), A
                 NOP
                 NOP
+                POP BC
                 DJNZ CLR_LAST_LINE
 
                 LD A, (SCR_SIZE_H)
@@ -292,10 +295,13 @@ VDP_CLRSCR:     PUSH BC
                 CALL VDP_WRITEADDR
                
                 LD BC, 960           ; Total text area = 24 * 40
-CLRBUFF:        LD A, 32
-                OUT (VDP_RAM), A
+CLRBUFF:        LD A, 0
+                PUSH BC
+                LD BC, VDP_DATA
+                OUT (C), A
                 NOP
                 NOP
+                POP BC
                 DEC BC
                 LD A, B
                 OR C
@@ -327,7 +333,7 @@ VDP_PUTCHAR:    PUSH AF
                 CP LF
                 JR Z, NEW_LINE
                 CP CR
-                JR Z, PUTEND
+                JP Z, PUTEND
                 CP BKSP
                 JR Z, DELCHAR
 
@@ -351,8 +357,6 @@ NEW_LINE:       PUSH AF
                 INC A
                 CP B
                 
-                ;CP 24                           ; TODO: Read from configuration of actual mode!
-
                 JR Z, SCROLLUP
                 LD E, A
                 LD A, (SCR_X)
@@ -372,18 +376,20 @@ DELCHAR:        LD A, 0
                 LD E, A
                 LD A, (SCR_X)
                 DEC A
+
                 PUSH DE
                 PUSH AF
 
                 CALL VDP_SETPOS
-                LD B, A
-                LD A, 32
-                OUT (VDP_RAM), A
+                LD A, 0
+                LD BC, VDP_DATA
+                OUT (C), A
                 NOP
                 NOP
-
+        
                 POP AF
                 POP DE
+
                 CALL VDP_SETPOS
                 JR PUTE
 
@@ -398,7 +404,7 @@ PUTC:           PUSH AF                         ; Save character
                 POP AF
 
                 PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 OUT (C), A
                 NOP
                 NOP
@@ -459,15 +465,15 @@ VDP_CURSOR:     CALL VDP_LOCATE_CURSOR
                 
                 LD A, $FF 
                 PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 OUT (C), A
                 NOP
                 POP BC
                 JP ENDCURSOR
                 
-DROPCURSOR:     LD A, 32
+DROPCURSOR:     LD A, 0
                 PUSH BC
-                LD BC, VDP_RAM
+                LD BC, VDP_DATA
                 OUT (C), A
                 POP BC
                 NOP
@@ -511,13 +517,13 @@ ENDPRT:         POP HL
 ; ************************************************************************************
 ; VDP_SETCOLOR - Set color
 ;       A = Foreground and Background color
-;       E = Set border color
+;       E = Set border color (backdrop)
 
 VDP_SETCOLOR:
         PUSH BC
 
-        LD B, A
-        LD A, (SCR_MODE)
+        LD B, A                 ; Detects if not TEXT Mode you need change first color table
+        LD A, (SCR_MODE)        ; and then sets 7 register to set backdrop color.
         CP 0
         JR Z, SET_REG_COLOR
         
@@ -648,6 +654,129 @@ VDP_WRITEADDR:
         POP     DE
         POP     BC
         RET
+
+; ************************************************************************************
+; VDP_READ_VIDEO_LOC - load the char or byte at the VRAM position set by HL
+; value is returned into A
+
+VDP_READ_VIDEO_LOC: 
+                push    BC              ; store BC
+                ld      C,VDP_REG       ; VDP setting mode
+                ld      B,H
+                res     7,B
+                res     6,B
+                out     (C),L           ; low byte then...
+                out     (C),B           ; high byte
+                ld      C,VDP_DATA       ; VDP data mode
+                nop                     ; wait...
+                nop                     ; ...a while
+                nop
+                in      A,(C)           ; read byte at current VRAM location
+                pop     BC              ; restore BC
+                ret                     ; return to caller
+
+; ************************************************************************************
+; VDP_WRITE_VIDEO_LOC - write a byte at the VRAM position pointed by HL
+;       HL = Address to write
+;       A = Value to write 
+
+VDP_WRITE_VIDEO_LOC:
+                push    BC              ; store BC
+                ld      C,VDP_REG       ; VDP setting mode
+                ld      B,H             ; copy H into B
+                res     7,B
+                set     6,B             ; write to VRAM
+                out     (C),L           ; low byte then...
+                out     (C),B           ; high byte of VRAM address
+                ld      C,VDP_DATA       ; VDP data mode
+                nop                     ; wait...
+                nop                     ; ...a while
+                nop
+                out     (C),A           ; write byte into VRAM
+                pop     BC              ; restore BC
+                ret                     ; return to caller
+
+; ************************************************************************************
+; VDP_PLOT - Draw point on screen
+;       A = X
+;       E = Y
+
+VDP_PLOT:
+        CALL    VDP_XY_TO_ADDR           
+        JP      NC, END_PLOT
+        
+END_PLOT:
+        RET
+
+VDP_XY_TO_ADDR:
+        ; formula is: ADDRESS=(INT(X/8))*8 + (INT(Y/8))*256 + R(Y/8)
+        ; where R(Y/8) is the remainder of (Y/8)
+        ; the pixel to be set is given by R(X/8), and data is taken from the array
+
+        LD      B, A    ; X
+        LD      D, E    ; Y
+
+        LD      A, D
+        CP      $C0             ; Y>=192?
+        RET     NC              ; yes, so leave
+
+        AND     A, 11111000b    ; Divide Y by 8
+        RRCA
+        RRCA
+        RRCA
+        
+        LD      L, B            
+        LD      E, A
+        CALL    GET_MODULE
+
+        LD      C,A             ; store remainder into C
+        LD      B,E             ; B=(INT(Y/8))*256 (we simply copy quotient into B)
+        
+        LD      H, B
+        LD      L, C
+        
+        LD      A, B
+        AND     A, 11111000b    ; Divide X by 8
+        RRCA
+        RRCA
+        RRCA
+
+        LD      L, B
+        LD      E, A
+        CALL    GET_MODULE
+        
+        ld      C,A             ; store remainder into C
+        ld      A,D             ; move quotient into A
+        add     A,A
+        add     A,A
+        add     A,A             ; multiply quotient by 8
+        ld      E,A             ; store result into E
+        ld      D,$00           ; reset D
+        add     HL,DE           ; add DE to HL, getting the final VRAM address
+        ex      DE,HL           ; move VRAM address into DE
+        ld      HL,PXLSET       ; starting address of table for pixel to draw
+        ld      B,$00           ; reset B
+        add     HL,BC           ; add C (remainder of X/8) to get address of pixel to turn on
+        ld      A,(HL)          ; load pixel data
+        ex      DE,HL           ; retrieve VRAM pattern address into HL
+        scf                     ; set Carry for normal exit
+        ret                     ; return to caller
+
+; HL = X
+; DE = X DIV 8
+
+GET_MODULE:
+        LD A, E       ;  4T 1B -- A := x div 7 [low bits]
+        ADD A, A      ;  4T 1B -- A := (x div 7) * 2 [low bits]
+        ADD A, A      ;  4T 1B -- A := (x div 7) * 4 [low bits]
+        ADD A, A      ;  4T 1B -- A := (x div 7) * 8 [low bits]
+        SUB E         ;  4T 1B -- A := (x div 7) * 7 [low bits]
+        NEG           ;  8T 2B -- A := (x div 7) * -7 [low bits]
+        ADD A, L      ;  4T 1B -- A := x mod 7  
+        RET
+
+PXLSET: 
+                .DEFB    $80,$40,$20,$10,$08,$04,$02,$01
 
 VDPMODESSIZES:  ; Screen mode dimensions
 
