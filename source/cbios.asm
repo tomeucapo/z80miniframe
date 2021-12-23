@@ -2,12 +2,12 @@
 ;
 ccp:	.EQU    05948h  ;	0D400h		;base of ccp
 bdos:	.EQU    05142h  ;	0DC06h		;bdos entry
-bios:	.EQU    04348h  ;	0EA00h		;base of bios
+bios:	.EQU    04388h  ;	0EA00h		;base of bios
 cdisk:	.EQU	0004h		;address of current disk number 0=a,... l5=p
 iobyte:	.EQU	0003h		;intel i/o byte
 disks:	.EQU	04h		 ;number of disks in the system
 ;
-	    .ORG	$4378    ;bios		;origin of this program
+	    .ORG	$4388    ;bios		;origin of this program
 
 nsects:	.EQU	($-ccp)/128	;warm start sector count
 ;
@@ -191,7 +191,7 @@ print_hello:
 
 end_print_hello:
 
-	;ei			;enable the interrupt system
+	ei			;enable the interrupt system
 	LD	A,(cdisk)	;get current disk number
 	cp	disks		;see if valid disk number
 	jp	c,diskok	;disk valid, go to ccp

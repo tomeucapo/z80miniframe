@@ -1,7 +1,7 @@
 
 ; AY-3-8910
-AYCTRL:         .EQU    $31 
-AYDATA:         .EQU    $32
+AYCTRL:         .EQU    $0031 
+AYDATA:         .EQU    $0032
 
 ;------------------------------------------------------------------------------
 ; configure the PSG
@@ -93,18 +93,22 @@ LOOP2PITCH:  LD     A, 1
 ; Sound generator register/data control
 ;**************************************************************
 
-AYREGWRITE:     OUT (AYCTRL), A
-                LD         A, C
-                OUT (AYDATA), A
+AYREGWRITE:     PUSH BC
+                LD BC, AYCTRL
+                OUT (C), A
+                POP BC
+                LD  A, C
+                LD BC, AYDATA
+                OUT (C), A
                 RET
 
 ; select register on PSG
-SETSNDREG:      ld      C,AYCTRL        ; PSG register port
+SETSNDREG:      ld      BC,AYCTRL        ; PSG register port
                 out     (C),A           ; set register
                 ret                     ; return to caller
 
 ; send data to PSG
-WRTSNDREG:      ld      C,AYDATA        ; PSG data port
+WRTSNDREG:      ld      BC,AYDATA        ; PSG data port
                 out     (C),A           ; send data
                 ret                     ; return to caller
 

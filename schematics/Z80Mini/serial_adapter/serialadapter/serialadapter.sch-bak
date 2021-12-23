@@ -293,9 +293,9 @@ Wire Wire Line
 	9750 4700 10150 4700
 Wire Wire Line
 	9750 4600 10150 4600
-Text Label 10150 4700 0    50   ~ 0
-RX
 Text Label 10150 4600 0    50   ~ 0
+RX
+Text Label 10150 4700 0    50   ~ 0
 TX
 Wire Wire Line
 	9750 5500 10200 5500

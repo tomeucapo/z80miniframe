@@ -66,7 +66,7 @@ BASIC_COLD		.EQU	 $2678
 BASIC_WARM		.EQU	 $267B   
 
 ; CP/M CBIOS Address
-BOOT_CPM                .EQU     $4378
+BOOT_CPM                .EQU     $4388
 
                 .ORG $0000
 
@@ -210,15 +210,15 @@ BASIC_INIT:    LD        A,(basicStarted); Check the BASIC STARTED flag
                LD        HL, BASICSTARTMSG
                CALL      PRINT
 CORW:
-               CALL      RXA
-               AND       11011111b       ; lower to uppercase
+               ;CALL      RXA
+               ;AND       11011111b       ; lower to uppercase
+               
+               CALL     GET_CHAR
                CP        'C'
                JR        NZ, CHECKWARM
-               RST       08H
-               LD        A,$0D
-               RST       08H
-               LD        A,$0A
-               RST       08H
+               RST       08H               
+               CALL     MON_NEW_LINE
+               
 COLDSTART:     LD        A,'Y'           ; Set the BASIC STARTED flag
                LD        (basicStarted),A
                JP        BASIC_COLD           ; Start BASIC COLD
@@ -226,10 +226,8 @@ CHECKWARM:
                CP        'W'
                JR        NZ, CORW
                RST       08H
-               LD        A,$0D
-               RST       08H
-               LD        A,$0A
-               RST       08H
+               CALL     MON_NEW_LINE
+
                JP        BASIC_WARM           ; Start BASIC WARM
 
 PAUSE:       PUSH   AF
@@ -317,5 +315,5 @@ include "monitor.asm"
 include "ctc.asm"
 include "psg.asm"
 include "vdp.asm"
+include "cflm.asm"
 
-.END

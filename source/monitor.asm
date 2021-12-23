@@ -32,6 +32,8 @@ MON_OPTIONS:	CP        'B'
 				CALL	  Z, GO_COMMAND
 				CP		  'T'
 				CALL	  Z, MON_TEST
+				CP		  'F'
+				CALL	  Z, DSK_INIT
 				CP		  '?'
 				CALL	  Z, MON_HELP
 				RET
@@ -300,6 +302,21 @@ MON_TEST_COLOR:
 
 				RET	
 			
+DSK_INIT:
+		LD	 HL, MON_DSK_INIT
+		CALL PRINT
+
+		ld 	    A,$E0           ; select CF as master, driver 0, LBA mode (bits #5-7=111) 
+		LD		BC, CF_LBA3
+        out     (C),A     ; send configuration
+        ld      A,$EC           ; select "drive ID" command
+		LD		BC, CF_CMD
+        out     (C),A      ; send command
+        call    CF_DAT_RDY      ; wait until data is ready to be read
+        call    CF_RD_CMD       ; read data and store into I/O buffer
+		RET
+
+
 MON_NEW_LINE:
 		LD		A,CR			
 		RST		8
@@ -328,6 +345,6 @@ MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
 
 
 MON_TST_VID_MODE0:	.BYTE "MODE 0",0
-
+MON_DSK_INIT:		.BYTE "DISK INIT",0
 
 .END

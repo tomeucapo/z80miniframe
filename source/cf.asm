@@ -1,14 +1,14 @@
 
 
-CF_DRIVE_BUFFER		.EQU	$0120
-CF_DRIVE_DATA		.EQU	$0122
+CF_DRIVE_BUFFER		.EQU	$0130
+CF_DRIVE_DATA		.EQU	$0132
 
-CF_LBA0_REG			.EQU    $0123
-CF_LBA1_REG			.EQU    $0124
-CF_LBA2_REG			.EQU    $0125
-CF_LBA3_REG			.EQU    $0126
+CF_LBA0_REG			.EQU    $0133
+CF_LBA1_REG			.EQU    $0134
+CF_LBA2_REG			.EQU    $0135
+CF_LBA3_REG			.EQU    $0136
 
-CF_STATUS_REG		.EQU	$0127
+CF_STATUS_REG		.EQU	$0137
 
 ; ------------------ Hardware specific CF subroutines------
 ;---------------------------------------------------------------------

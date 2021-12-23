@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:serialadapter-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -58,7 +59,7 @@ F 3 "~" H 1500 2050 50  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L Interface_UART:MAX3222CPN+ U1
+L serialadapter-rescue:MAX3222CPN+-Interface_UART U1
 U 1 1 5F185A71
 P 5350 2450
 F 0 "U1" H 5350 3620 50  0000 C CNN
@@ -632,7 +633,7 @@ F 3 "" H 8700 6300 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Interface_USB:MCP2221A-I_SL U3
+L serialadapter-rescue:MCP2221A-I_SL-Interface_USB U3
 U 1 1 5F200371
 P 9150 4900
 F 0 "U3" H 9150 5767 50  0000 C CNN

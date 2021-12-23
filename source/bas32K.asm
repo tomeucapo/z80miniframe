@@ -259,6 +259,7 @@ FNCTAB: .WORD   SGN
         .WORD   ATN
         .WORD   PEEK
         .WORD   DEEK
+        .WORD   VPEEK
         .WORD   POINT
         .WORD   LEN
         .WORD   STR
@@ -322,6 +323,8 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'N'+80H,"OT"
         .BYTE   'S'+80H,"TEP"
 
+        ; Operators list
+
         .BYTE   '+'+80H
         .BYTE   '-'+80H
         .BYTE   '*'+80H
@@ -332,6 +335,8 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   '>'+80H
         .BYTE   '='+80H
         .BYTE   '<'+80H
+
+        ; Functions list
 
         .BYTE   'S'+80H,"GN"
         .BYTE   'I'+80H,"NT"
@@ -350,6 +355,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'A'+80H,"TN"
         .BYTE   'P'+80H,"EEK"
         .BYTE   'D'+80H,"EEK"
+        .BYTE   'V'+80H,"PEEK"
         .BYTE   'P'+80H,"OINT"
         .BYTE   'L'+80H,"EN"
         .BYTE   'S'+80H,"TR$"
@@ -389,7 +395,7 @@ WORDTB: .WORD   PEND
         .WORD   POKE
         .WORD   DOKE
         .WORD   VPOKE
-        .WORD   SCREEN             ; Screen
+        .WORD   SCREEN             
         .WORD   COLOR
         .WORD   LOCATE
         .WORD   LINES
@@ -416,12 +422,12 @@ ZDATA   .EQU    083H            ; DATA
 ZGOTO   .EQU    088H            ; GOTO
 ZGOSUB  .EQU    08CH            ; GOSUB
 ZREM    .EQU    08EH            ; REM           
-ZPRINT  .EQU    0A1H            ; PRINT         A0
+ZPRINT  .EQU    0A1H            ; PRINT        
 ZNEW    .EQU    0A7H            ; NEW                         
 
 ZTAB    .EQU    0A8H            ; TAB
 ZTO     .EQU    0A9H            ; TO
-ZFN     .EQU    0B0H            ; FN
+ZFN     .EQU    0AAH            ; FN
 ZSPC    .EQU    0ABH            ; SPC
 ZTHEN   .EQU    0ACH            ; THEN
 ZNOT    .EQU    0ADH            ; NOT
@@ -433,11 +439,12 @@ ZTIMES  .EQU    0B1H            ; *
 ZDIV    .EQU    0B2H            ; /
 ZOR     .EQU    0B5H            ; OR
 ZGTR    .EQU    0B6H            ; >
-ZEQUAL  .EQU    0B7H            ; M
+ZEQUAL  .EQU    0B7H            ; =
 ZLTH    .EQU    0B8H            ; <
+
 ZSGN    .EQU    0B9H            ; SGN
-ZPOINT  .EQU    0CAH            ; POINT
-ZLEFT   .EQU    0D0H +2         ; LEFT$
+ZPOINT  .EQU    0CBH            ; POINT
+ZLEFT   .EQU    0D3H            ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -4424,6 +4431,14 @@ VPOKE:  CALL    GETNUM          ; Get memory address
         
         EX      DE,HL           ; Restore HL
         RET                     ; Return to caller
+
+VPEEK:  CALL    DEINT
+        EX      DE, HL
+
+        ; Pending to implement
+
+        EX      DE, HL
+        RET
 
 ; check if the color is not 0 and into the range 1~15
 CHKCLR: and     A               ; is it 0?
