@@ -1,0 +1,38 @@
+;;
+;; RAM Variables declaration
+;;
+
+
+; RAM Base address
+RAM_BASE        .EQU    0x8000
+
+SER_BUFSIZE = 63
+SER_FULLSIZE = 48
+SER_EMPTYSIZE = 5
+
+; Firmware memory variables stars at $8000 RAM Address
+
+; Serial Variables
+
+SERIAL_BUFFER    .EQU     RAM_BASE                        ; $8000  
+SERIAL_IN_PTR    .EQU     SERIAL_BUFFER+SER_BUFSIZE+1     ; $8040
+SERIAL_RD_PTR    .EQU     SERIAL_IN_PTR+2                 ; $8042
+SERIAL_BUFF_USED .EQU     SERIAL_RD_PTR+2                 ; $8044
+
+SERIAL_BUFF_WRAP .EQU     (SERIAL_BUFFER + SER_BUFSIZE) & 0xFF
+
+; VDP Variables
+SCR_MODE        .EQU SERIAL_BUFF_USED+1
+ENABLEDCURSOR   .EQU SCR_MODE+1  
+CURSORSTATE     .EQU ENABLEDCURSOR+1
+SCR_SIZE_W  	.EQU CURSORSTATE+1
+SCR_SIZE_H  	.EQU SCR_SIZE_W+1
+SCR_X           .EQU SCR_SIZE_H+1
+SCR_Y           .EQU SCR_X+1
+SCR_CUR_X       .EQU SCR_Y+1
+SCR_CUR_Y       .EQU SCR_CUR_X+1
+
+VIDEOBUFF       .EQU SCR_CUR_Y+2
+VIDTMP1         .EQU VIDEOBUFF+40
+VIDTMP2         .EQU VIDTMP1+2
+    

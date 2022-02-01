@@ -1,24 +1,37 @@
-ASM=zmac
-SREC=srec_cat
 MEMTYPE=27256
 COMEPROM=COM4
+Z80ASM=sdasz80
+Z80ASMOPTS=-l -o -s -Iinclude
+SDCC=sdcc
 
-all: core.hex bas32k.hex cbios.hex firmware.hex
+all: main.ihx
 
 clean:
-	rm -f bin/*.hex
+	rm -f *.ihx
+	rm -f *.bin
+	rm -f *.lst
+	rm -f *.rel
+	rm -f *.map
+	rm -f *.sym
+	rm -f *.noi
 
-burn:
-	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
+common.rel:
+	$(Z80ASM) $(Z80ASMOPTS) common.rel common.s
 
-core.hex: 
-	$(ASM) core.asm -o bin/core.hex  
+pio.rel:
+	$(Z80ASM) $(Z80ASMOPTS) pio.rel pio.s
 
-bas32k.hex:
-	$(ASM) bas32k.asm -o bin/bas32k.hex
+vdp.rel:
+	$(Z80ASM) $(Z80ASMOPTS) vdp.rel vdp.s
 
-cbios.hex:
-	$(ASM) cbios.asm -o bin/cbios.hex
+serial.rel:
+	$(Z80ASM) $(Z80ASMOPTS) serial.rel serial.s
 
-firmware.hex:
-	$(SREC) bin/core.hex -Intel bin/bas32k.hex -Intel bin/cbios.hex -Intel -o bin/firmware.hex -Intel
+main.rel:
+	$(Z80ASM) $(Z80ASMOPTS) main.rel main.s
+
+main.ihx: common.rel pio.rel serial.rel vdp.rel main.rel
+	$(SDCC) -mz80 common.rel pio.rel serial.rel vdp.rel main.rel -o main.ihx
+
+burn: main.ihx
+	epromng -mem $(MEMTYPE) -spi y -auto y main.ihx $(COMEPROM)

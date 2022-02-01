@@ -3,3 +3,10 @@ docs/
 *.rar
 *.bin
 *.rom
+*.ihx
+*.lst
+*.rel
+*.map
+*.sym
+*.noi
+*.lk
