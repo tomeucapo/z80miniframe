@@ -7,7 +7,6 @@
 ;;
 ;; UART_INIT
 ;;        A = Speed value
-;;
 UART_INIT::         
     PUSH    BC
 
@@ -16,7 +15,7 @@ UART_INIT::
     OUT     (UART3),A           ; SET DLAB FLAG (LINE CONTROL)
     
     LD      A, C
-    OUT     (UART0),A            ; Set BAUD rate to 19200
+    OUT     (UART0),A            ; Set BAUD rate 
 
     LD      A, #0
     OUT     (UART1),A            ; CHECK RX
@@ -31,6 +30,10 @@ UART_INIT::
     POP     BC
     RET
 
+;;
+;; UART_READ_CHAR
+;; Returns character in A
+;;
 UART_READ_CHAR::
     CALL    UART_RX_RDY
     IN      A, (UART0)

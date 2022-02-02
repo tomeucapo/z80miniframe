@@ -98,5 +98,5 @@ SERIAL_INIT:
 
 hellomessage:
     .db 12
-    .ascii     "Hello Z80"
+    .ascii     "Z80 Miniframe v2.0"
     .db 0x0a, 0x0d, 0
