@@ -21,17 +21,20 @@ common.rel:
 pio.rel:
 	$(Z80ASM) $(Z80ASMOPTS) pio.rel pio.s
 
+serial.rel:
+	$(Z80ASM) $(Z80ASMOPTS) serial.rel serial.s
+
 vdp.rel:
 	$(Z80ASM) $(Z80ASMOPTS) vdp.rel vdp.s
 
-serial.rel:
-	$(Z80ASM) $(Z80ASMOPTS) serial.rel serial.s
+psg.rel:
+	$(Z80ASM) $(Z80ASMOPTS) psg.rel psg.s
 
 main.rel:
 	$(Z80ASM) $(Z80ASMOPTS) main.rel main.s
 
-main.ihx: common.rel pio.rel serial.rel vdp.rel main.rel
-	$(SDCC) -mz80 common.rel pio.rel serial.rel vdp.rel main.rel -o main.ihx
+main.ihx: common.rel pio.rel serial.rel vdp.rel psg.rel main.rel
+	$(SDCC) -mz80 common.rel pio.rel serial.rel vdp.rel psg.rel main.rel -o main.ihx
 
 burn: main.ihx
 	epromng -mem $(MEMTYPE) -spi y -auto y main.ihx $(COMEPROM)

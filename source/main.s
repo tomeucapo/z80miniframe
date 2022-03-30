@@ -6,6 +6,7 @@
 .include "pio.h.s"       
 .include "serial.h.s"       
 .include "vdp.h.s"
+.include "psg.h.s"
 .include "common.h.s"   
 
 .area HEAD (ABS)
@@ -62,6 +63,8 @@ _main::
 
     im      1
     ei
+
+    call    PSG_CHIMPSOUND
 
     ld      hl, #hellomessage
     call    UART_PRINT
