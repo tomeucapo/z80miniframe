@@ -7,5 +7,5 @@ BKSP            .EQU     0x08
 ESCAPE          .EQU     0x1B
 
 
-.globl PAUSE
+.globl PAUSE, TO_UPPER, CHAR_ISHEX
 

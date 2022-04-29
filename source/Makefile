@@ -3,8 +3,10 @@ COMEPROM=COM4
 Z80ASM=sdasz80
 Z80ASMOPTS=-l -o -s -Iinclude
 SDCC=sdcc
+ZASM=zmac
+SREC=srec_cat
 
-all: main.ihx
+all: firmware.ihx bas32k.hex
 
 clean:
 	rm -f *.ihx
@@ -30,11 +32,17 @@ vdp.rel:
 psg.rel:
 	$(Z80ASM) $(Z80ASMOPTS) psg.rel psg.s
 
+monitor.rel:
+	$(Z80ASM) $(Z80ASMOPTS) monitor.rel monitor.s
+
 main.rel:
 	$(Z80ASM) $(Z80ASMOPTS) main.rel main.s
 
-main.ihx: common.rel pio.rel serial.rel vdp.rel psg.rel main.rel
-	$(SDCC) -mz80 common.rel pio.rel serial.rel vdp.rel psg.rel main.rel -o main.ihx
+bas32k.hex:
+	$(ZASM) bas32k.asm -o bin/bas32k.hex
 
-burn: main.ihx
-	epromng -mem $(MEMTYPE) -spi y -auto y main.ihx $(COMEPROM)
+firmware.ihx: common.rel pio.rel serial.rel vdp.rel psg.rel main.rel monitor.rel
+	$(SDCC) -V -mz80 common.rel pio.rel serial.rel vdp.rel psg.rel monitor.rel main.rel -o bin/firmware.ihx
+
+burn: firmware.ihx
+	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.ihx $(COMEPROM)

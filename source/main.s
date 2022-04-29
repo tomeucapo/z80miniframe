@@ -1,6 +1,6 @@
 ;;
 ;; core.s
-;; Core main code of firmware
+;; Main code of firmware
 ;;
 
 .include "pio.h.s"       
@@ -8,6 +8,7 @@
 .include "vdp.h.s"
 .include "psg.h.s"
 .include "common.h.s"   
+.include "monitor.h.s"
 
 .area HEAD (ABS)
 
@@ -35,6 +36,7 @@ read_char:
 ; Put character
 print_char:
     CALL    UART_WRITE_CHAR 
+    CALL    VDP_PUTCHAR
     EI
     RETI
 
@@ -61,16 +63,14 @@ _main::
     ld      E, #0
     CALL    VDP_INIT
 
+    call    PSG_INIT
+
     im      1
     ei
 
     call    PSG_CHIMPSOUND
 
-    ld      hl, #hellomessage
-    call    UART_PRINT
-
-    LD      HL, #hellomessage
-    call    VDP_PRINT
+    call    MON_INIT
 
 led_blink_loop:
     LD      A, #4
@@ -98,8 +98,3 @@ SERIAL_INIT:
     CALL    UART_GET_SPEED
     CALL    UART_INIT
     RET
-
-hellomessage:
-    .db 12
-    .ascii     "Z80 Miniframe v2.0"
-    .db 0x0a, 0x0d, 0
