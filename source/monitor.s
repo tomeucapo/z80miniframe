@@ -8,13 +8,13 @@
 MON_INIT::
                 LD	      HL, #MON_WELCOME
 				CALL	  MON_PRINT
-                
+
 MON_LOOP::
         		LD	      HL, #MON_PRMPT
 				CALL	  MON_PRINT
-				CALL	  MON_GET_CHAR
-				LD		  H,A
-				RST		  8	  
+				CALL	  MON_GET_CHAR			
+				LD		  H,A				 
+				RST		  8
 				CALL	  MON_OPTIONS
 				JP		  MON_LOOP
 

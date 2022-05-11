@@ -33,14 +33,14 @@ VDP_INIT::      PUSH DE
 ; VDP_SET_MODE - Change VDP Mode
 ;       E = Mode number
 
-VDP_SET_MODE:   LD B, #8            ; 8 registers
+VDP_SET_MODE:   LD B, #8              ; 8 registers
                 LD HL, #VDPMODESCONF  ; pointer to registers settings
                 SLA E
                 SLA E
                 PUSH DE
                 SLA E
                 ADD HL, DE
-                LD A, #VDP_WREG  ; start with REG0 ($80+register number)
+                LD A, #VDP_WREG+VDP_R0  ; start with REG0 ($80+register number)
                 
 LDREGVLS:       LD D, (HL)          ; load register's value
                 
@@ -505,7 +505,7 @@ ENDPRT:         POP HL
 ;       A = Foreground and Background color
 ;       E = Set border color (backdrop)
 
-VDP_SETCOLOR:
+VDP_SETCOLOR::
         PUSH BC
 
         LD B, A                 ; Detects if not TEXT Mode you need change first color table
@@ -522,7 +522,7 @@ SET_REG_COLOR:
         LD A, B
         LD BC, #VDP_REG         ; Put color code
         OUT (C), A
-        LD A, #VDP_WREG+#VDP_R7  ; Reg 7. Change color
+        LD A, #VDP_WREG+VDP_R7  ; Reg 7. Change color
         OUT (C), A        
         NOP
 
@@ -534,7 +534,7 @@ SET_REG_COLOR:
 ;       A = X
 ;       E = Y
 
-VDP_SETPOS:
+VDP_SETPOS::
         LD      (SCR_X), A
         EX      AF, AF'       
         LD      A, (SCR_X) 
@@ -666,7 +666,7 @@ VDP_READ_VIDEO_LOC:
 ;       HL = Address to write
 ;       A = Value to write 
 
-VDP_WRITE_VIDEO_LOC:
+VDP_WRITE_VIDEO_LOC::
                 push    BC              ; store BC
                 ld      C,#VDP_REG       ; VDP setting mode
                 ld      B,H             ; copy H into B
@@ -682,6 +682,7 @@ VDP_WRITE_VIDEO_LOC:
                 pop     BC              ; restore BC
                 ret                     ; return to caller
 
+.include "vdp_modes.h.s"
 .include "font68.h.s"
 .include "font88.h.s"
-.include "vdp_modes.h.s"
+

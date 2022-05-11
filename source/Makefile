@@ -35,14 +35,19 @@ psg.rel:
 monitor.rel:
 	$(Z80ASM) $(Z80ASMOPTS) monitor.rel monitor.s
 
+serviceroutine.rel:
+	$(Z80ASM) $(Z80ASMOPTS) serviceroutine.rel serviceroutine.s
+
 main.rel:
 	$(Z80ASM) $(Z80ASMOPTS) main.rel main.s
 
 bas32k.hex:
 	$(ZASM) bas32k.asm -o bin/bas32k.hex
 
-firmware.ihx: common.rel pio.rel serial.rel vdp.rel psg.rel main.rel monitor.rel
-	$(SDCC) -V -mz80 common.rel pio.rel serial.rel vdp.rel psg.rel monitor.rel main.rel -o bin/firmware.ihx
+firmware.ihx: common.rel pio.rel serial.rel vdp.rel psg.rel main.rel monitor.rel serviceroutine.rel
+	$(SDCC) -V -mz80 --no-std-crt0 common.rel pio.rel serial.rel vdp.rel psg.rel monitor.rel serviceroutine.rel main.rel -o bin/firmware.ihx
+
+# srec_cat -Disable_Sequence_Warnings .\firmware.ihx -Intel .\bas32k.hex -Intel -o firmware.hex -Intel
 
 burn: firmware.ihx
-	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.ihx $(COMEPROM)
+	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
