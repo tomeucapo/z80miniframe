@@ -1,7 +1,7 @@
 ASM=zmac
 SREC=srec_cat
 MEMTYPE=27256
-COMEPROM=COM4
+COMEPROM=COM3
 
 all: core.hex bas32k.hex cbios.hex firmware.hex
 
