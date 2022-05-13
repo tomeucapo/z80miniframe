@@ -3,3 +3,5 @@ docs/
 *.rar
 *.bin
 *.rom
+*.log
+*.rel
