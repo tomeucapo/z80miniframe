@@ -1,24 +1,47 @@
 ASM=zmac
+LD=ld80
+OPTS=-I include --rel7
 SREC=srec_cat
 MEMTYPE=27256
 COMEPROM=COM3
 
-all: core.hex bas32k.hex cbios.hex firmware.hex
+all: firmware.hex
 
 clean:
-	rm -f bin/*.hex
+	rm -f bin/*
 
 burn:
 	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
 
-core.hex: 
-	$(ASM) core.asm -o bin/core.hex  
+ppi.rel: ppi.asm
+	$(ASM) ppi.asm $(OPTS) -o bin/ppi.rel
 
-bas32k.hex:
-	$(ASM) bas32k.asm -o bin/bas32k.hex
+ctc.rel: ctc.asm
+	$(ASM) ctc.asm $(OPTS) -o bin/ctc.rel
 
-cbios.hex:
-	$(ASM) cbios.asm -o bin/cbios.hex
+vdp.rel: vdp.asm
+	$(ASM) vdp.asm $(OPTS) -o bin/vdp.rel
 
-firmware.hex:
-	$(SREC) bin/core.hex -Intel bin/bas32k.hex -Intel bin/cbios.hex -Intel -o bin/firmware.hex -Intel
+buffer.rel: 
+	$(ASM) buffer.asm $(OPTS) -o bin/buffer.rel
+
+serial.rel: 
+	$(ASM) serial.asm $(OPTS) -o bin/serial.rel
+
+monitor.rel: 
+	$(ASM) monitor.asm $(OPTS) -o bin/monitor.rel
+
+common.rel:
+	$(ASM) common.asm $(OPTS) -o bin/common.rel
+
+core.rel: 
+	$(ASM) core.asm $(OPTS) -o bin/core.rel
+
+bas32K.rel: bas32K.asm
+	$(ASM) bas32K.asm $(OPTS) -o bin/bas32K.rel
+
+firmware.hex: core.rel monitor.rel bas32K.rel common.rel ppi.rel ctc.rel vdp.rel buffer.rel serial.rel
+	pushd
+	cd bin
+	$(LD) -O hex -o firmware.hex -s symbols.sym core.rel monitor.rel bas32K.rel common.rel ppi.rel ctc.rel vdp.rel buffer.rel serial.rel
+	dos2unix firmware.hex

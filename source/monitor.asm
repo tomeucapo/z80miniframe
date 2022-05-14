@@ -4,39 +4,72 @@
 ; Tomeu Capó 2019
 ;****************************************************************************
 
-MON_HEX_LEN:	.EQU		$80EC
-MON_HEX_TYPE:	.EQU		MON_HEX_LEN+1
-MON_HEX_ADDR:	.EQU		MON_HEX_TYPE+1
+include "globals.inc"
+
+				extern PAUSE, TO_UPPER, BUFF_GETC
 
 MON_HELP:		LD	 HL, MON_MENU
-				CALL PRINT
+				CALL MON_PRINT
 				RET
 				
-MON_LOOP:		LD	      HL, MON_PRMPT
-				CALL	  PRINT
-				CALL	  GET_CHAR
+MON_LOOP::		LD	      HL, MON_PRMPT
+				CALL	  MON_PRINT
+				CALL	  MON_GETCHAR
 				LD		  H,A
 				RST		  8	  
 				CALL	  MON_OPTIONS
 				JP		  MON_LOOP
 						
-MON_OPTIONS:	CP        'B'
-				CALL	  Z, BASIC_INIT
-				CP		  'C'
-				CALL	  Z, BOOT_CPM
-				CP		  'M'
-				CALL	  Z, MEMORY_DUMP_COMMAND
-				CP		  'R'
-				CALL	  Z, RECEIVE_HEX_COMMAND
-				CP		  'G'
-				CALL	  Z, GO_COMMAND
-				CP		  'T'
-				CALL	  Z, MON_TEST
-				CP		  'F'
-				CALL	  Z, DSK_INIT
-				CP		  '?'
+ MON_OPTIONS:	
+				CP        'B'
+ 				CALL	  Z, BASIC_INIT
+; 				CP		  'C'
+; 				CALL	  Z, BOOT_CPM
+; 				CP		  'M'
+; 				CALL	  Z, MEMORY_DUMP_COMMAND
+; 				CP		  'R'
+; 				CALL	  Z, RECEIVE_HEX_COMMAND
+; 				CP		  'G'
+; 				CALL	  Z, GO_COMMAND
+; 				CP		  'T'
+; 				CALL	  Z, MON_TEST
+; 				CP		  'F'
+; 				CALL	  Z, DSK_INIT
+ 				CP		  '?'
 				CALL	  Z, MON_HELP
 				RET
+
+
+;**************************************************************************************
+; Decide if start BASIC in Warm or Cold start mode
+;**************************************************************************************
+
+BASIC_INIT:    LD        A,(basicStarted); Check the BASIC STARTED flag
+               CP        'Y'             ; to see if this is power-up
+               JR        NZ,COLDSTART    ; If not BASIC started then always do cold start
+               LD        HL, BASICSTARTMSG
+               CALL      MON_PRINT
+CORW:
+               ;CALL      RXA
+               ;AND       11011111b       ; lower to uppercase
+               
+               CALL     MON_GETCHAR
+               CP        'C'
+               JR        NZ, CHECKWARM
+               RST       08H               
+               CALL     MON_NEW_LINE
+               
+COLDSTART:     LD        A,'Y'           ; Set the BASIC STARTED flag
+               LD        (basicStarted),A
+               JP        BASIC_COLD           ; Start BASIC COLD
+CHECKWARM:
+               CP        'W'
+               JR        NZ, CORW
+               RST       08H
+               CALL      MON_NEW_LINE
+
+               JP        BASIC_WARM           ; Start BASIC WARM
+
 
 GO_COMMAND:
 			CALL MON_NEW_LINE
@@ -53,7 +86,7 @@ RECEIVE_HEX_COMMAND:
 			LD  A,'*'
 			RST 8
 
-WAIT_BEGIN: CALL	GET_CHAR
+WAIT_BEGIN: CALL	MON_GETCHAR
 			CP  	ESCAPE
 			RET 	Z
 			CP		':'
@@ -106,7 +139,7 @@ HEX_READ_DATA:
 
 MEMORY_DUMP_COMMAND:
 			LD 		HL,MDC_1			;Print some messages 
-			CALL    PRINT
+			CALL    MON_PRINT
 			CALL    GET_HEX_WORD		;HL now points to databyte location	
 			PUSH	HL					;Save HL that holds databyte location on stack
 			
@@ -162,7 +195,7 @@ CHAR_ISHEX_2:
 ;Function: Translates char to HEX nibble in bottom 4 bits of A
 ;***************************************************************************
 GET_HEX_NIB:      
-			CALL	GET_CHAR
+			CALL	MON_GETCHAR
 			CP		ESCAPE
 			JP		Z, MON_LOOP
 
@@ -258,7 +291,7 @@ PRINT_HEX_WORD:
 ; Test hardware routine
 
 MON_TEST:		LD	 HL, MON_TEST_VID_MSG
-				CALL PRINT
+				CALL MON_PRINT
 				
 				LD BC, 700
 				CALL PAUSE
@@ -268,7 +301,7 @@ MON_TEST:		LD	 HL, MON_TEST_VID_MSG
 				RST $20
 
 				LD HL, MON_TST_VID_MODE0
-				CALL PRINT
+				CALL MON_PRINT
 				CALL MON_NEW_LINE
 
 				LD BC, 700
@@ -302,21 +335,6 @@ MON_TEST_COLOR:
 
 				RET	
 			
-DSK_INIT:
-		LD	 HL, MON_DSK_INIT
-		CALL PRINT
-
-		ld 	    A,$E0           ; select CF as master, driver 0, LBA mode (bits #5-7=111) 
-		LD		BC, CF_LBA3
-        out     (C),A     ; send configuration
-        ld      A,$EC           ; select "drive ID" command
-		LD		BC, CF_CMD
-        out     (C),A      ; send command
-        call    CF_DAT_RDY      ; wait until data is ready to be read
-        call    CF_RD_CMD       ; read data and store into I/O buffer
-		RET
-
-
 MON_NEW_LINE:
 		LD		A,CR			
 		RST		8
@@ -324,6 +342,19 @@ MON_NEW_LINE:
 		RST 	8
 		RET
 
+MON_PRINT::          
+		LD       A,(HL)          ; Get character
+		OR       A               ; Is it $00 ?
+        RET      Z               ; Then RETurn on terminator
+        RST      08H             ; Print it
+        INC      HL              ; Next Character
+        JR       MON_PRINT       ; Continue until $00
+        RET
+
+MON_GETCHAR:
+		CALL  BUFF_GETC
+		CALL  TO_UPPER          
+		RET 
 
 MON_PRMPT:		.BYTE   CR,LF,">",0
 
@@ -335,6 +366,9 @@ MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
 				.BYTE   "G - Go",CR,LF
 				.BYTE   "T - Tests", CR, LF
 				.BYTE	"? - This help", CR, LF, 0
+
+BASICSTARTMSG: .BYTE     CR,LF
+               .BYTE     "Cold or warm start (C or W)? ",0
 
 MDC_1: 			.BYTE CR,LF,"Memory Dump Command",CR,LF
 	   			.BYTE "Location to start in 4 digit HEX:",CR,LF,0

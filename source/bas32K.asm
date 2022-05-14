@@ -19,25 +19,11 @@
 ; Adapted for the freeware Zilog Macro Assembler 2.10 to produce
 ; the original ROM code (checksum A934H). PA
 
-; GENERAL EQUATES
-
-CTRLC   .EQU    03H             ; Control "C"
-CTRLG   .EQU    07H             ; Control "G"
-BKSP    .EQU    08H             ; Back space
-LF      .EQU    0AH             ; Line feed
-CS      .EQU    0CH             ; Clear screen
-CR      .EQU    0DH             ; Carriage return
-CTRLO   .EQU    0FH             ; Control "O"
-CTRLQ	.EQU	11H		        ; Control "Q"
-CTRLR   .EQU    12H             ; Control "R"
-CTRLS   .EQU    13H             ; Control "S"
-CTRLU   .EQU    15H             ; Control "U"
-ESC     .EQU    1BH             ; Escape
-DEL     .EQU    7FH             ; Delete
+include "globals.inc"
 
 ; BASIC WORK SPACE LOCATIONS
 
-WRKSPC  .EQU    80F0H               ; 807E, 804A, 8045 BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
+WRKSPC  .EQU    BASIC_WRKSPC        ; 807E, 804A, 8045 BASIC Work space   ( BEGINS AFTER FIRMWARE VARIABLES )
 
 USR     .EQU    WRKSPC+3H           ; "USR (x)" jump
 OUTSUB  .EQU    WRKSPC+6H           ; "OUT p,n"
@@ -136,7 +122,7 @@ MO      .EQU    24H             ; Missing operand
 HX      .EQU    26H             ; HEX error
 BN      .EQU    28H             ; BIN error
 
-        .ORG    02678H    ;00368H
+        .ORG    ROM_BASIC_ADDR  
 
 COLD:   JP      STARTB          ; Jump for cold start
 WARM:   JP      WARMST          ; Jump for warm start

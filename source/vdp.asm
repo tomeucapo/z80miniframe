@@ -1,33 +1,17 @@
 ;******************************************************************
 ; VDP (Video Display Processor) Routines for TMS9918
-; Tomeu Capó 2020                      
+;
+; Tomeu Capó 2022 (C)               
 ;******************************************************************
 
-; Addresses of Data and Register configuration of VDP
-
-VDP_DATA        .EQU    $002E
-VDP_REG         .EQU    $002F
-
-VDP_WREG        .EQU    10000000b   ; to be added to the REG value
-VDP_RRAM        .EQU    00000000b   ; to be added to the ADRS value
-VDP_WRAM        .EQU    01000000b   ; to be added to the ADRS value
-
-VDP_R0          .EQU    00h
-VDP_R1          .EQU    01h
-VDP_R2          .EQU    02h
-VDP_R3          .EQU    03h
-VDP_R4          .EQU    04h
-VDP_R5          .EQU    05h
-VDP_R6          .EQU    06h
-VDP_R7          .EQU    07h
-
-VDP_DEFAULT_COLOR      .EQU     $F5
+include "globals.inc"
+include "vdp.inc"
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
 ;       E = Mode number
 
-VDP_INIT:       PUSH DE
+VDP_INIT::       PUSH DE
                 
                 LD A, E
                 LD (SCR_MODE), A
@@ -321,7 +305,7 @@ VDP_HOME:       LD A, 1
 ; VDP_PUTCHAR - Output character to VDP routine with character control decisions
 ;       A = Character to output
 
-VDP_PUTCHAR:    PUSH AF
+VDP_PUTCHAR::    PUSH AF
                 PUSH DE
                 PUSH HL
                 PUSH BC
@@ -431,7 +415,7 @@ PUTEND:         POP BC
 ; ************************************************************************************
 ; VDP_BLINK_CURSOR - Change state of cursor to make blink and show or not.
 
-VDP_BLINK_CURSOR:
+VDP_BLINK_CURSOR::
                 PUSH AF
                 PUSH DE
                 PUSH HL
@@ -498,7 +482,7 @@ VDP_LOCATE_CURSOR:
 ; VDP_PRINT - Copy a null-terminated string to VRAM
 ;       HL = Initial string pointer address
 
-VDP_PRINT:      
+VDP_PRINT::      
                 PUSH HL
 
 LDWLCMMSG:      LD A, (HL)           
@@ -519,7 +503,7 @@ ENDPRT:         POP HL
 ;       A = Foreground and Background color
 ;       E = Set border color (backdrop)
 
-VDP_SETCOLOR:
+VDP_SETCOLOR::
         PUSH BC
 
         LD B, A                 ; Detects if not TEXT Mode you need change first color table
@@ -659,7 +643,7 @@ VDP_WRITEADDR:
 ; VDP_READ_VIDEO_LOC - load the char or byte at the VRAM position set by HL
 ; value is returned into A
 
-VDP_READ_VIDEO_LOC: 
+VDP_READ_VIDEO_LOC:: 
                 push    BC              ; store BC
                 ld      C,VDP_REG       ; VDP setting mode
                 ld      B,H
@@ -680,7 +664,7 @@ VDP_READ_VIDEO_LOC:
 ;       HL = Address to write
 ;       A = Value to write 
 
-VDP_WRITE_VIDEO_LOC:
+VDP_WRITE_VIDEO_LOC::
                 push    BC              ; store BC
                 ld      C,VDP_REG       ; VDP setting mode
                 ld      B,H             ; copy H into B
