@@ -1,16 +1,12 @@
 ;****************************************************************************
 ; Monitor 
 ; Simple monitor firmware for Z80
-; Tomeu Capó 2019
+; Tomeu Capó 2019/22 (C)
 ;****************************************************************************
 
 include "globals.inc"
 
-				extern PAUSE, TO_UPPER, BUFF_GETC
-
-MON_HELP:		LD	 HL, MON_MENU
-				CALL MON_PRINT
-				RET
+				extern PAUSE, TO_UPPER, CHAR_ISHEX, BUFF_GETC
 				
 MON_LOOP::		LD	      HL, MON_PRMPT
 				CALL	  MON_PRINT
@@ -23,22 +19,20 @@ MON_LOOP::		LD	      HL, MON_PRMPT
  MON_OPTIONS:	
 				CP        'B'
  				CALL	  Z, BASIC_INIT
-; 				CP		  'C'
-; 				CALL	  Z, BOOT_CPM
-; 				CP		  'M'
-; 				CALL	  Z, MEMORY_DUMP_COMMAND
-; 				CP		  'R'
-; 				CALL	  Z, RECEIVE_HEX_COMMAND
-; 				CP		  'G'
-; 				CALL	  Z, GO_COMMAND
-; 				CP		  'T'
-; 				CALL	  Z, MON_TEST
-; 				CP		  'F'
-; 				CALL	  Z, DSK_INIT
+ 				CP		  'M'
+ 				CALL	  Z, MEMORY_DUMP_COMMAND
+ 				CP		  'R'
+ 				CALL	  Z, RECEIVE_HEX_COMMAND
+ 				CP		  'G'
+ 				CALL	  Z, GO_COMMAND
+ 				CP		  'T'
+ 				CALL	  Z, MON_TEST
  				CP		  '?'
 				CALL	  Z, MON_HELP
 				RET
-
+MON_HELP:		LD	 HL, MON_MENU
+				CALL MON_PRINT
+				RET
 
 ;**************************************************************************************
 ; Decide if start BASIC in Warm or Cold start mode
@@ -49,14 +43,11 @@ BASIC_INIT:    LD        A,(basicStarted); Check the BASIC STARTED flag
                JR        NZ,COLDSTART    ; If not BASIC started then always do cold start
                LD        HL, BASICSTARTMSG
                CALL      MON_PRINT
-CORW:
-               ;CALL      RXA
-               ;AND       11011111b       ; lower to uppercase
-               
+CORW:              
                CALL     MON_GETCHAR
-               CP        'C'
-               JR        NZ, CHECKWARM
-               RST       08H               
+               CP       'C'
+               JR       NZ, CHECKWARM
+               RST      08H               
                CALL     MON_NEW_LINE
                
 COLDSTART:     LD        A,'Y'           ; Set the BASIC STARTED flag
@@ -67,9 +58,7 @@ CHECKWARM:
                JR        NZ, CORW
                RST       08H
                CALL      MON_NEW_LINE
-
                JP        BASIC_WARM           ; Start BASIC WARM
-
 
 GO_COMMAND:
 			CALL MON_NEW_LINE
@@ -165,30 +154,7 @@ MEMORY_DUMP_BYTES:
 			DJNZ	MEMORY_DUMP_LINE	;Print 10 line out since C holds 10 and we load B with C
 			LD		A,$FF				;Load $FF into Acc so MON_COMMAND finishes
 			RET
-;***************************************************************************
-;CHAR_ISHEX
-;Function: Checks if value in A is a hexadecimal digit, C flag set if true
-;***************************************************************************		
-CHAR_ISHEX:         
-										;Checks if Acc between '0' and 'F'
-			CP      'F' + 1       		;(Acc) > 'F'? 
-            RET     NC              	;Yes - Return / No - Continue
-            CP      '0'             	;(Acc) < '0'?
-            JP      NC,CHAR_ISHEX_1 	;Yes - Jump / No - Continue
-            CCF                     	;Complement carry (clear it)
-            RET
-CHAR_ISHEX_1:       
-										;Checks if Acc below '9' and above 'A'
-			CP      '9' + 1         	;(Acc) < '9' + 1?
-            RET     C               	;Yes - Return / No - Continue (meaning Acc between '0' and '9')
-            CP      'A'             	;(Acc) > 'A'?
-            JP      NC,CHAR_ISHEX_2 	;Yes - Jump / No - Continue
-            CCF                     	;Complement carry (clear it)
-            RET
-CHAR_ISHEX_2:        
-										;Only gets here if Acc between 'A' and 'F'
-			SCF                     	;Set carry flag to indicate the char is a hex digit
-            RET
+
 			
 ;***************************************************************************
 ;GET_HEX_NIBBLE
@@ -360,7 +326,6 @@ MON_PRMPT:		.BYTE   CR,LF,">",0
 
 MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
-				.BYTE   "C - CP/M BOOT",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
 				.BYTE   "R - Receive HEX",CR,LF
 				.BYTE   "G - Go",CR,LF

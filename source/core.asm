@@ -1,6 +1,6 @@
 ;******************************************************************
 ; Firmware core main code
-; Tomeu Capó 2020                      
+; Tomeu Capó 2022                     
 ;******************************************************************
 
 include "globals.inc"
@@ -198,23 +198,11 @@ LEDBLINK:
         OUT (PIO1B), A      
         RET              
 
-;**************************************************************************************
-; NMI Routine code
-;**************************************************************************************
-;NMI_ROUTINE:
-
-
 WELCOMEMSG:    .BYTE     CS
                .BYTE     "Z80MiniFrame 32K",CR,LF
                .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
 
 
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
-                         
-;include "ioroutines.asm"
-;include "monitor.asm"
-;include "ctc.asm"
-;include "psg.asm"
-;include "vdp.asm"
-;include "cflm.asm"
+
 
