@@ -3,8 +3,8 @@
 ;;
 
 
-;; Pause n miliseconds
-;;      BC = Number of milliseconds
+;; Pause in n*100uS (for n = 10000 for 1 second pause) 
+;;      BC = Number of times
 
 PAUSE::      PUSH   AF
              INC    B
@@ -22,7 +22,7 @@ PAUSESLUT:   POP    AF
 ;; Character to uppercase
 ;;      A = Input chracter
 
-TO_UPPER::
+TO_UPPER:: 
         CP      'a'             	; Nothing to do if not lower case
         RET     C
         CP      'z' + 1         	; > 'z'?
@@ -33,6 +33,7 @@ TO_UPPER::
 ;;
 ;; CHAR_ISHEX - Function: Checks if value in A is a hexadecimal digit, C flag set if true
 ;;      A = Character to check
+;;      Modify C flag. C = 0 Not HEX, 1 = HEX
 
 CHAR_ISHEX::         
         CP      'F' + 1       		;(Acc) > 'F'? 

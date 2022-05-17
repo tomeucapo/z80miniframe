@@ -20,6 +20,7 @@
 ; the original ROM code (checksum A934H). PA
 
 include "globals.inc"
+include "svcroutine.inc"
 
 ; BASIC WORK SPACE LOCATIONS
 
@@ -155,12 +156,12 @@ COPY:   LD      A,(DE)          ; Get source
         CALL    PRNTCRLF        ; Output CRLF
         LD      (BUFFER+88+1),A ; Mark end of buffer                    ; 72
         LD      (PROGST),A      ; Initialise program area
-MSIZE:  LD      HL,MEMMSG       ; Point to message
-        CALL    PRS             ; Output "Memory size"
-        CALL    PROMPT          ; Get input with '?'
-        CALL    GETCHR          ; Get next character
-        OR      A               ; Set flags
-        JP      NZ,TSTMEM       ; If number - Test if RAM there
+MSIZE:  ;LD      HL,MEMMSG       ; Point to message
+        ;CALL    PRS             ; Output "Memory size"
+        ;CALL    PROMPT          ; Get input with '?'
+        ;CALL    GETCHR          ; Get next character
+        ;OR      A               ; Set flags
+        ;JP      NZ,TSTMEM       ; If number - Test if RAM there
         LD      HL,STLOOK       ; Point to start of RAM
 MLOOP:  INC     HL              ; Next byte
         LD      A,H             ; Above address FFFF ?
@@ -4330,7 +4331,10 @@ MONOUT:
         JP      $0008           ; output a char
 
 MONITR: 
-        JP      $0000           ; Restart (Normally Monitor Start)
+        LD      B, MONMAIN
+        RST     $20
+
+        ;JP      $0000           ; Restart (Normally Monitor Start)
 
 
 INITST: LD      A,0             ; Clear break flag
@@ -4382,7 +4386,7 @@ COLOR:  CALL    GETINT          ; Get First value (foreground color)
 
 SET_COLOR:
         LD      A, (TMPBFR2)
-        LD      B, 0            ; Call service routine number 0 (VDP_SETCOLOR)
+        LD      B, VDSETCOL            ; Call service routine number 0 (VDP_SETCOLOR)
         RST     $20          
         RET   
 
@@ -4393,13 +4397,13 @@ LOCATE: CALL    GETINT          ; Get First value put X into A
         CALL    GETINT          ; get second value put Y into A
         LD      E, A            ; E <- A        
         LD      A, (TMPBFR1)
-        LD      B, 2            ; Call service routine number 2 (VDP_SET_COLOR)
+        LD      B, VDSETPOS           ; Call service routine number 2 (VDP_SETPOS)
         RST     $20    
         RET 
 
 SCREEN: CALL    GETINT          ; Get First value put X into A
         LD      (SCRMODE), A    ; Store selected mode into BASIC workspace
-        LD      B, 3            ; Call service routine number 1 (VDP_SET_MODE)
+        LD      B, VDMODE        ; Call service routine number 1 (VDP_SET_MODE)
         RST     $20    
         RET
 
@@ -4412,7 +4416,7 @@ VPOKE:  CALL    GETNUM          ; Get memory address
         POP     DE              ; Restore memory address
         EX      DE,HL           ; Copy address into HL
         
-        LD      B, 4
+        LD      B, VDPOKE
         RST     $20
         
         EX      DE,HL           ; Restore HL

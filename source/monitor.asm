@@ -5,10 +5,14 @@
 ;****************************************************************************
 
 include "globals.inc"
+include "svcroutine.inc"
 
 				extern PAUSE, TO_UPPER, CHAR_ISHEX, BUFF_GETC
 				
-MON_LOOP::		LD	      HL, MON_PRMPT
+MON_MAIN::
+  			    LD        HL,WELCOMEMSG  ; Print welcome message      
+                CALL      MON_PRINT
+MON_LOOP:		LD	      HL, MON_PRMPT
 				CALL	  MON_PRINT
 				CALL	  MON_GETCHAR
 				LD		  H,A
@@ -38,7 +42,7 @@ MON_HELP:		LD	 HL, MON_MENU
 ; Decide if start BASIC in Warm or Cold start mode
 ;**************************************************************************************
 
-BASIC_INIT:    LD        A,(basicStarted); Check the BASIC STARTED flag
+BASIC_INIT::   LD        A,(basicStarted); Check the BASIC STARTED flag
                CP        'Y'             ; to see if this is power-up
                JR        NZ,COLDSTART    ; If not BASIC started then always do cold start
                LD        HL, BASICSTARTMSG
@@ -256,50 +260,50 @@ PRINT_HEX_WORD:
 
 ; Test hardware routine
 
-MON_TEST:		LD	 HL, MON_TEST_VID_MSG
-				CALL MON_PRINT
-				
-				LD BC, 700
-				CALL PAUSE
+MON_TEST::		
+		LD	 HL, MON_TEST_VID_MSG
+		CALL MON_PRINT
 
-				LD B, 3			; Set text mode
-				LD E, 0
-				RST $20
+		LD BC, 700
+		CALL PAUSE
 
-				LD HL, MON_TST_VID_MODE0
-				CALL MON_PRINT
-				CALL MON_NEW_LINE
+		LD B, VDMODE			; Set text mode
+		LD E, 0
+		RST $20
 
-				LD BC, 700
-				CALL PAUSE
+		LD HL, MON_TST_VID_MODE0
+		CALL MON_PRINT
 
-				LD C, 0
-				LD A, $F0
-				LD B, 0
+		LD BC, 700
+		CALL PAUSE
+
+		LD C, 0
+		LD A, $F0
+		LD B, $F
 
 MON_TEST_COLOR:	
-				OR C
-				LD D, B
-				LD B, 0
-				RST $20
-				INC C
+		OR C
+		LD D, B
+		LD B, VDSETCOL
+		RST $20
+		INC C
 
-				LD B, D
+		LD B, D
 
-				PUSH BC
+		PUSH BC
 
-				LD BC, 900
-				CALL PAUSE
-				
-				POP BC
+		LD BC, 900
+		CALL PAUSE
+		
+		POP BC
 
-				DJNZ MON_TEST_COLOR
+		DJNZ MON_TEST_COLOR
 
-				LD B, 0
-				LD A, $F5
-				RST $20
+		LD B, VDSETCOL
+		LD A, $F5
+		RST $20
 
-				RET	
+		RET	
 			
 MON_NEW_LINE:
 		LD		A,CR			
@@ -318,13 +322,19 @@ MON_PRINT::
         RET
 
 MON_GETCHAR:
-		CALL  BUFF_GETC
+		RST   $10
 		CALL  TO_UPPER          
 		RET 
 
+
+WELCOMEMSG:    .BYTE     CS
+               .BYTE     "Z80MiniFrame 32K",CR,LF
+               .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
+
+
 MON_PRMPT:		.BYTE   CR,LF,">",0
 
-MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
+MON_MENU:		.BYTE	CR,LF,"Monitor v1.1",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
 				.BYTE   "R - Receive HEX",CR,LF
@@ -335,15 +345,14 @@ MON_MENU:		.BYTE	CR,LF,"Monitor v1.0",CR,LF,CR,LF
 BASICSTARTMSG: .BYTE     CR,LF
                .BYTE     "Cold or warm start (C or W)? ",0
 
-MDC_1: 			.BYTE CR,LF,"Memory Dump Command",CR,LF
-	   			.BYTE "Location to start in 4 digit HEX:",CR,LF,0
+MDC_1: 			.BYTE CR,LF
+	   			.BYTE "Address (in hex): ",0
 
 MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
 MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
 MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
 
 
-MON_TST_VID_MODE0:	.BYTE "MODE 0",0
-MON_DSK_INIT:		.BYTE "DISK INIT",0
+MON_TST_VID_MODE0:	.BYTE "MODE 0",CR,LF,0
 
 .END

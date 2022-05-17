@@ -1,58 +1,61 @@
 ;******************************************************************
-; Firmware core main code
+; Firmware main code
 ; Tomeu Capó 2022                     
 ;******************************************************************
 
 include "globals.inc"
 include "ppi.inc"
+include "svcroutine.inc"
 
+
+                extern SVC_ROUTINE
                 extern UART_INIT, UART_READ, UART_WRITE, BUFF_GETC, BUFF_CKINCHAR
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
                 extern CTC_INIT
-                extern VDP_INIT, VDP_SETPOS, VDP_SETCOLOR, VDP_PUTCHAR, VDP_BLINK_CURSOR, VDP_PRINT, VDP_WRITE_VIDEO_LOC
-                extern MON_PRINT, MON_LOOP, MON_NEW_LINE
+                extern VDP_INIT, VDP_SETPOS, VDP_SETCOLOR, VDP_PUTCHAR, VDP_BLINK_CURSOR
+                extern MON_PRINT, MON_TEST, BASIC_INIT
 
                 .ORG $0000
 
-;------------------------------------------------------------------------------
-; Reset
-
-RST00           DI                       ;Disable interrupts
+                DI                       ;Disable interrupts
                 JP       INIT            ;Initialize Hardware and go
 
 ;------------------------------------------------------------------------------
-; TX a character over RS232 
+; Put character to output (VDP and serial console)
 
                 .ORG     0008H
-RST08           DI
+
+                DI
                 CALL     VDP_PUTCHAR
                 EI
                 JP       UART_WRITE
                       
                 
 ;------------------------------------------------------------------------------
-; RX a character over RS232 Channel A [Console], hold here until char ready.
+; Get character for buffer if is available
 
                 .ORG    $0010
-RST10           JP      BUFF_GETC
+
+                JP      BUFF_GETC
 
 ;------------------------------------------------------------------------------
-; Check serial status
+; Check if any character into buffer are available
 
                  .ORG    $0018
-RST18            JP      BUFF_CKINCHAR
+
+                 JP      BUFF_CKINCHAR
 
 ;------------------------------------------------------------------------------
-; Main firmware interrupt service routine dispatcher
+; Firmware service routine dispatcher
 
                 .ORG    $0020
 
-RST20           DI 
+                DI 
 
                 PUSH     AF
                 PUSH     HL
                 
-                CALL     DISPATCH_ROUTINE
+                CALL     SVC_ROUTINE
                 
                 POP      HL
                 POP      AF
@@ -99,18 +102,21 @@ EXITNMI:
                 RETN
 
 ;------------------------------------------------------------------------------
+; Main code
 
-INIT:
-               LD        HL,TEMPSTACK
-               LD        SP,HL               ; Set up a temporary stack
-            
+INIT:            
+               LD       HL,TEMPSTACK
+               LD       SP,HL                ; Set up a temporary stack
+
                CALL	 PPI_INIT            ; Initialize I/O subsystem (PIO and UART)
-               CALL      PPI_GETSWSTATE      ; Check if CTC are disabled or not
+               CALL      PPI_GETSWSTATE      ; Check if CTC are disabled or not and get ba
                
                LD        H, 0
                LD	 L, C
-
                CALL      UART_INIT
+
+               LD        E, 0            ; Initialize VPD with TEXT MODE
+               CALL      VDP_INIT
 
                LD        A, B
                LD        (ENABLECTC), A
@@ -119,22 +125,17 @@ INIT:
 
                CALL      CTC_INIT        ; Initialize CTC
 
-WITHOUT_CTC:
-               LD        E, 0            ; Initialize VPD with TEXT MODE
-               CALL      VDP_INIT
-               
+WITHOUT_CTC:              
                CALL      PPI_LED_BLINK
 
-               LD        A, 0           ; Locate on top of screen
-               LD        E, 0
-               CALL      VDP_SETPOS
-               
                IM   1                   ; Enable interrupt mode 1
                EI                          
-                       
-               LD        HL,WELCOMEMSG  ; Print welcome message      
-               CALL      MON_PRINT
 
+               LD        A, 0
+               LD        E, 0
+               LD        B, VDSETPOS           ; Call service routine number 2 (VDP_SETPOS)
+               RST       $20     
+                                       
                LD        A, (ENABLECTC)
                CP        0
                JR        Z, MAIN_LOOP
@@ -143,52 +144,11 @@ WITHOUT_CTC:
                CALL      MON_PRINT
                
 MAIN_LOOP:
-	       CALL      MON_LOOP       ; Go to monitor main loop awaiting for command
-
-
-
-; Main RST 20 routine dispacher
-
-DISPATCH_ROUTINE:
-                EX      AF, AF'
-
-                LD      A, B
-                CP      0
-                JR      Z, _VDP_SETCOLOR
-                CP      1
-                JR      Z, _VDP_PRINT
-                CP      2
-                JR      Z, _VDP_SETPOS
-                CP      3
-                JR      Z, _VDP_MODE
-                CP      4
-                JR      Z, _VDP_WRITE_VIDEO_LOC
-
-                EX      AF, AF'
-                JP      END20
-
-_VDP_SETCOLOR:  EX      AF, AF'
-                CALL    VDP_SETCOLOR
-                JP      END20
-
-_VDP_PRINT:     EX      AF, AF'
-                CALL    VDP_PRINT
-                JP      END20
-
-_VDP_SETPOS:    EX      AF, AF'
-                CALL    VDP_SETPOS
-                JP      END20
-
-_VDP_MODE:      EX      AF, AF'
-                LD      E, A            
-                CALL    VDP_INIT
-
-_VDP_WRITE_VIDEO_LOC:
-                EX      AF, AF'
-                CALL    VDP_WRITE_VIDEO_LOC
-
-END20:          RET
-
+               LD        A, 'N'
+               LD        (basicStarted),A
+        
+               CALL      MON_TEST
+	       CALL      BASIC_INIT
 
 LEDBLINK:
         LD A, (CURSORSTATE)
@@ -197,10 +157,6 @@ LEDBLINK:
         SLA A
         OUT (PIO1B), A      
         RET              
-
-WELCOMEMSG:    .BYTE     CS
-               .BYTE     "Z80MiniFrame 32K",CR,LF
-               .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
 
 
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
