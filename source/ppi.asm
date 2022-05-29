@@ -1,3 +1,4 @@
+include "globals.inc"
 include "ppi.inc"
 
         extern PAUSE
@@ -6,9 +7,22 @@ include "ppi.inc"
 ; Init PIO 82C55
 ;**************************************************************
 
-PPI_INIT::       
-        LD      A,10010000B    ; A=IN, B=OUT C=OUT 10010001
+PPI_INIT::                     
+        LD      A,10010000B    ; A=IN, B=OUT C=OUT (default)
+        LD      (PPI_CONF),A   ; Save configuration into RAM         
         OUT     (PIO1CONT),A
+        RET
+
+PPI_PBIN::
+        LD      A, (PPI_CONF)
+        OR      PBIN
+        OUT     (PIO1CONT),A        
+        RET
+
+PPI_PBOUT::
+        LD      A, (PPI_CONF)
+        AND     PBOUT
+        OUT     (PIO1CONT),A        
         RET
 
 ;**************************************************************

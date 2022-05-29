@@ -42,11 +42,8 @@ SCR_MODE        .EQU     SCR_SIZE_H+1             ; $804C
 VIDEOBUFF       .EQU     SCR_MODE+2               ; $804E (40) buffer used for video scrolling and other purposes
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
-
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
-KBDROW          .EQU     CURSORSTATE+1            ; $807A
-KBDCOLMSK       .EQU     KBDROW+1                 ; $807B
-TMRCNT          .EQU     KBDCOLMSK+$01            ; $807C (4) TMR counter for 1/100 seconds
+TMRCNT          .EQU     CURSORSTATE+$01            ; $807C (4) TMR counter for 1/100 seconds
 CTC0IV          .EQU     TMRCNT+$04               ; $8080 (3) CTC0 interrupt vector
 CTC1IV          .EQU     CTC0IV+$03               ; $8083 (3) CTC1 interrupt vector
 CTC2IV          .EQU     CTC1IV+$03               ; $8086 (3) CTC2 interrupt vector
@@ -65,12 +62,19 @@ CHR4VID         .EQU     CONTROLKEYS+$01          ; $8098
 
 bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
-MON_HEX_LEN:	.EQU		CHR4VID+1
-MON_HEX_TYPE:	.EQU		MON_HEX_LEN+1
-MON_HEX_ADDR:	.EQU		MON_HEX_TYPE+1
+MON_HEX_LEN:	.EQU	 CHR4VID+1
+MON_HEX_TYPE:	.EQU	 MON_HEX_LEN+1
+MON_HEX_ADDR:	.EQU	 MON_HEX_TYPE+1
 
+PPI_CONF:       .EQU     MON_HEX_ADDR+1
 
-BASIC_WRKSPC    .EQU     MON_HEX_ADDR+1
+KBDROW          .EQU     PPI_CONF+1            
+KBDCOL          .EQU     KBDROW+1            
+KBDROWMSK       .EQU     KBDCOL+1              
+KBDCOLMSK       .EQU     KBDROWMSK+1           
+LASTKEYCODE     .EQU     KBDCOLMSK+1           
+
+BASIC_WRKSPC    .EQU     LASTKEYCODE+1
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 
 
@@ -83,4 +87,4 @@ BASIC_WARM		.EQU	 BASIC_COLD+3
 BOOT_CPM                .EQU     $4388
 
 
-
+    

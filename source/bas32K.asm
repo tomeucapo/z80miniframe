@@ -288,6 +288,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'S'+80H,"CREEN"
         .BYTE   'C'+80H,"OLOR"
         .BYTE   'L'+80H,"OCATE"
+        .BYTE   'C'+80H,"ALL"
         .BYTE   'L'+80H,"INES"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
@@ -385,6 +386,7 @@ WORDTB: .WORD   PEND
         .WORD   SCREEN             
         .WORD   COLOR
         .WORD   LOCATE
+        .WORD   CCALL
         .WORD   LINES
         .WORD   CLS
         .WORD   WIDTH
@@ -4437,5 +4439,18 @@ CHKCLR: and     A               ; is it 0?
         jp      NC,SNERR        ; no, raise a SN error
         RET    
 
+CCALL:  CALL    GETNUM          ; Get memory address
+        CALL    DEINT           ; Get integer -32768 to 3276
+        
+        LD      HL, RETCALL
+        LD      B, L
+        LD      C, H       
+        EX      DE, HL
+
+        PUSH    BC
+        JP      (HL)
+
+RETCALL:        
+        RET
 .end
 

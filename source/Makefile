@@ -28,7 +28,13 @@ buffer.rel: buffer.asm
 serial.rel: serial.asm 
 	$(ASM) serial.asm $(OPTS) -o bin/serial.rel
 
-monitor.rel: monitor.asm
+keyboard.rel: keyboard.asm
+	$(ASM) keyboard.asm $(OPTS) -o bin/keyboard.rel
+
+conio.rel: common.asm conio.asm
+	$(ASM) conio.asm $(OPTS) -o bin/conio.rel
+
+monitor.rel: common.asm conio.asm monitor.asm 
 	$(ASM) monitor.asm $(OPTS) -o bin/monitor.rel
 
 common.rel: common.asm
@@ -43,8 +49,8 @@ main.rel: main.asm
 bas32K.rel: bas32K.asm 
 	$(ASM) bas32K.asm $(OPTS) -o bin/bas32K.rel
 
-firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel common.rel ppi.rel ctc.rel vdp.rel buffer.rel serial.rel
+firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel ctc.rel vdp.rel buffer.rel serial.rel keyboard.rel
 	pushd
 	cd bin
-	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel bas32K.rel common.rel ppi.rel ctc.rel vdp.rel buffer.rel serial.rel
+	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel bas32K.rel common.rel conio.rel ppi.rel ctc.rel vdp.rel buffer.rel serial.rel keyboard.rel
 	dos2unix firmware.hex

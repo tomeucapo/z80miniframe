@@ -13,7 +13,8 @@ include "svcroutine.inc"
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
                 extern CTC_INIT
                 extern VDP_INIT, VDP_SETPOS, VDP_SETCOLOR, VDP_PUTCHAR, VDP_BLINK_CURSOR
-                extern MON_PRINT, MON_TEST, BASIC_INIT
+                extern CON_PRINT, MON_TEST, BASIC_INIT
+                extern KBD_SCAN
 
                 .ORG $0000
 
@@ -141,14 +142,16 @@ WITHOUT_CTC:
                JR        Z, MAIN_LOOP
 
                LD        HL,CTCENABLEDMSG    
-               CALL      MON_PRINT
+               CALL      CON_PRINT
                
 MAIN_LOOP:
                LD        A, 'N'
                LD        (basicStarted),A
         
                CALL      MON_TEST
-	       CALL      BASIC_INIT
+LOOP:                
+	       CALL      KBD_SCAN
+               JR        LOOP
 
 LEDBLINK:
         LD A, (CURSORSTATE)
