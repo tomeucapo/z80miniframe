@@ -2,9 +2,9 @@ include "svcroutine.inc "
 
                 extern MON_MAIN
                 extern VDP_INIT, VDP_SETPOS, VDP_SETCOLOR, VDP_PUTCHAR, VDP_WRITE_VIDEO_LOC
-
-; Main RST 20 routine dispacher
-
+;;
+;; Main RST 20 firmware service routine dispacher
+;;
 SVC_ROUTINE::
                 EX      AF, AF'
 
@@ -37,6 +37,7 @@ _VDP_SETPOS:    EX      AF, AF'
 _VDP_MODE:      EX      AF, AF'
                 LD      E, A            
                 CALL    VDP_INIT
+                JP      END20
 
 _VDP_WRITE_VIDEO_LOC:
                 EX      AF, AF'

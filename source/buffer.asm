@@ -12,6 +12,10 @@ BUFF_INIT::
     POP      HL
     RET
 
+;;
+;; BUFF_PUTC
+;;     A = Character to store
+;;
 BUFF_PUTC::    
     PUSH     AF
     LD       A,(serBufUsed)
@@ -36,7 +40,10 @@ BUFF_NOT_WRAP:
     LD       (serBufUsed),A
     RET
 
-
+;;
+;; BUFF_GETC
+;;    Return character into A
+;;
 BUFF_GETC::
     LD       A,(serBufUsed)
     CP       $00

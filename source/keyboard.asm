@@ -3,25 +3,32 @@ include "ppi.inc"
 include "keyboard.inc"
 
         extern PAUSE, CON_PRINT, CON_PUTC, CON_NL, PPI_PBIN, PPI_PBOUT, PRHEXBYTE
+        extern BUFF_PUTC
 
-KBD_SCAN::
-    CALL PPI_PBIN       ; Configure PPI Port B as input
+;;
+;; KBD_READKEY Wait for a keypress
+;;      Return keypress code to register A
+;;
+KBD_READKEY::
+    LD A, $FF
+    LD (KBDROWMSK), A
+    LD (KBDCOLMSK), A
+     
+    CALL PPI_PBIN          ; Configure PPI Port B as input
 
-    CALL KB_WAIT_RELEASE
+    ;CALL KB_WAIT_RELEASE
     CALL KB_WAIT_KEYSTROKE
     CALL KB_KEYCODE
-    
+
+    LD (LASTKEYCODE), A    ; Store key code into RAM variable
+
+    CALL BUFF_PUTC
+
     CALL PPI_PBOUT
     RET
 
 KB_WAIT_RELEASE:
     CALL KB_SCANKEYS
-
-    LD BC, 200
-    CALL PAUSE
-
-    CALL KB_SCANKEYS
-
     LD A, (KBDCOLMSK)
     CP $FF
     JP NZ, KB_WAIT_RELEASE
@@ -29,12 +36,6 @@ KB_WAIT_RELEASE:
 
 KB_WAIT_KEYSTROKE:
     CALL KB_SCANKEYS
-
-    LD BC, 200 
-    CALL PAUSE
-
-    CALL KB_SCANKEYS
-
     LD A, (KBDCOLMSK)
     CP $FF
     JP Z, KB_WAIT_KEYSTROKE
@@ -42,36 +43,31 @@ KB_WAIT_KEYSTROKE:
 
 
 KB_READCOL:
+    IN A, (PIO1B)       ; Read 4..7 columns state (From PORT B)     
+    AND $F0
+    LD B, A
     IN A, (PIO1A)       ; Read 0..3 columns state (From PORT A)
     AND $F0        
     RRA
     RRA
     RRA
     RRA    
-    LD B, A
-
-    IN A, (PIO1B)       ; Read 4..7 columns state (From PORT B) 
-    AND $F0
     OR B    
-
     LD (KBDCOLMSK),A    
     RET
 
 KB_SCANKEYS:
     LD A, MASK
-    LD (KBDROWMSK), A
-    LD A, (KBDROWMSK)
+    
 KB_DOSCAN:    
     LD  (KBDROWMSK), A
     OUT (PIO1C), A   
-
+    NOP
     CALL KB_READCOL    
-
-    LD A, (KBDCOLMSK) 
     CP $FF
-    RET NZ 
+    RET NZ
 
-    LD A, (KBDROWMSK)
+    LD  A, (KBDROWMSK)
     RRCA    
     JP C, KB_DOSCAN      
     RET
@@ -147,7 +143,7 @@ KEYCODEC:
     ADD HL, DE
     
     LD A, (HL)
-    LD (LASTKEYCODE), A
+    ;LD (LASTKEYCODE), A
 
     ; LD HL, MSG_ROW
     ; CALL CON_PRINT
@@ -167,9 +163,8 @@ KEYCODEC:
     ; LD A, ' '
     ; CALL CON_PUTC
 
-    LD A, (LASTKEYCODE)
-    CALL CON_PUTC
-
+    ;LD (LASTKEYCODE), A
+    ;CALL CON_PUTC
     ;CALL CON_NL
     RET
 
@@ -207,7 +202,7 @@ POS_CODE:
     .DB 11111110b 
 
 KEYS:
-    .DB  BKSP, LF, 0, 0, 0, 0, 0, 0
+    .DB  BKSP, LF, 0, 118, 112, 114, 116, 0
     .DB '3', 'W', 'A', '4', 'Z', 'S', 'E', 0
     .DB '5', 'R', 'D', '6', 'C', 'F', 'T', 'X'
     .DB '7', 'Y', 'G', '8', 'B', 'H', 'U', 'V'

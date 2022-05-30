@@ -1,7 +1,9 @@
 PXLSET: 
                 .DEFB    $80,$40,$20,$10,$08,$04,$02,$01
 
-VDPMODESSIZES:  ; Screen mode dimensions
+;; Screen mode dimensions
+
+VDPMODESSIZES:  
 
                 .DEFB 40, 24
                 .DEFB 32, 24
@@ -9,24 +11,27 @@ VDPMODESSIZES:  ; Screen mode dimensions
                 .DEFB 64, 48
                 .DEFB 32, 24
 
+;; Table names
+
 VDPTABLENAMES:
                 .DEFB $08, $18, $18, $08, $38
 
-                ; VDP registers settings to set up a text mode
 
-VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
-                defb 11110000b    ; reg.1: text mode (40x24), enable display
-                defb $02          ; reg.2: name table set to $800 ($02x$400)
-                defb $00          ; reg.3: not used in text mode
-                defb $00          ; reg.4: pattern table set to $0000
-                defb $00          ; reg.5: not used in text mode
-                defb $00          ; reg.6: not used in text mode
-                defb VDP_DEFAULT_COLOR          ; reg.7: light blue text on white background
+;; VDP registers settings to set up a text mode
+
+VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
+                defb 11110100b          ; reg.1: text mode (40x24), enable display, enable interrupts
+                defb $02                ; reg.2: name table set to $800 ($02x$400)
+                defb $00                ; reg.3: not used in text mode
+                defb $00                ; reg.4: pattern table set to $0000
+                defb $00                ; reg.5: not used in text mode
+                defb $00                ; reg.6: not used in text mode
+                defb VDP_DEFAULT_COLOR  ; reg.7: light blue text on white background
 
                  ; VDP register settings for a graphics 1 mode
 
                 defb    00000000b       ; reg.0: ext. video off
-                defb    11000000b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
+                defb    11000100b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
                 defb    $06             ; reg.2: name table address: $1800
                 defb    $80             ; reg.3: color table address: $2000
                 defb    $00             ; reg.4: pattern table address: $0000
@@ -37,7 +42,7 @@ VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
                 ; VDP register settings for a graphics 2 mode
                 
                 defb    00000010b       ; reg.0: graphics 2 mode, ext. video dis.
-                defb    11000000b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
+                defb    11000100b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
                 defb    $06             ; reg.2: name table addr.: $1800
                 defb    $FF             ; reg.3: color table addr.: $2000
                 defb    $03             ; reg.4: pattern table addr.: $0000
@@ -48,7 +53,7 @@ VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
                 ; VDP register settings for a multicolor mode
 
                 defb    00000000b       ; reg.0: ext. video dis.
-                defb    11001011b       ; reg.1: 16K VRAM, video on, INT off, multicolor mode, sprite size 8x8, sprite magn. 0
+                defb    11001111b       ; reg.1: 16K VRAM, video on, INT off, multicolor mode, sprite size 8x8, sprite magn. 0
                 defb    $02             ; reg.2: name table addr.: $0800
                 defb    $00             ; reg.3: don't care
                 defb    $00             ; reg.4: pattern table addr.: $0000
@@ -59,7 +64,7 @@ VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
                 ; VDP register settings for an extended graphics 2 mode
 
                 defb    00000010b       ; reg.0: graphics 2 mode, ext. video dis.
-                defb    11000000b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
+                defb    11000100b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
                 defb    $0E             ; reg.2: name table addr.: $3800
                 defb    $9F             ; reg.3: color table addr.: $2000
                 defb    $00             ; reg.4: pattern table addr.: $0000

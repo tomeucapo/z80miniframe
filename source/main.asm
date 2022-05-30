@@ -13,8 +13,7 @@ include "svcroutine.inc"
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
                 extern CTC_INIT
                 extern VDP_INIT, VDP_SETPOS, VDP_SETCOLOR, VDP_PUTCHAR, VDP_BLINK_CURSOR
-                extern CON_PRINT, MON_TEST, BASIC_INIT
-                extern KBD_SCAN
+                extern CON_PRINT, MON_WELCOM, BASIC_INIT
 
                 .ORG $0000
 
@@ -86,17 +85,19 @@ include "svcroutine.inc"
                 EX AF, AF'
                 EXX
 
-                LD A, (ENABLECTC)
-                CP 0
-                JR Z, EXITNMI
+;                CALL     KBD_SCAN
+                
+;                LD A, (ENABLECTC)
+;                CP 0
+;                JR Z, EXITNMI
 
-                LD A, (ENABLEDCURSOR)
-                CP 0
-                JR Z, EXITNMI
+;                LD A, (ENABLEDCURSOR)
+;                CP 0
+;                JR Z, EXITNMI
 
-                CALL    LEDBLINK
-                CALL    VDP_BLINK_CURSOR       
-EXITNMI:      
+;                CALL    LEDBLINK
+;                CALL    VDP_BLINK_CURSOR       
+; EXITNMI:      
                 EXX
                 EX AF, AF'            
                 EI
@@ -116,8 +117,8 @@ INIT:
                LD	 L, C
                CALL      UART_INIT
 
-               LD        E, 0            ; Initialize VPD with TEXT MODE
-               CALL      VDP_INIT
+               ;LD        E, 0            ; Initialize VPD with TEXT MODE
+               ;CALL      VDP_INIT
 
                LD        A, B
                LD        (ENABLECTC), A
@@ -129,13 +130,12 @@ INIT:
 WITHOUT_CTC:              
                CALL      PPI_LED_BLINK
 
-               IM   1                   ; Enable interrupt mode 1
+               IM   1                          ; Enable interrupt mode 1
                EI                          
 
-               LD        A, 0
                LD        E, 0
-               LD        B, VDSETPOS           ; Call service routine number 2 (VDP_SETPOS)
-               RST       $20     
+               LD        B, VDMODE
+               RST       $20
                                        
                LD        A, (ENABLECTC)
                CP        0
@@ -148,19 +148,11 @@ MAIN_LOOP:
                LD        A, 'N'
                LD        (basicStarted),A
         
-               CALL      MON_TEST
-LOOP:                
-	       CALL      KBD_SCAN
-               JR        LOOP
-
-LEDBLINK:
-        LD A, (CURSORSTATE)
-        SLA A
-        SLA A
-        SLA A
-        OUT (PIO1B), A      
-        RET              
-
+               CALL      MON_WELCOM
+               CALL      BASIC_INIT
+;LOOP:                
+;	       CALL      KBD_SCAN
+;              JR        LOOP
 
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
 

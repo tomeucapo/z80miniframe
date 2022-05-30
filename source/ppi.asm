@@ -3,9 +3,9 @@ include "ppi.inc"
 
         extern PAUSE
                 
-;**************************************************************
-; Init PIO 82C55
-;**************************************************************
+;; PPI_INIT
+;;      Init PIO 82C55
+;;
 
 PPI_INIT::                     
         LD      A,10010000B    ; A=IN, B=OUT C=OUT (default)
@@ -13,16 +13,26 @@ PPI_INIT::
         OUT     (PIO1CONT),A
         RET
 
+;; PPI_PBIN
+;;     Configure PORTB as output
+
 PPI_PBIN::
+        PUSH    AF
         LD      A, (PPI_CONF)
         OR      PBIN
         OUT     (PIO1CONT),A        
+        POP     AF
         RET
 
+;; PPI_PBOUT
+;;     Configure PORTB as output
+
 PPI_PBOUT::
+        PUSH    AF
         LD      A, (PPI_CONF)
         AND     PBOUT
         OUT     (PIO1CONT),A        
+        POP     AF
         RET
 
 ;**************************************************************

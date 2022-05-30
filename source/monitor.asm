@@ -10,9 +10,7 @@ include "svcroutine.inc"
 				extern PAUSE, TO_UPPER, CHAR_ISHEX, BUFF_GETC
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 
-MON_MAIN::
-  			    LD        HL,WELCOMEMSG  ; Print welcome message      
-                CALL      CON_PRINT
+MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
 				CALL	  CON_PRINT
 				CALL	  CON_GETCHAR
@@ -37,6 +35,11 @@ MON_LOOP:		LD	      HL, MON_PRMPT
 				RET
 MON_HELP:		LD	 HL, MON_MENU
 				CALL CON_PRINT
+				RET
+
+MON_WELCOM::
+  			    LD        HL,WELCOMEMSG  ; Print welcome message      
+                CALL      CON_PRINT
 				RET
 
 ;**************************************************************************************
@@ -214,12 +217,12 @@ MON_TEST_COLOR:
 
 WELCOMEMSG:    .BYTE     CS
                .BYTE     "Z80MiniFrame 32K",CR,LF
-               .BYTE     "Firmware v1.0 By Tomeu Capo",CR,LF,0
+               .BYTE     "Firmware v1.2 by Tomeu Capo",CR,LF,0
 
 
 MON_PRMPT:		.BYTE   CR,LF,">",0
 
-MON_MENU:		.BYTE	CR,LF,"Monitor v1.1",CR,LF,CR,LF
+MON_MENU:		.BYTE	CR,LF,"Monitor v1.2",CR,LF,CR,LF
 				.BYTE	"B - Z80 BASIC",CR,LF
 				.BYTE	"M - Dump memory",CR,LF
 				.BYTE   "R - Receive HEX",CR,LF
