@@ -17,7 +17,7 @@ Core firmware source code and schematics from Z80MiniFrame hardware. This is a Z
 * Created RST $20 routine service to call firmware routines like VDP routines.
 
 ## Required tools
-This project uses ZMAC Z80 Assembler compiler and SREC utilities to concatenate hex files. And finally needs make or nmake to build project.
+This project uses ZMAC Z80 Macro assembler and LD80 Linker from http://48k.ca/zmac.html. And finally needs make or nmake or Make to build project.
 
 ## Build software
 ```
