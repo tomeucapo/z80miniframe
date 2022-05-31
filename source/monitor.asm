@@ -9,6 +9,7 @@ include "svcroutine.inc"
 
 				extern PAUSE, TO_UPPER, CHAR_ISHEX
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
+				extern BASCOLD, BASWARM
 
 MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
@@ -60,13 +61,13 @@ CORW:
                
 COLDSTART:     LD        A,'Y'           ; Set the BASIC STARTED flag
                LD        (basicStarted),A
-               JP        BASIC_COLD           ; Start BASIC COLD
+               JP        BASCOLD           ; Start BASIC COLD
 CHECKWARM:
                CP        'W'
                JR        NZ, CORW
                RST       08H
                CALL      CON_NL
-               JP        BASIC_WARM           ; Start BASIC WARM
+               JP        BASWARM           ; Start BASIC WARM
 
 GO_COMMAND:
 			CALL CON_NL

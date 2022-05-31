@@ -77,12 +77,6 @@ LASTKEYCODE     .EQU     KBDCOLMSK+1
 BASIC_WRKSPC    .EQU     LASTKEYCODE+1
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 
-
-ROM_BASIC_ADDR  .EQU     $1760
-; MS-BASIC Addresses
-BASIC_COLD		.EQU	 ROM_BASIC_ADDR  
-BASIC_WARM		.EQU	 BASIC_COLD+3
-
 ; CP/M CBIOS Address
 BOOT_CPM                .EQU     $4388
 
