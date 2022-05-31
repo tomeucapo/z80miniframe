@@ -1,15 +1,25 @@
+;;
+;; conio.asm
+;; Console routines
+;;
+
 include "globals.inc"
 
         extern TO_UPPER, CHAR_ISHEX
 
+;; CON_PRINT - Print string to console (TTY/VDP) until end of string character 0
+;;      HL = Address of begin of string
+
 CON_PRINT::          
-		LD       A,(HL)          ; Get character
-		OR       A               ; Is it $00 ?
-        RET      Z               ; Then RETurn on terminator
-        RST      08H             ; Print it
-        INC      HL              ; Next Character
-        JR       CON_PRINT       ; Continue until $00
+		LD       A,(HL)          
+		OR       A               
+        RET      Z               
+        RST      08H             
+        INC      HL              
+        JR       CON_PRINT       
         RET
+
+;; CON_NL - Print line feed and CR
 
 CON_NL::
 		LD		A,CR			
@@ -18,24 +28,31 @@ CON_NL::
 		RST 	8
 		RET
 
+;; CON_CLR - Sends character 12 to console (Clear Screen)
+
 CON_CLR::
 		LD		A,CS			
 		RST		8
 		RET
 
+;; CON_PUTC - Prints a character to console
+;;      A = Character to print
+
 CON_PUTC::
 		RST		8
 		RET
-        
+
+;; CON_GETCHAR - Get available character from buffer
+;;      Returns readed character to upper into A
+
 CON_GETCHAR::
 		RST   $10
 		CALL  TO_UPPER          
 		RET 
 				
-;***************************************************************************
-;GET_HEX_BYTE
-;   Return HEX byte into A
-;***************************************************************************
+;; GETHEXBYTE
+;;      Return HEX byte into A
+
 GETHEXBYTE::
             CALL    GET_HEX_NIB			;Get high nibble
             RET		Z
@@ -51,10 +68,9 @@ GETHEXBYTE::
             OR      B					;Combine both nibbles
             RET				
 			
-;***************************************************************************
-;GET_HEX_WORD
-;Function: Gets two HEX bytes into HL
-;***************************************************************************
+;; GETHEXWORD
+;;      Return two HEX bytes into HL
+
 GETHEXWORD::
 			PUSH    AF
             CALL    GETHEXBYTE		;Get high byte
@@ -64,10 +80,9 @@ GETHEXWORD::
             POP     AF
             RET
 						
-;***************************************************************************
-;PRINT_HEX_BYTE
-;Function: Prints a byte in hex notation from Acc to console
-;***************************************************************************		
+;; PRHEXBYTE - Print two hex digit value to console
+;;     A = Value to print
+
 PRHEXBYTE::
 			PUSH	AF					;Save registers
             PUSH    BC
@@ -83,10 +98,9 @@ PRHEXBYTE::
             POP		AF
 			RET
 			
-;***************************************************************************
-;PRINT_HEX_WORD
-;Function: Prints the four hex digits of a word to the console from HL
-;***************************************************************************
+;; PRHEXWORD - Prints the four hex digits of a word to the console from HL
+;;      HL = Value to print
+
 PRHEXWORD::     
 			PUSH 	HL
             PUSH	AF
@@ -98,13 +112,9 @@ PRHEXWORD::
 			POP		HL
             RET		        
 
+;; GET_HEX_NIB - Translates char to HEX nibble in bottom 4 bits of A
+;;      Return lower 4 bits into A
 
-
-
-;***************************************************************************
-;GET_HEX_NIBBLE
-;Function: Translates char to HEX nibble in bottom 4 bits of A
-;***************************************************************************
 GET_HEX_NIB:      
 			CALL	CON_GETCHAR
 			CP		ESCAPE
@@ -122,10 +132,9 @@ GET_HEX_NIB_1:
             RET	            
 
 
-;***************************************************************************
-;PRINT_HEX_NIB
-;Function: Prints a low nibble in hex notation from Acc to the serial line.
-;***************************************************************************
+;; PRINT_HEX_NIB - Prints a low nibble in hex notation from A to console
+;;      A = Value to print
+
 PRINT_HEX_NIB:
 			PUSH 	AF
             AND     $0F             	;Only low nibble in byte

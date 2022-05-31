@@ -107,37 +107,34 @@ include "svcroutine.inc"
 ; Main code
 
 INIT:            
-               LD       HL,TEMPSTACK
-               LD       SP,HL                ; Set up a temporary stack
+               LD       HL,TEMPSTACK            ; Set up a temporary stack
+               LD       SP,HL               
 
-               CALL	 PPI_INIT            ; Initialize I/O subsystem (PIO and UART)
-               CALL      PPI_GETSWSTATE      ; Check if CTC are disabled or not and get ba
+               CALL	 PPI_INIT               ; Initialize PPI
+               CALL      PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
                
-               LD        H, 0
+               LD        H, 0   
                LD	 L, C
-               CALL      UART_INIT
-
-               ;LD        E, 0            ; Initialize VPD with TEXT MODE
-               ;CALL      VDP_INIT
+               CALL      UART_INIT              ; Initialize UART at C speed
 
                LD        A, B
-               LD        (ENABLECTC), A
+               LD        (ENABLECTC), A         ; Check if CTC are disabled or not
                CP        0
                JR        Z, WITHOUT_CTC
 
-               CALL      CTC_INIT        ; Initialize CTC
+               CALL      CTC_INIT               ; Initialize CTC
 
 WITHOUT_CTC:              
-               CALL      PPI_LED_BLINK
+               CALL      PPI_LED_BLINK          ; LED Hello world welcome
 
-               IM   1                          ; Enable interrupt mode 1
+               IM   1                           ; Enable interrupt mode 1
                EI                          
 
-               LD        E, 0
+               LD        E, 0                   ; VDP Set video text mode
                LD        B, VDMODE
                RST       $20
                                        
-               LD        A, (ENABLECTC)
+               LD        A, (ENABLECTC)         ; If CTC is initialized print to string CTC Enabled
                CP        0
                JR        Z, MAIN_LOOP
 

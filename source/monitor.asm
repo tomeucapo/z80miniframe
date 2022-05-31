@@ -7,7 +7,7 @@
 include "globals.inc"
 include "svcroutine.inc"
 
-				extern PAUSE, TO_UPPER, CHAR_ISHEX, BUFF_GETC
+				extern PAUSE, TO_UPPER, CHAR_ISHEX
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 
 MON_MAIN::				
