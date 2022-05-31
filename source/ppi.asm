@@ -52,6 +52,9 @@ PPI_GETSWSTATE::
         RET
 
 PPI_LED_BLINK::
+        PUSH    AF
+        PUSH    BC
+
         LD      A, 4
         OUT     (PIO1B), A
         LD      BC, 500
@@ -61,5 +64,8 @@ PPI_LED_BLINK::
         LD      BC, 500
         CALL    PAUSE       
         LD      A, 0
-        OUT	    (PIO1B), A
+        OUT	(PIO1B), A
+
+        POP     BC
+        POP     AF
         RET                    

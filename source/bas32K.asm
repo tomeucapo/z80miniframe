@@ -188,7 +188,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'S'+80H,"CREEN"
         .BYTE   'C'+80H,"OLOR"
         .BYTE   'L'+80H,"OCATE"
-        .BYTE   'C'+80H,"ALL"
+        ;.BYTE   'C'+80H,"ALL"
         .BYTE   'L'+80H,"INES"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
@@ -286,7 +286,7 @@ WORDTB: .WORD   PEND
         .WORD   SCREEN             
         .WORD   COLOR
         .WORD   LOCATE
-        .WORD   CCALL
+        ;.WORD   CCALL
         .WORD   LINES
         .WORD   CLS
         .WORD   WIDTH
@@ -304,7 +304,6 @@ WORDTB: .WORD   PEND
 
 ; RESERVED WORD TOKEN VALUES
 ; Update values is need if new tokens are added. For example if you add new keyword, increase all values after ZREM.
-
 ZEND    .EQU    080H            ; END
 ZFOR    .EQU    081H            ; FOR
 ZDATA   .EQU    083H            ; DATA

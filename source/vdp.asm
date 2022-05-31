@@ -530,10 +530,11 @@ SET_REG_COLOR:
         RET
 
 ; ************************************************************************************
-; VDP_SETPOS - Set the address to place text at X/Y coordinate and update memory variables
+; VDP_LOCATE - Set the address to place text at X/Y coordinate and update memory variables
 ;       A = X
 ;       E = Y
 
+VDP_LOCATE::
 VDP_SETPOS:
         LD      (SCR_X), A
         EX      AF, AF'       
