@@ -10,6 +10,7 @@ include "svcroutine.inc"
 				extern PAUSE, TO_UPPER, CHAR_ISHEX
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 				extern BASCOLD, BASWARM
+				extern CON_PUTC, KBD_READKEY
 
 MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
@@ -70,9 +71,9 @@ CHECKWARM:
                JP        BASWARM           ; Start BASIC WARM
 
 GO_COMMAND:
-			CALL CON_NL
-			LD  A,'*'
-			RST 8
+;			CALL CON_NL
+;			LD  A,'*'
+;			RST 8
 
 			; Get Address to write
 			CALL GETHEXWORD
@@ -212,6 +213,15 @@ MON_TEST_COLOR:
 		LD A, $F5
 		RST $20
 
+		LD HL, MON_TEST_KBD_MSG
+		CALL CON_PRINT
+
+KEYLOOP:
+		CALL KBD_READKEY
+		CP ESCAPE
+		JR Z, ENDKEYTST
+		CALL CON_PUTC
+ENDKEYTST:		
 		RET	
 			
 

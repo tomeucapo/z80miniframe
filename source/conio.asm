@@ -22,10 +22,12 @@ CON_PRINT::
 ;; CON_NL - Print line feed and CR
 
 CON_NL::
+        PUSH    AF
 		LD		A,CR			
 		RST		8
 		LD		A,LF
 		RST 	8
+        POP     AF
 		RET
 
 ;; CON_CLR - Sends character 12 to console (Clear Screen)

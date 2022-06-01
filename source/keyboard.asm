@@ -16,19 +16,24 @@ KBD_READKEY::
      
     CALL PPI_PBIN          ; Configure PPI Port B as input
 
+KBDLOOP:
+    CALL KB_SCANKEYS
+    
+    JR KBDLOOP
+
     ;CALL KB_WAIT_RELEASE
-    CALL KB_WAIT_KEYSTROKE
-    CALL KB_KEYCODE
+    ;CALL KB_WAIT_KEYSTROKE
+    ;CALL KB_KEYCODE
 
-    LD (LASTKEYCODE), A    ; Store key code into RAM variable
+    ;LD (LASTKEYCODE), A    ; Store key code into RAM variable
 
-    CALL BUFF_PUTC
+    ;CALL BUFF_PUTC
 
     CALL PPI_PBOUT
     RET
 
 KB_WAIT_RELEASE:
-    CALL KB_SCANKEYS
+    CALL KB_SCANKEYS    
     LD A, (KBDCOLMSK)
     CP $FF
     JP NZ, KB_WAIT_RELEASE
@@ -53,23 +58,30 @@ KB_READCOL:
     RRA
     RRA    
     OR B    
-    LD (KBDCOLMSK),A    
+    LD (KBDCOLMSK), A    
     RET
 
 KB_SCANKEYS:
+    LD A, $FF
+    LD (KBDCOLMSK),A    
+
     LD A, MASK
-    
+
 KB_DOSCAN:    
     LD  (KBDROWMSK), A
     OUT (PIO1C), A   
-    NOP
+    ;NOP
     CALL KB_READCOL    
     CP $FF
-    RET NZ
-
+    JR NZ, ENDSCAN
+    
     LD  A, (KBDROWMSK)
     RRCA    
     JP C, KB_DOSCAN      
+    RET
+
+ENDSCAN:
+    CALL PR_STATUS
     RET
 
 PR_STATUS:

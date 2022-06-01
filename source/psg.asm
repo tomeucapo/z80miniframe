@@ -1,52 +1,33 @@
+include "globals.inc"
+include "psg.inc"
 
-; AY-3-8910
-AYCTRL:         .EQU    $0031 
-AYDATA:         .EQU    $0032
+                extern PAUSE
 
-;------------------------------------------------------------------------------
-; configure the PSG
+;; PSG_INIT - Initialize PSG 
 
-PSG_INIT:       ld      HL,CHASNDDTN    ; starting address of sound & keyboard RAM registers
-                ld      B,11            ; # of PSG sound & keyboard registers
+PSG_INIT::
+                ld      HL,CHASNDDTN    ; Clear all PSG RAM Variables 
+                ld      B,11             
+                xor     A               
+EMPTSNDBFR:     ld      (HL),A          
+                inc     HL              
+                djnz    EMPTSNDBFR      
 
-                xor     A               ; reset A
-EMPTSNDBFR:     ld      (HL),A          ; reset RAM register
-                inc     HL              ; next register
-                djnz    EMPTSNDBFR      ; repeat
+CLRPSGREGS:     ld     B, 16           ; 16 registers to set
+                ld     HL,SNDREGCFG    ; starting address of register settings
+                ld     D,$00           ; first register
+RSTPSG:         LD     A, D
+                LD     C, (HL)
+                CALL   AYREGWRITE   
+                inc    D               
+                inc    HL              
+                djnz   RSTPSG          
+                ret                     
 
-CLRPSGREGS:     ld      B,$10           ; 16 registers to set
-                ld      HL,SNDREGCFG    ; starting address of register settings
-                ld      D,$00           ; first register
-RSTPSG:         ld      A,D             ; register value
-                call    SETSNDREG       ; select register
-                ld      A,(HL)          ; load value
-                call    WRTSNDREG       ; write to register
-                inc     D               ; next register
-                inc     HL              ; next value
-                djnz    RSTPSG          ; repeat for each register
-                ret                     ; return to caller
+;; CHIMPSOUND - Sample sound code
 
-; routine to play a welcome beep on channel C (tone 4010) and to shut it off
-WLCMBEEP:       ld      HL,WLCBPDAT     ; data address
-                jp      SENDSND
-NOBEEP:         ld      HL,NOBPDAT      ; data address
-SENDSND:        push    BC
-                ld      B,$04           ; 4 pairs
-RPTWLCMBP:      ld      A,(HL)          ; read register #
-                call    SETSNDREG
-                inc     HL              ; next cell
-                ld      A,(HL)          ; read value
-                call    WRTSNDREG
-                inc     HL
-                djnz    RPTWLCMBP       ; repeat
-                pop     BC
-                ret                     ; return to caller
-
-;**************************************************************************************
-; Simple sound generation with AY-3-8910 
-;**************************************************************************************
-
-CHIMPSOUND:  PUSH   DE
+CHIMPSOUND::  
+             PUSH   DE
              PUSH   AF
              PUSH   BC
 
@@ -63,8 +44,10 @@ LOOP1VOL:    LD     A, 8
 LOOP2PITCH:  LD     A, 1
              LD     C, E
              CALL   AYREGWRITE
+
              LD     BC,200
              CALL   PAUSE
+             
              INC    E
              LD     A, 7
              CP     E
@@ -75,8 +58,8 @@ LOOP2PITCH:  LD     A, 1
              CALL   AYREGWRITE   
 
              INC    D
-             LD     A, 8
-             CP     D
+             LD     A, D
+             CP     20
              JR     NZ, LOOP1VOL
 
              LD     A, 8
@@ -88,35 +71,37 @@ LOOP2PITCH:  LD     A, 1
              POP    DE
              RET
 
+;; AYREGWRITE - Modify PSG register
+;;      A = Register number
+;;      C = Data
 
-;**************************************************************
-; Sound generator register/data control
-;**************************************************************
+AYREGWRITE::    
+            PUSH BC
+            LD BC, AYCTRL       ; Select PSG register to write
+            OUT (C), A
+            POP BC                                
+            LD  A, C
+            PUSH BC
+            LD BC, AYDATA       ; Write data to PSG selected register
+            OUT (C), A
+            POP BC
+            RET
 
-AYREGWRITE:     PUSH BC
-                LD BC, AYCTRL
-                OUT (C), A
-                POP BC
-                LD  A, C
-                LD BC, AYDATA
-                OUT (C), A
-                RET
+;; AYREGREAD - Read PSG register data
+;;      A = Register number
+;;      Return data into A
 
-; select register on PSG
-SETSNDREG:      ld      BC,AYCTRL        ; PSG register port
-                out     (C),A           ; set register
-                ret                     ; return to caller
-
-; send data to PSG
-WRTSNDREG:      ld      BC,AYDATA        ; PSG data port
-                out     (C),A           ; send data
-                ret                     ; return to caller
+AYREGREAD:: 
+            PUSH BC
+            LD BC, AYCTRL       ; Select PSG register to read
+            OUT (C), A
+            IN  A, (C)          ; Read PSG register data
+            POP BC         
+            RET
 
 
-SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,10111111b
+                
+SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,10111111b          
                 defb $00,$00,$00,$00,$00,$00,$ff,$ff
-
-WLCBPDAT:       defb    $07,01111011b,$04,$56,$05,$00,$0A,$0F
-NOBPDAT:        defb    $04,$00,$05,$00,$0A,$00,$07,01111111b
 
 
