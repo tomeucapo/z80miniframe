@@ -71,6 +71,32 @@ LOOP2PITCH:  LD     A, 1
              POP    DE
              RET
 
+PSG_LED_BLINK::
+        PUSH    AF
+        PUSH    BC
+
+        LD      A, AYPORTB
+        LD      C, 4
+        CALL    AYREGWRITE
+        
+        LD      BC, 500
+        CALL    PAUSE       
+
+        LD      A, AYPORTB
+        LD      C, 8
+        CALL    AYREGWRITE
+        
+        LD      BC, 500
+        CALL    PAUSE       
+        
+        LD      A, AYPORTB
+        LD      C, 0
+        CALL    AYREGWRITE
+
+        POP     BC
+        POP     AF
+        RET                    
+
 ;; AYREGWRITE - Modify PSG register
 ;;      A = Register number
 ;;      C = Data
@@ -101,7 +127,7 @@ AYREGREAD::
 
 
                 
-SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,10111111b          
-                defb $00,$00,$00,$00,$00,$00,$ff,$ff
+SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,11111111b          
+                defb $00,$00,$00,$00,$00,$00,$00,$00
 
 

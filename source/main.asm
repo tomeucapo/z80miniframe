@@ -12,7 +12,7 @@ include "svcroutine.inc"
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
                 extern CTC_INIT
                 extern CON_PRINT, VDP_PUTCHAR, MON_WELCOM, BASIC_INIT
-                extern PSG_INIT, CHIMPSOUND, WLCMBEEP
+                extern PSG_INIT, CHIMPSOUND, PSG_LED_BLINK
 
                 .ORG $0000
 
@@ -126,7 +126,9 @@ INIT:
                CALL      CTC_INIT               ; Initialize CTC
 
 WITHOUT_CTC:              
-               CALL      PPI_LED_BLINK          ; LED Hello world welcome
+               CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
+               CALL      PSG_LED_BLINK          ; PSG LED Hello world
+
                CALL      CHIMPSOUND             ; Welcome sound
 
                IM   1                           ; Enable interrupt mode 1

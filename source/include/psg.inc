@@ -4,5 +4,5 @@ AYCTRL:         .EQU    $0030
 AYDATA:         .EQU    $0031       
 
 
-AYPORTA:            .EQU    16              ; R16
-AYPORTB:            .EQU    17              ; R17
+AYPORTA:            .EQU    14              ; R16
+AYPORTB:            .EQU    15              ; R17
