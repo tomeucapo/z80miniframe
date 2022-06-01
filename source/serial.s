@@ -24,8 +24,8 @@ UART_INIT::
     LD      A, #1
     OUT     (UART1),A            ; Enable receive data available interrupt only
     
-    LD      A, #RTS_LOW  
-    OUT     (UART4), A
+    ;LD      A, #RTS_LOW  
+    ;OUT     (UART4), A
 
     POP     BC
     RET
@@ -35,7 +35,10 @@ UART_INIT::
 ;; Returns character in A
 ;;
 UART_READ_CHAR::
-    CALL    UART_RX_RDY
+    IN		A, (UART5)    
+	BIT 	0, A
+    RET     Z
+
     IN      A, (UART0)
     CALL    BUFFER_PUTCHAR
     RET
@@ -99,17 +102,19 @@ BUFF_NOT_WRAP:
     LD      (SERIAL_IN_PTR), HL     ; Save IN Buffer pointer
     POP     AF                      ; Get character to write to buffer
     LD      (HL), A                 ; Write character to buffer
-    PUSH    AF
+    ;PUSH    AF
     LD      A, (SERIAL_BUFF_USED)
     INC     A
     LD      (SERIAL_BUFF_USED), A
-    CP      #SER_FULLSIZE	
-    JR      C, BUFF_PUTC_END
-    LD      A, #RTS_HIGH
-    OUT     (UART4), A
-BUFF_PUTC_END:    
-    POP     AF
     RET
+
+    ;CP      #SER_FULLSIZE	
+    ;JR      C, BUFF_PUTC_END
+    ;LD      A, #RTS_HIGH
+    ;OUT     (UART4), A
+;BUFF_PUTC_END:    
+;    POP     AF
+;    RET
 
 
 UART_BUFFER_DATA_READY::
@@ -123,10 +128,13 @@ UART_BUFFER_DATA_READY::
 ;;
 
 UART_BUFFER_GETCHAR::
-    PUSH    HL
+    ;PUSH    HL
 WAITING_FOR_CHARACTER:
-    CALL    UART_BUFFER_DATA_READY
-    JR      Z, WAITING_FOR_CHARACTER
+    LD       A,(SERIAL_BUFF_USED)
+    CP       #0
+    JR       Z, WAITING_FOR_CHARACTER
+    ;CALL    UART_BUFFER_DATA_READY
+    ;JR      Z, WAITING_FOR_CHARACTER
     LD      HL, (SERIAL_RD_PTR)
     INC     HL
     LD      A, L
@@ -146,7 +154,7 @@ BUFF_NOT_WRAP_RD:
 BUFFER_GETCHAR_END:
     LD      A, (HL)
     EI  
-    POP     HL
+    ;POP     HL
     RET
 
 

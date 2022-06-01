@@ -1,6 +1,8 @@
 
 .include "globals.h.s"
 .include "common.h.s"
+.include "globals.h.s"
+.include "keycodes.h.s"
 
 .area _DATA
 .area _CODE
@@ -44,7 +46,7 @@ RECEIVE_HEX_COMMAND:
 			RST 8
 
 WAIT_BEGIN: CALL	MON_GET_CHAR
-			CP  	#ESCAPE
+			CP  	#ESC
 			RET 	Z
 			CP		#':'
 			JR 		NZ, WAIT_BEGIN
@@ -138,7 +140,7 @@ CORW:
                
 COLDSTART:     LD        A,#'Y'           ; Set the BASIC STARTED flag
                LD        (MON_BASIC_STARTED),A
-               JP        ROM_BASIC_COLD_ADDR           ; Start BASIC COLD
+               JP        ROM_BASIC_ADDR           ; Start BASIC COLD
 CHECKWARM:
                CP        #'W'
                JR        NZ, CORW
@@ -196,7 +198,7 @@ GET_HEX_BYTE:
 ;;
 GET_HEX_NIB:      
 			CALL	MON_GET_CHAR
-			CP		#ESCAPE
+			CP		#ESC
 			JP		Z, MON_LOOP
 
             CALL    CHAR_ISHEX      	;Is it a hex digit?

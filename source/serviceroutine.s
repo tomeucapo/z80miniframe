@@ -1,5 +1,4 @@
 .include "vdp.h.s"
-.include "psg.h.s"
 
 .area _DATA
 .area _CODE

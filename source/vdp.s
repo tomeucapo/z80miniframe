@@ -1,6 +1,6 @@
 
 .include "globals.h.s"
-.include "common.h.s"
+.include "keycodes.h.s"
 .include "vdp.h.s"
 
 .area _DATA

@@ -8,14 +8,16 @@
 .include "vdp.h.s"
 .include "psg.h.s"
 .include "common.h.s"   
+.include "globals.h.s"
 .include "monitor.h.s"
 .include "serviceroutine.h.s"
 
 .area HEAD (ABS)
 
 .org 0x00
-    di
-    jp _main
+    LD  HL,#TEMPSTACK    
+    LD  SP,HL    
+    JP _main
 
 .org 0x08
     jp print_char
@@ -94,8 +96,6 @@ print_char:
 
 ; Main interrupt handler (Read character from UART)    
 INT_HANDLER:
-    DI
-
     PUSH    AF
     PUSH    HL
     
