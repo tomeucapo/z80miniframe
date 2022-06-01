@@ -1,33 +1,19 @@
 ;******************************************************************
 ; VDP (Video Display Processor) Routines for TMS9918
-; Tomeu Capó 2020                      
+;
+; Tomeu Capó 2022 (C)               
 ;******************************************************************
 
-; Addresses of Data and Register configuration of VDP
+include "globals.inc"
+include "vdp.inc"
 
-VDP_DATA        .EQU    $002E
-VDP_REG         .EQU    $002F
-
-VDP_WREG        .EQU    10000000b   ; to be added to the REG value
-VDP_RRAM        .EQU    00000000b   ; to be added to the ADRS value
-VDP_WRAM        .EQU    01000000b   ; to be added to the ADRS value
-
-VDP_R0          .EQU    00h
-VDP_R1          .EQU    01h
-VDP_R2          .EQU    02h
-VDP_R3          .EQU    03h
-VDP_R4          .EQU    04h
-VDP_R5          .EQU    05h
-VDP_R6          .EQU    06h
-VDP_R7          .EQU    07h
-
-VDP_DEFAULT_COLOR      .EQU     $F5
+                extern GET_MODULE
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
 ;       E = Mode number
 
-VDP_INIT:       PUSH DE
+VDP_INIT::      PUSH DE
                 
                 LD A, E
                 LD (SCR_MODE), A
@@ -321,7 +307,7 @@ VDP_HOME:       LD A, 1
 ; VDP_PUTCHAR - Output character to VDP routine with character control decisions
 ;       A = Character to output
 
-VDP_PUTCHAR:    PUSH AF
+VDP_PUTCHAR::    PUSH AF
                 PUSH DE
                 PUSH HL
                 PUSH BC
@@ -431,7 +417,7 @@ PUTEND:         POP BC
 ; ************************************************************************************
 ; VDP_BLINK_CURSOR - Change state of cursor to make blink and show or not.
 
-VDP_BLINK_CURSOR:
+VDP_BLINK_CURSOR::
                 PUSH AF
                 PUSH DE
                 PUSH HL
@@ -498,7 +484,7 @@ VDP_LOCATE_CURSOR:
 ; VDP_PRINT - Copy a null-terminated string to VRAM
 ;       HL = Initial string pointer address
 
-VDP_PRINT:      
+VDP_PRINT::      
                 PUSH HL
 
 LDWLCMMSG:      LD A, (HL)           
@@ -519,7 +505,7 @@ ENDPRT:         POP HL
 ;       A = Foreground and Background color
 ;       E = Set border color (backdrop)
 
-VDP_SETCOLOR:
+VDP_SETCOLOR::
         PUSH BC
 
         LD B, A                 ; Detects if not TEXT Mode you need change first color table
@@ -544,10 +530,11 @@ SET_REG_COLOR:
         RET
 
 ; ************************************************************************************
-; VDP_SETPOS - Set the address to place text at X/Y coordinate and update memory variables
+; VDP_LOCATE - Set the address to place text at X/Y coordinate and update memory variables
 ;       A = X
 ;       E = Y
 
+VDP_LOCATE::
 VDP_SETPOS:
         LD      (SCR_X), A
         EX      AF, AF'       
@@ -659,7 +646,7 @@ VDP_WRITEADDR:
 ; VDP_READ_VIDEO_LOC - load the char or byte at the VRAM position set by HL
 ; value is returned into A
 
-VDP_READ_VIDEO_LOC: 
+VDP_READ_VIDEO_LOC:: 
                 push    BC              ; store BC
                 ld      C,VDP_REG       ; VDP setting mode
                 ld      B,H
@@ -680,7 +667,7 @@ VDP_READ_VIDEO_LOC:
 ;       HL = Address to write
 ;       A = Value to write 
 
-VDP_WRITE_VIDEO_LOC:
+VDP_WRITE_VIDEO_LOC::
                 push    BC              ; store BC
                 ld      C,VDP_REG       ; VDP setting mode
                 ld      B,H             ; copy H into B
@@ -762,87 +749,8 @@ VDP_XY_TO_ADDR:
         scf                     ; set Carry for normal exit
         ret                     ; return to caller
 
-; HL = X
-; DE = X DIV 8
 
-GET_MODULE:
-        LD A, E       ;  4T 1B -- A := x div 7 [low bits]
-        ADD A, A      ;  4T 1B -- A := (x div 7) * 2 [low bits]
-        ADD A, A      ;  4T 1B -- A := (x div 7) * 4 [low bits]
-        ADD A, A      ;  4T 1B -- A := (x div 7) * 8 [low bits]
-        SUB E         ;  4T 1B -- A := (x div 7) * 7 [low bits]
-        NEG           ;  8T 2B -- A := (x div 7) * -7 [low bits]
-        ADD A, L      ;  4T 1B -- A := x mod 7  
-        RET
 
-PXLSET: 
-                .DEFB    $80,$40,$20,$10,$08,$04,$02,$01
-
-VDPMODESSIZES:  ; Screen mode dimensions
-
-                .DEFB 40, 24
-                .DEFB 32, 24
-                .DEFB 0, 192      ; 0=256 x 192
-                .DEFB 64, 48
-                .DEFB 32, 24
-
-VDPTABLENAMES:
-                .DEFB $08, $18, $18, $08, $38
-
-                ; VDP registers settings to set up a text mode
-
-VDPMODESCONF:   defb 00000000b    ; reg.0: external video disabled
-                defb 11110000b    ; reg.1: text mode (40x24), enable display
-                defb $02          ; reg.2: name table set to $800 ($02x$400)
-                defb $00          ; reg.3: not used in text mode
-                defb $00          ; reg.4: pattern table set to $0000
-                defb $00          ; reg.5: not used in text mode
-                defb $00          ; reg.6: not used in text mode
-                defb VDP_DEFAULT_COLOR          ; reg.7: light blue text on white background
-
-                 ; VDP register settings for a graphics 1 mode
-
-                defb    00000000b       ; reg.0: ext. video off
-                defb    11000000b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
-                defb    $06             ; reg.2: name table address: $1800
-                defb    $80             ; reg.3: color table address: $2000
-                defb    $00             ; reg.4: pattern table address: $0000
-                defb    $36             ; reg.5: sprite attr. table address: $1B00
-                defb    $07             ; reg.6: sprite pattern table addr.: $3800
-                defb    $05             ; reg.7: backdrop color (light blue)
-
-                ; VDP register settings for a graphics 2 mode
-                
-                defb    00000010b       ; reg.0: graphics 2 mode, ext. video dis.
-                defb    11000000b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
-                defb    $06             ; reg.2: name table addr.: $1800
-                defb    $FF             ; reg.3: color table addr.: $2000
-                defb    $03             ; reg.4: pattern table addr.: $0000
-                defb    $36             ; reg.5: sprite attr. table addr.: $1B00
-                defb    $07             ; reg.6: sprite pattern table addr.: $3800
-                defb    $C5             ; reg.7: backdrop color: light blue
-
-                ; VDP register settings for a multicolor mode
-
-                defb    00000000b       ; reg.0: ext. video dis.
-                defb    11001011b       ; reg.1: 16K VRAM, video on, INT off, multicolor mode, sprite size 8x8, sprite magn. 0
-                defb    $02             ; reg.2: name table addr.: $0800
-                defb    $00             ; reg.3: don't care
-                defb    $00             ; reg.4: pattern table addr.: $0000
-                defb    $36             ; reg.5: sprite attr. table addr.: $1B00
-                defb    $07             ; reg.6: sprite pattern table addr.: $3800
-                defb    $0F             ; reg.7: backdrop color (white)
-
-                ; VDP register settings for an extended graphics 2 mode
-
-                defb    00000010b       ; reg.0: graphics 2 mode, ext. video dis.
-                defb    11000000b       ; reg.1: 16K VRAM, video on, INT off, sprite size 8x8, sprite magn. 0
-                defb    $0E             ; reg.2: name table addr.: $3800
-                defb    $9F             ; reg.3: color table addr.: $2000
-                defb    $00             ; reg.4: pattern table addr.: $0000
-                defb    $76             ; reg.5: sprite attr. table addr.: $3B00
-                defb    $03             ; reg.6: sprite pattern table addr.: $1800
-                defb    $05             ; reg.7: backdrop color: light blue
-
-include "font68.asm"
-include "font88.asm"
+include "vdp/config.inc"
+include "vdp/font68.inc"
+include "vdp/font88.inc"

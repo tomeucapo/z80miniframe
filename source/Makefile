@@ -1,24 +1,59 @@
 ASM=zmac
+LD=ld80
+OPTS=-I include --rel7
 SREC=srec_cat
 MEMTYPE=27256
 COMEPROM=COM3
 
-all: core.hex bas32k.hex cbios.hex firmware.hex
+all: firmware.hex
 
 clean:
-	rm -f bin/*.hex
+	rm -f bin/*
 
 burn:
 	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
 
-core.hex: 
-	$(ASM) core.asm -o bin/core.hex  
+ppi.rel: ppi.asm
+	$(ASM) ppi.asm $(OPTS) -o bin/ppi.rel
 
-bas32k.hex:
-	$(ASM) bas32k.asm -o bin/bas32k.hex
+psg.rel: psg.asm
+	$(ASM) psg.asm $(OPTS) -o bin/psg.rel
 
-cbios.hex:
-	$(ASM) cbios.asm -o bin/cbios.hex
+ctc.rel: ctc.asm
+	$(ASM) ctc.asm $(OPTS) -o bin/ctc.rel
 
-firmware.hex:
-	$(SREC) bin/core.hex -Intel bin/bas32k.hex -Intel bin/cbios.hex -Intel -o bin/firmware.hex -Intel
+vdp.rel: vdp.asm
+	$(ASM) vdp.asm $(OPTS) -o bin/vdp.rel
+
+buffer.rel: buffer.asm
+	$(ASM) buffer.asm $(OPTS) -o bin/buffer.rel
+
+serial.rel: serial.asm 
+	$(ASM) serial.asm $(OPTS) -o bin/serial.rel
+
+keyboard.rel: keyboard.asm
+	$(ASM) keyboard.asm $(OPTS) -o bin/keyboard.rel
+
+conio.rel: common.asm conio.asm
+	$(ASM) conio.asm $(OPTS) -o bin/conio.rel
+
+monitor.rel: common.asm conio.asm monitor.asm 
+	$(ASM) monitor.asm $(OPTS) -o bin/monitor.rel
+
+common.rel: common.asm
+	$(ASM) common.asm $(OPTS) -o bin/common.rel
+
+svcroutine.rel: svcroutine.asm 
+	$(ASM) svcroutine.asm $(OPTS) -o bin/svcroutine.rel
+
+main.rel: main.asm 
+	$(ASM) main.asm $(OPTS) -o bin/main.rel
+
+bas32K.rel: bas32K.asm 
+	$(ASM) bas32K.asm $(OPTS) -o bin/bas32K.rel
+
+firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel ctc.rel vdp.rel buffer.rel serial.rel keyboard.rel
+	pushd
+	cd bin
+	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel bas32K.rel common.rel conio.rel ppi.rel ctc.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel
+	dos2unix firmware.hex

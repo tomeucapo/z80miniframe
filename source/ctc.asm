@@ -1,11 +1,8 @@
 
-; label defining for CTC
-CTC_CH0         .EQU $0100      ;00010000b
-CTC_CH1         .EQU $0101      ;00010001b
-CTC_CH2         .EQU $0102      ;00010010b
-CTC_CH3         .EQU $0103      ;00010011b
+include "globals.inc"
+include "ctc.inc"
 
-INIT_CTC:
+CTC_INIT::
 ;init CH0 & CH3
 ;CH0 & CH3 disabled
         ld a,00000011b      ; interrupt off, timer mode, prescaler=16, don't care ext. TRG edge,
