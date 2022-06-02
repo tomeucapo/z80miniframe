@@ -24,6 +24,22 @@ RSTPSG:         LD     A, D
                 djnz   RSTPSG          
                 ret                     
 
+
+PSGIOCFG::
+                ld      A,$07          
+                ld      BC,AYCTRL      
+                out     (C),A          
+                in      A,(C)          
+                set     7,A            
+                res     6,A            
+                push    af
+                ld      A,$07          
+                out     (C),A          
+                pop     af
+                ld      BC,AYDATA      
+                out     (C),A       
+                RET   
+
 ;; CHIMPSOUND - Sample sound code
 
 CHIMPSOUND::  
@@ -71,32 +87,6 @@ LOOP2PITCH:  LD     A, 1
              POP    DE
              RET
 
-PSG_LED_BLINK::
-        PUSH    AF
-        PUSH    BC
-
-        LD      A, AYPORTB
-        LD      C, 4
-        CALL    AYREGWRITE
-        
-        LD      BC, 500
-        CALL    PAUSE       
-
-        LD      A, AYPORTB
-        LD      C, 8
-        CALL    AYREGWRITE
-        
-        LD      BC, 500
-        CALL    PAUSE       
-        
-        LD      A, AYPORTB
-        LD      C, 0
-        CALL    AYREGWRITE
-
-        POP     BC
-        POP     AF
-        RET                    
-
 ;; AYREGWRITE - Modify PSG register
 ;;      A = Register number
 ;;      C = Data
@@ -121,13 +111,14 @@ AYREGREAD::
             PUSH BC
             LD BC, AYCTRL       ; Select PSG register to read
             OUT (C), A
+            LD BC, AYCTRL       ; Select PSG register to read
             IN  A, (C)          ; Read PSG register data
             POP BC         
             RET
 
 
                 
-SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,11111111b          
+SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,10111111b          
                 defb $00,$00,$00,$00,$00,$00,$00,$00
 
 

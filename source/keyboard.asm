@@ -1,9 +1,10 @@
 include "globals.inc"
-include "ppi.inc"
+include "psg.inc"
 include "keyboard.inc"
 
-        extern PAUSE, CON_PRINT, CON_PUTC, CON_NL, PPI_PBIN, PPI_PBOUT, PRHEXBYTE
+        extern PAUSE, CON_PRINT, CON_PUTC, CON_NL, PRHEXBYTE
         extern BUFF_PUTC
+        extern AYREGWRITE, AYREGREAD, PSGIOCFG
 
 ;;
 ;; KBD_READKEY Wait for a keypress
@@ -13,8 +14,8 @@ KBD_READKEY::
     LD A, $FF
     LD (KBDROWMSK), A
     LD (KBDCOLMSK), A
-     
-    CALL PPI_PBIN          ; Configure PPI Port B as input
+
+    CALL PSGIOCFG           ; Ensure configure PSG IO as proper manner to manage keyboard matrix
 
 KBDLOOP:
     CALL KB_SCANKEYS
@@ -29,7 +30,6 @@ KBDLOOP:
 
     ;CALL BUFF_PUTC
 
-    CALL PPI_PBOUT
     RET
 
 KB_WAIT_RELEASE:
@@ -47,31 +47,30 @@ KB_WAIT_KEYSTROKE:
     RET
 
 
-KB_READCOL:
-    IN A, (PIO1B)       ; Read 4..7 columns state (From PORT B)     
-    AND $F0
-    LD B, A
-    IN A, (PIO1A)       ; Read 0..3 columns state (From PORT A)
-    AND $F0        
-    RRA
-    RRA
-    RRA
-    RRA    
-    OR B    
-    LD (KBDCOLMSK), A    
-    RET
-
 KB_SCANKEYS:
-    LD A, $FF
+    LD A, $00
     LD (KBDCOLMSK),A    
-
     LD A, MASK
 
 KB_DOSCAN:    
     LD  (KBDROWMSK), A
-    OUT (PIO1C), A   
-    ;NOP
-    CALL KB_READCOL    
+
+    LD A, AYPORTB
+    LD BC, AYCTRL       
+    OUT (C), A
+
+    LD  A, (KBDROWMSK)
+    LD BC, AYDATA       
+    OUT (C), A
+
+    LD A, AYPORTA
+    LD BC, AYCTRL       
+    OUT (C), A
+    IN  A, (C)
+    LD  (KBDCOLMSK), A
+
+    CALL    PR_STATUS
+
     CP $FF
     JR NZ, ENDSCAN
     
@@ -85,6 +84,8 @@ ENDSCAN:
     RET
 
 PR_STATUS:
+    PUSH AF
+
     LD HL, MSG_ROW
     CALL CON_PRINT
 
@@ -100,6 +101,8 @@ PR_STATUS:
     LD A, (KBDCOLMSK) 
     CALL PRHEXBYTE
     CALL CON_NL
+
+    POP AF
     RET
 
 

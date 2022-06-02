@@ -127,7 +127,6 @@ INIT:
 
 WITHOUT_CTC:              
                CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
-               CALL      PSG_LED_BLINK          ; PSG LED Hello world
 
                CALL      CHIMPSOUND             ; Welcome sound
 
