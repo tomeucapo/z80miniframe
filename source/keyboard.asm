@@ -18,17 +18,11 @@ KBD_READKEY::
     CALL PSGIOCFG           ; Ensure configure PSG IO as proper manner to manage keyboard matrix
 
 KBDLOOP:
+    ;; This a experimental test code
+    
     CALL KB_SCANKEYS
     
     JR KBDLOOP
-
-    ;CALL KB_WAIT_RELEASE
-    ;CALL KB_WAIT_KEYSTROKE
-    ;CALL KB_KEYCODE
-
-    ;LD (LASTKEYCODE), A    ; Store key code into RAM variable
-
-    ;CALL BUFF_PUTC
 
     RET
 

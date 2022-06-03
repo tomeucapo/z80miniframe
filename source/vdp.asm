@@ -7,7 +7,7 @@
 include "globals.inc"
 include "vdp.inc"
 
-                extern GET_MODULE
+                extern GET_MODULE, PRHEXBYTE
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
@@ -38,8 +38,8 @@ VDP_INIT::      PUSH DE
 VDP_SET_MODE:   LD B, $08            ; 8 registers
                 LD HL, VDPMODESCONF  ; pointer to registers settings
                 SLA E
-                SLA E
                 PUSH DE
+                SLA E                
                 SLA E
                 ADD HL, DE
                 LD A, VDP_WREG+$00  ; start with REG0 ($80+register number)
@@ -66,15 +66,13 @@ LDREGVLS:       LD D, (HL)          ; load register's value
                 LD A, (HL)
                 LD (SCR_SIZE_H), A
 
-                LD A, 1                ; Initialize screen coordinate variables
+                XOR A                  ; Initialize screen coordinate variables
                 LD (SCR_X), A
-                LD A, 0
                 LD (SCR_Y), A
-                LD A, 1 
                 LD (SCR_CUR_X), A
-                LD A, 0
                 LD (SCR_CUR_Y), A
-
+                LD (SCR_LAST_CHAR), A
+                 
                 LD A, 1
                 LD (CURSORSTATE), A
 
@@ -247,7 +245,6 @@ PASTEROW:       PUSH BC
 
                 LD A, (SCR_SIZE_W)
                 LD B, A
-
                 LD A, 0
 CLR_LAST_LINE:  PUSH BC
                 LD BC, VDP_DATA
@@ -298,9 +295,10 @@ CLRBUFF:        LD A, 0
                 POP BC
                 RET
 
-VDP_HOME:       LD A, 1
+VDP_HOME:       LD A, 0
                 LD E, 0
-                CALL VDP_SETPOS
+                CALL VDP_SETPOS                
+                LD (SCR_LAST_CHAR), A
                 RET
 
 ; ************************************************************************************
@@ -311,6 +309,10 @@ VDP_PUTCHAR::    PUSH AF
                 PUSH DE
                 PUSH HL
                 PUSH BC
+
+                ; Store last character to variable
+
+                LD (SCR_LAST_CHAR), A
 
                 ; Read control charaters to do something different
 
@@ -331,27 +333,24 @@ CLEARSCREEN:    CALL VDP_CLRSCR
                 JR PUTEND
 
                 ; New line
-NEW_LINE:       PUSH AF
-                LD A, 0
+NEW_LINE:       XOR A                          ; Disable cursor
                 CALL VDP_CURSOR
-                POP AF
-
+                
                 LD A, (SCR_SIZE_H)
                 LD B, A
 
-                LD A, (SCR_Y)
+                LD A, (SCR_Y)                  ; Checks if bottom of screen and scrolls up if is needed
                 INC A
-                CP B
-                
+                CP B                
                 JR Z, SCROLLUP
+                
                 LD E, A
-                LD A, (SCR_X)
-                XOR A, A
+                XOR A
                 CALL VDP_SETPOS
-                JP PUTC
+                JP PUTE
 
 SCROLLUP:       CALL VDP_SCROLL_UP
-                JP PUTC
+                JP PUTE
 
                 ; Delete character
 
@@ -449,7 +448,13 @@ VDP_CURSOR:     CALL VDP_LOCATE_CURSOR
                 CP 0
                 JR Z, DROPCURSOR
                 
-                LD A, $FF 
+                LD A, (SCR_MODE)                ; Detects cursor character depends on mode
+                LD HL, VDPCURSORS
+                LD D,0
+                LD E,A
+                ADD HL,DE
+                LD A, (HL)
+
                 PUSH BC
                 LD BC, VDP_DATA
                 OUT (C), A
@@ -535,22 +540,39 @@ SET_REG_COLOR:
 ;       E = Y
 
 VDP_LOCATE::
-VDP_SETPOS:
+VDP_SETPOS:        
         LD      (SCR_X), A
-        EX      AF, AF'       
-        LD      A, (SCR_X) 
+
+        ; Control if need increment cursor character after printed character or not
+        LD      A, (SCR_LAST_CHAR)                      
+        CP      0             
+        JR      Z,NOINCR 
+        CP      CR
+        JR      Z,NOINCR
+        CP      LF
+        JR      Z,NOINCR
+        CP      CS
+        JR      Z,NOINCR
+        CP      BKSP
+        JR      Z,NOINCR
+        
+        LD      A, (SCR_X)
         INC     A
-        LD      (SCR_CUR_X), A
+        JR      SET_X
+
+NOINCR:
+        LD      A, (SCR_X)
+SET_X:  LD      (SCR_CUR_X), A
         LD      A, E
         LD      (SCR_Y), A
         LD      (SCR_CUR_Y), A
-        EX      AF, AF'
+        LD      A, (SCR_X)
 
         CALL    VDP_SCR_GOTOXY
         RET
 
 ; ************************************************************************************
-; VDP_SETPOS - Set the address to place text at X/Y coordinate
+; VDP_SCR_GOTOXY - Set the address to place text at X/Y coordinate
 ;       A = X
 ;       E = Y
 
@@ -600,8 +622,8 @@ WRADDR:  add     hl, bc
          ex      de, hl                  ; send address to TMS
          call    VDP_WRITEADDR
 
-        POP     HL
-        RET
+         POP     HL
+         RET
 
 ; ************************************************************************************
 ; VDP_GETTABLENAME - Get correct start page address (PAGE NAME)

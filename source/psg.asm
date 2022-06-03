@@ -26,18 +26,13 @@ RSTPSG:         LD     A, D
 
 
 PSGIOCFG::
-                ld      A,$07          
-                ld      BC,AYCTRL      
-                out     (C),A          
-                in      A,(C)          
-                set     7,A            
-                res     6,A            
-                push    af
-                ld      A,$07          
-                out     (C),A          
-                pop     af
-                ld      BC,AYDATA      
-                out     (C),A       
+                ld      A, AYMIXCTRL
+                CALL    AYREGREAD
+                set     7,A            ; Configure PORT B as output
+                res     6,A            ; Configure PORT A as input
+                ld      C,A
+                ld      A, AYMIXCTRL
+                CALL    AYREGWRITE
                 RET   
 
 ;; CHIMPSOUND - Sample sound code
@@ -111,7 +106,6 @@ AYREGREAD::
             PUSH BC
             LD BC, AYCTRL       ; Select PSG register to read
             OUT (C), A
-            LD BC, AYCTRL       ; Select PSG register to read
             IN  A, (C)          ; Read PSG register data
             POP BC         
             RET

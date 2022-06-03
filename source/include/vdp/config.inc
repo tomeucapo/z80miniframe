@@ -4,12 +4,14 @@ PXLSET:
 ;; Screen mode dimensions
 
 VDPMODESSIZES:  
-
                 .DEFB 40, 24
                 .DEFB 32, 24
                 .DEFB 0, 192      ; 0=256 x 192
                 .DEFB 64, 48
                 .DEFB 32, 24
+
+VDPCURSORS:
+                .DEFB $FF, 219, 0, 0, 0                
 
 ;; Table names
 

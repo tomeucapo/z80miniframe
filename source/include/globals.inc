@@ -34,7 +34,8 @@ basicStarted    .EQU     serBufUsed+1             ; $8045
 
 SCR_X           .EQU     basicStarted+1           ; $8046
 SCR_Y           .EQU     SCR_X+1                  ; $8047
-SCR_CUR_X       .EQU     SCR_Y+1                  ; $8048
+SCR_LAST_CHAR   .EQU     SCR_Y+1
+SCR_CUR_X       .EQU     SCR_LAST_CHAR+1           
 SCR_CUR_Y       .EQU     SCR_CUR_X+1              ; $8049
 SCR_SIZE_W      .EQU     SCR_CUR_Y+1              ; $804A
 SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $804B
