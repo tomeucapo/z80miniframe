@@ -10,7 +10,7 @@ include "svcroutine.inc"
 				extern PAUSE, TO_UPPER, CHAR_ISHEX
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 				extern BASCOLD, BASWARM
-				extern CON_PUTC, KBD_READKEY
+				extern CON_PUTC, KB_READKEY
 
 MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
@@ -216,13 +216,25 @@ MON_TEST_COLOR:
 		LD HL, MON_TEST_KBD_MSG
 		CALL CON_PRINT
 
+		LD HL, MSG_TST_KBD
+		CALL CON_PRINT
 KEYLOOP:
-		CALL KBD_READKEY
+		CALL KB_READKEY
+
 		CP ESCAPE
-		JR Z, ENDKEYTST
-		CALL CON_PUTC
-ENDKEYTST:		
-		RET	
+    	RET Z
+    	CP LF
+    	JR Z, CRNL
+
+    	CALL CON_PUTC
+	    JR KEYLOOP
+       
+CRNL:
+	    LD A, CR
+	    CALL CON_PUTC
+	    LD A, LF
+	    CALL CON_PUTC
+	    JR KEYLOOP
 			
 
 
@@ -251,6 +263,8 @@ MON_TEST_SND_MSG:	.BYTE CR,LF," * Testing sound",CR,LF,0
 MON_TEST_VID_MSG:	.BYTE " * Testing video",CR,LF,0
 MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
 
+MSG_TST_KBD:
+    .BYTE "Press any key to test (RUN-STOP to exit)", CR, LF, 0    
 
 MON_TST_VID_MODE0:	.BYTE "MODE 0",CR,LF,0
 

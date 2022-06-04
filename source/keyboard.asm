@@ -23,43 +23,12 @@ KBD_READKEY::
 
     CALL PSGIOCFG           ; Ensure configure PSG IO as proper manner to manage keyboard matrix
 
-    LD HL, MSG_TST_KBD
-    CALL CON_PRINT
-
-KBDLOOP:
-    ;; This a experimental test code
-    
-    ;LD HL, MSG_WRELE
-    ;CALL CON_PRINT
-
     CALL KB_WAIT_RELEASE
-
-    ;LD HL, MSG_WKSTRK
-    ;CALL CON_PRINT
-
     CALL KB_WAIT_KEYSTROKE
-
     CALL KB_KEYCODE
 
     LD (LASTKEYCODE), A
-    CP ESCAPE
-    RET Z
-    CP LF
-    JR Z, CRNL
-
-    CALL CON_PUTC
-
-    JR KBDLOOP
-    
-   
-CRNL:
-    LD A, CR
-    CALL CON_PUTC
-
-    LD A, LF
-    CALL CON_PUTC
-    JR KBDLOOP
-
+    RET
 
 KB_WAIT_RELEASE:
     CALL KB_SCANKEYS    
@@ -103,6 +72,17 @@ KBCHGMAP:
     RET
 
 
+GETKEYMAP:    
+    LD A, (KBDMAP)
+    LD H, A
+    LD A, (KBDMAP+1)
+    LD L, A
+    RET
+
+;;
+;; KB_SCANKEYS - Scan rows and cols to detect any key press/release
+;;
+
 KB_SCANKEYS:
     LD A, $00
     LD (KBDROWMSK),A    
@@ -144,28 +124,9 @@ NEXTCOL:
 ENDSCAN:
    RET
 
-PR_STATUS:
-    PUSH AF
 
-    LD HL, MSG_ROW
-    CALL CON_PRINT
-
-    LD A, (KBDROWMSK)
-    CALL PRHEXBYTE
-
-    LD A,','
-    CALL CON_PUTC
-
-    LD HL, MSG_COL
-    CALL CON_PRINT
-
-    LD A, (KBDCOLMSK) 
-    CALL PRHEXBYTE
-    CALL CON_NL
-
-    POP AF
-    RET
-
+;; KB_KEYCODE - Key code decoder, locate to character map to return
+;;      Returns key character into A
 
 KB_KEYCODE:
     LD A, (KBDCOLMSK)
@@ -202,10 +163,6 @@ GETROWNUM:
 ROWNUM:
     LD A, B
     LD (KBDROW), A
-
-;; KEYCODEC - Key code decoder, locate to character map to return
-;;      Returns key character into A
-KEYCODEC:
     LD A, (KBDCOL)          
     LD B, A 
     LD A, (KBDROW)
@@ -217,10 +174,33 @@ KEYCODEC:
     LD D, 0
     LD E, A
      
-    LD HL, KEYS_LOWCASE
+    CALL GETKEYMAP
     ADD HL, DE
     
     LD A, (HL)
+    RET
+
+
+PR_STATUS:
+    PUSH AF
+
+    LD HL, MSG_ROW
+    CALL CON_PRINT
+
+    LD A, (KBDROWMSK)
+    CALL PRHEXBYTE
+
+    LD A,','
+    CALL CON_PUTC
+
+    LD HL, MSG_COL
+    CALL CON_PRINT
+
+    LD A, (KBDCOLMSK) 
+    CALL PRHEXBYTE
+    CALL CON_NL
+
+    POP AF
     RET
 
 MSG_SCAN:
@@ -241,9 +221,6 @@ MSG_WRELE:
 
 MSG_WKSTRK:
     .BYTE "WAITING FOR KEY STROKE ...", CR, LF, 0    
-
-MSG_TST_KBD:
-    .BYTE "Press any key to test (RUN-STOP to exit)", CR, LF, 0    
 
 
 POS_CODE:
