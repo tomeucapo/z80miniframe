@@ -354,7 +354,7 @@ SCROLLUP:       CALL VDP_SCROLL_UP
 
                 ; Delete character
 
-DELCHAR:        LD A, 0
+DELCHAR:        XOR A
                 CALL VDP_CURSOR
                 
                 LD A, (SCR_Y)

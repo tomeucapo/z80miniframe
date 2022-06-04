@@ -15,45 +15,107 @@ KBD_READKEY::
     LD (KBDROWMSK), A
     LD (KBDCOLMSK), A
 
+    LD HL, KEYS_LOWCASE
+    LD A, H
+    LD (KBDMAP), A
+    LD A, L
+    LD (KBDMAP+1), A
+
     CALL PSGIOCFG           ; Ensure configure PSG IO as proper manner to manage keyboard matrix
+
+    LD HL, MSG_TST_KBD
+    CALL CON_PRINT
 
 KBDLOOP:
     ;; This a experimental test code
     
-    CALL KB_SCANKEYS
+    ;LD HL, MSG_WRELE
+    ;CALL CON_PRINT
+
+    CALL KB_WAIT_RELEASE
+
+    ;LD HL, MSG_WKSTRK
+    ;CALL CON_PRINT
+
+    CALL KB_WAIT_KEYSTROKE
+
+    CALL KB_KEYCODE
+
+    LD (LASTKEYCODE), A
+    CP ESCAPE
+    RET Z
+    CP LF
+    JR Z, CRNL
+
+    CALL CON_PUTC
+
+    JR KBDLOOP
     
+   
+CRNL:
+    LD A, CR
+    CALL CON_PUTC
+
+    LD A, LF
+    CALL CON_PUTC
     JR KBDLOOP
 
-    RET
 
 KB_WAIT_RELEASE:
     CALL KB_SCANKEYS    
-    LD A, (KBDCOLMSK)
+    LD A, (KBDROWMSK)
     CP $FF
     JP NZ, KB_WAIT_RELEASE
     RET
 
 KB_WAIT_KEYSTROKE:
     CALL KB_SCANKEYS
-    LD A, (KBDCOLMSK)
+    LD A, (KBDROWMSK)
     CP $FF
     JP Z, KB_WAIT_KEYSTROKE
+    RET
+
+KB_DETECT_SHIFT:
+    LD A, (KBDCOLMSK)
+    CP $7F
+    RET NZ
+
+    LD A, (KBDROWMSK)
+    CP $FD
+    JR Z, KBUPCASE
+
+KBLOWCASE:
+    LD HL, KEYS_LOWCASE
+    LD A, 0
+    LD (KBSHIFTSTATE),A
+    JR KBCHGMAP
+
+KBUPCASE:
+    LD HL, KEYS_UPCASE
+    LD A, $FF
+    LD (KBSHIFTSTATE),A
+     
+KBCHGMAP:
+    LD A, H
+    LD (KBDMAP), A
+    LD A, L
+    LD (KBDMAP+1), A
     RET
 
 
 KB_SCANKEYS:
     LD A, $00
-    LD (KBDCOLMSK),A    
+    LD (KBDROWMSK),A    
     LD A, MASK
 
 KB_DOSCAN:    
-    LD  (KBDROWMSK), A
+    LD  (KBDCOLMSK), A
 
     LD A, AYPORTB
     LD BC, AYCTRL       
     OUT (C), A
 
-    LD  A, (KBDROWMSK)
+    LD  A, (KBDCOLMSK)
     LD BC, AYDATA       
     OUT (C), A
 
@@ -61,21 +123,26 @@ KB_DOSCAN:
     LD BC, AYCTRL       
     OUT (C), A
     IN  A, (C)
-    LD  (KBDCOLMSK), A
+    LD  (KBDROWMSK), A
+    
+    CALL KB_DETECT_SHIFT
+    
+    LD A, (KBSHIFTSTATE)
+    CP 1
+    JR Z, NEXTCOL
 
-    CALL    PR_STATUS
-
-    CP $FF
+    LD A, (KBDROWMSK)
+    CP $FF                  
     JR NZ, ENDSCAN
     
-    LD  A, (KBDROWMSK)
+NEXTCOL:
+    LD  A, (KBDCOLMSK)
     RRCA    
     JP C, KB_DOSCAN      
     RET
 
 ENDSCAN:
-    CALL PR_STATUS
-    RET
+   RET
 
 PR_STATUS:
     PUSH AF
@@ -136,9 +203,11 @@ ROWNUM:
     LD A, B
     LD (KBDROW), A
 
+;; KEYCODEC - Key code decoder, locate to character map to return
+;;      Returns key character into A
 KEYCODEC:
-    LD A, (KBDCOL)
-    LD B, A
+    LD A, (KBDCOL)          
+    LD B, A 
     LD A, (KBDROW)
     SLA A
     SLA A
@@ -148,33 +217,10 @@ KEYCODEC:
     LD D, 0
     LD E, A
      
-    LD HL, KEYS
+    LD HL, KEYS_LOWCASE
     ADD HL, DE
     
     LD A, (HL)
-    ;LD (LASTKEYCODE), A
-
-    ; LD HL, MSG_ROW
-    ; CALL CON_PRINT
-
-    ; LD A, (KBDROW)
-    ; CALL PRHEXBYTE
-
-    ; LD A,','
-    ; CALL CON_PUTC
-
-    ; LD HL, MSG_COL
-    ; CALL CON_PRINT
-
-    ; LD A, (KBDCOL)
-    ; CALL PRHEXBYTE
-
-    ; LD A, ' '
-    ; CALL CON_PUTC
-
-    ;LD (LASTKEYCODE), A
-    ;CALL CON_PUTC
-    ;CALL CON_NL
     RET
 
 MSG_SCAN:
@@ -187,17 +233,17 @@ MSG_COL:
     .BYTE "COL=", 0  
 
 
-MSG_MASK:
-    .BYTE "MASK=", 0  
-
-MSG_PRESSED:
-    .BYTE "KEY= ", 0    
+MSG_SHIFT:
+    .BYTE "SHIFT PRESSED", CR, LF, 0  
 
 MSG_WRELE:
     .BYTE "WAITING FOR KEY RELEASE ...", CR, LF, 0    
 
 MSG_WKSTRK:
     .BYTE "WAITING FOR KEY STROKE ...", CR, LF, 0    
+
+MSG_TST_KBD:
+    .BYTE "Press any key to test (RUN-STOP to exit)", CR, LF, 0    
 
 
 POS_CODE:
@@ -210,12 +256,22 @@ POS_CODE:
     .DB 11111101b
     .DB 11111110b 
 
-KEYS:
+KEYS_UPCASE:
     .DB  BKSP, LF, 0, 118, 112, 114, 116, 0
-    .DB '3', 'W', 'A', '4', 'Z', 'S', 'E', 0
-    .DB '5', 'R', 'D', '6', 'C', 'F', 'T', 'X'
-    .DB '7', 'Y', 'G', '8', 'B', 'H', 'U', 'V'
-    .DB '9', 'I', 'J', '0', 'M', 'K', 'O', 'N'
-    .DB '+', 'P', 'L', '-', '.', ':', '@', ','
+    .DB '#', 'W', 'A', '$', 'Z', 'S', 'E', 0
+    .DB '%', 'R', 'D', '&', 'C', 'F', 'T', 'X'
+    .DB 39, 'Y', 'G', '(', 'B', 'H', 'U', 'V'
+    .DB ')', 'I', 'J', '0', 'M', 'K', 'O', 'N'
+    .DB '+', 'P', 'L', '-', '>', '[', '@', '<'
+    .DB '|', '*', ']',  CS,   0, '=', '~', '?'
+    .DB '1',   0,   0, '"', ' ',   0, 'Q',  ESCAPE 
+
+KEYS_LOWCASE:
+    .DB  BKSP, LF, 0, 118, 112, 114, 116, 0
+    .DB '3', 'w', 'a', '4', 'z', 's', 'e', 0
+    .DB '5', 'r', 'd', '6', 'c', 'f', 't', 'x'
+    .DB '7', 'y', 'g', '8', 'b', 'h', 'u', 'v'
+    .DB '9', 'i', 'j', '0', 'm', 'k', 'o', 'n'
+    .DB '+', 'p', 'l', '-', '.', ':', '@', ','
     .DB '|', '*', ';',  CS,   0, '=', '~', '/'
-    .DB '1',   0,   0, '2', ' ',   0, 'Q',  ESCAPE 
+    .DB '1',   0,   0, '2', ' ',   0, 'q',  ESCAPE     

@@ -73,9 +73,11 @@ KBDROW          .EQU     PPI_CONF+1
 KBDCOL          .EQU     KBDROW+1            
 KBDROWMSK       .EQU     KBDCOL+1              
 KBDCOLMSK       .EQU     KBDROWMSK+1           
-LASTKEYCODE     .EQU     KBDCOLMSK+1           
+LASTKEYCODE     .EQU     KBDCOLMSK+1         
+KBDMAP          .EQU     LASTKEYCODE+1
+KBSHIFTSTATE    .EQU     KBDMAP+2
 
-BASIC_WRKSPC    .EQU     LASTKEYCODE+1
+BASIC_WRKSPC    .EQU     KBSHIFTSTATE+1
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 
 ; CP/M CBIOS Address
