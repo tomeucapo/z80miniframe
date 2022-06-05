@@ -150,9 +150,6 @@ MAIN_LOOP:
         
                CALL      MON_WELCOM
                CALL      BASIC_INIT
-;LOOP:                
-;	       CALL      KBD_SCAN
-;              JR        LOOP
 
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
 

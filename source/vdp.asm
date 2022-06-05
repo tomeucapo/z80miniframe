@@ -7,7 +7,7 @@
 include "globals.inc"
 include "vdp.inc"
 
-                extern GET_MODULE, PRHEXBYTE
+                extern GET_MODULE
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
@@ -669,20 +669,20 @@ VDP_WRITEADDR:
 ; value is returned into A
 
 VDP_READ_VIDEO_LOC:: 
-                push    BC              ; store BC
-                ld      C,VDP_REG       ; VDP setting mode
+                push    BC              
+                ld      C,VDP_REG       
                 ld      B,H
                 res     7,B
                 res     6,B
-                out     (C),L           ; low byte then...
-                out     (C),B           ; high byte
-                ld      C,VDP_DATA       ; VDP data mode
-                nop                     ; wait...
-                nop                     ; ...a while
+                out     (C),L           
+                out     (C),B           
+                ld      C,VDP_DATA      
+                nop                     
+                nop                     
                 nop
-                in      A,(C)           ; read byte at current VRAM location
-                pop     BC              ; restore BC
-                ret                     ; return to caller
+                in      A,(C)           
+                pop     BC              
+                ret                     
 
 ; ************************************************************************************
 ; VDP_WRITE_VIDEO_LOC - write a byte at the VRAM position pointed by HL
@@ -690,20 +690,20 @@ VDP_READ_VIDEO_LOC::
 ;       A = Value to write 
 
 VDP_WRITE_VIDEO_LOC::
-                push    BC              ; store BC
-                ld      C,VDP_REG       ; VDP setting mode
-                ld      B,H             ; copy H into B
+                push    BC             
+                ld      C,VDP_REG      
+                ld      B,H            
                 res     7,B
-                set     6,B             ; write to VRAM
-                out     (C),L           ; low byte then...
-                out     (C),B           ; high byte of VRAM address
-                ld      C,VDP_DATA       ; VDP data mode
-                nop                     ; wait...
-                nop                     ; ...a while
+                set     6,B            
+                out     (C),L          
+                out     (C),B          
+                ld      C,VDP_DATA     
+                nop                    
+                nop                    
                 nop
-                out     (C),A           ; write byte into VRAM
-                pop     BC              ; restore BC
-                ret                     ; return to caller
+                out     (C),A          
+                pop     BC             
+                ret                    
 
 ; ************************************************************************************
 ; VDP_PLOT - Draw point on screen

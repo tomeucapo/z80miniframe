@@ -4326,7 +4326,11 @@ VPOKE:  CALL    GETNUM          ; Get memory address
 VPEEK:  CALL    DEINT
         EX      DE, HL
 
-        ; Pending to implement
+        LD      B, VDPEEK
+        RST     $20
+
+        LD      A, B
+        JP      PASSA
 
         EX      DE, HL
         RET

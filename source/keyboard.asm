@@ -7,10 +7,10 @@ include "keyboard.inc"
         extern AYREGWRITE, AYREGREAD, PSGIOCFG
 
 ;;
-;; KBD_READKEY Wait for a keypress
+;; KB_READKEY Wait for a keypress
 ;;      Return keypress code to register A
 ;;
-KBD_READKEY::
+KB_READKEY::
     LD A, $FF
     LD (KBDROWMSK), A
     LD (KBDCOLMSK), A
