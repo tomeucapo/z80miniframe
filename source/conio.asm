@@ -33,8 +33,10 @@ CON_NL::
 ;; CON_CLR - Sends character 12 to console (Clear Screen)
 
 CON_CLR::
+        PUSH    AF
 		LD		A,CS			
 		RST		8
+        POP     AF
 		RET
 
 ;; CON_PUTC - Prints a character to console
@@ -124,7 +126,8 @@ GET_HEX_NIB:
 
             CALL    CHAR_ISHEX      	;Is it a hex digit?
             JP      NC,GET_HEX_NIB  	;Yes - Jump / No - Continue
-			RST		8
+			CALL    CON_PUTC
+            
 			CP      '9' + 1         	;Is it a digit less or equal '9' + 1?
             JP      C,GET_HEX_NIB_1 	;Yes - Jump / No - Continue
             SUB     $07             	;Adjust for A-F digits

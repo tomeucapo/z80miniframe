@@ -62,7 +62,7 @@ notRdWrap:
     DEC      A
     LD       (serBufUsed),A
     CP       SER_EMPTYSIZE
-rts1:
+
     LD       A,(HL)
     EI
     POP      HL

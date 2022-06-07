@@ -13,6 +13,7 @@ include "svcroutine.inc"
                 extern CTC_INIT
                 extern CON_PRINT, VDP_PUTCHAR, MON_WELCOM, BASIC_INIT
                 extern PSG_INIT, CHIMPSOUND, PSG_LED_BLINK
+                extern VDP_CUR_BLINK, KB_READKEY
 
                 .ORG $0000
 
@@ -22,7 +23,7 @@ include "svcroutine.inc"
 ;------------------------------------------------------------------------------
 ; Put character to output (VDP and serial console)
 
-                .ORG     0008H
+                .ORG     $0008
 
                 DI
                 CALL     VDP_PUTCHAR
@@ -34,15 +35,13 @@ include "svcroutine.inc"
 ; Get character for buffer if is available
 
                 .ORG    $0010
-
-                JP      BUFF_GETC
+                JP      BUFF_GETC           
 
 ;------------------------------------------------------------------------------
 ; Check if any character into buffer are available
 
-                 .ORG    $0018
-
-                 JP      BUFF_CKINCHAR
+                .ORG    $0018
+                JP      BUFF_CKINCHAR 
 
 ;------------------------------------------------------------------------------
 ; Firmware service routine dispatcher
@@ -71,7 +70,8 @@ include "svcroutine.inc"
                 PUSH     HL
 
 		CALL	 UART_READ
-				
+                ;CALL     VDP_CUR_BLINK
+
 		POP      HL
                 POP      AF
                 EI
@@ -84,19 +84,8 @@ include "svcroutine.inc"
                 EX AF, AF'
                 EXX
 
-;                CALL     KBD_SCAN
-                
-;                LD A, (ENABLECTC)
-;                CP 0
-;                JR Z, EXITNMI
+                NOP             ; TODO
 
-;                LD A, (ENABLEDCURSOR)
-;                CP 0
-;                JR Z, EXITNMI
-
-;                CALL    LEDBLINK
-;                CALL    VDP_BLINK_CURSOR       
-; EXITNMI:      
                 EXX
                 EX AF, AF'            
                 EI
@@ -116,7 +105,9 @@ INIT:
                LD	 L, C
                CALL      UART_INIT              ; Initialize UART at C speed
 
+               PUSH      BC
                CALL      PSG_INIT
+               POP       BC
                
                LD        A, B
                LD        (ENABLECTC), A         ; Check if CTC are disabled or not
@@ -127,7 +118,6 @@ INIT:
 
 WITHOUT_CTC:              
                CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
-
                CALL      CHIMPSOUND             ; Welcome sound
 
                IM   1                           ; Enable interrupt mode 1
@@ -137,20 +127,20 @@ WITHOUT_CTC:
                LD        B, VDMODE
                RST       $20
                                        
+               CALL      MON_WELCOM
+
                LD        A, (ENABLECTC)         ; If CTC is initialized print to string CTC Enabled
                CP        0
                JR        Z, MAIN_LOOP
 
                LD        HL,CTCENABLEDMSG    
-               CALL      CON_PRINT
-               
+               CALL      CON_PRINT               
 MAIN_LOOP:
                LD        A, 'N'
-               LD        (basicStarted),A
-        
-               CALL      MON_WELCOM
+               LD        (basicStarted),A        
                CALL      BASIC_INIT
 
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
 
+                .end
 

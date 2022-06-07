@@ -425,8 +425,7 @@ VDP_BLINK_CURSOR::
                 LD A, (CURSORSTATE)
                 CP 0
                 JR Z, CURSORSTATE1
-
-CURSORSTATE0:   LD A, 0
+                XOR A
                 JP SHOWCURSOR
 
 CURSORSTATE1:   LD A, 1
@@ -591,25 +590,16 @@ VDP_SCR_GOTOXY:
         
         LD      B, A
         LD      A, (SCR_MODE)
-        CP      $01
+        CP      $01                     ; If mode 1 then num columns is 32
         JR      Z, GOTOXY_32
         
         add     hl, hl                  ; Y x 40
         JP      GOTOXY_40
 
 GOTOXY_32:
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
-        add     hl, de
+        rept 12
+                add     hl, de
+        endm
 
 GOTOXY_40:
         LD      A, B

@@ -10,7 +10,7 @@ include "svcroutine.inc"
 				extern PAUSE, TO_UPPER, CHAR_ISHEX
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 				extern BASCOLD, BASWARM
-				extern CON_PUTC, KB_READKEY
+				extern CON_PUTC, KB_READKEY, PRHEXBYTE
 
 MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
@@ -34,7 +34,17 @@ MON_LOOP:		LD	      HL, MON_PRMPT
  				CALL	  Z, MON_TEST
  				CP		  '?'
 				CALL	  Z, MON_HELP
+				RET		  Z
+				CALL	  NZ, MON_UNK_CMD
 				RET
+
+MON_UNK_CMD:
+				CALL	CON_NL
+				CALL	CON_PUTC
+				LD		A,'?'
+				CALL	CON_PUTC
+				RET
+
 MON_HELP:		LD	 HL, MON_MENU
 				CALL CON_PRINT
 				RET
@@ -137,7 +147,7 @@ HEX_READ_DATA:
 
 
 MEMORY_DUMP_COMMAND:
-			LD 		HL,MDC_1			;Print some messages 
+			LD 		HL, MDC_1			;Print some messages 
 			CALL    CON_PRINT
 			CALL    GETHEXWORD		;HL now points to databyte location	
 			PUSH	HL					;Save HL that holds databyte location on stack
@@ -147,10 +157,10 @@ MEMORY_DUMP_COMMAND:
 			POP		HL					;Restore HL that holds databyte location on stack
 			LD		C,11				;Register C holds counter of dump lines to print
 MEMORY_DUMP_LINE:	
-			LD		B,10				;Register B holds counter of dump bytes to print
-			CALL	PRHEXWORD		;Print dump line address in hex form
+			LD		B,8					;Register B holds counter of dump bytes to print
+			CALL	PRHEXWORD		    ;Print dump line address in hex form
 			LD		A,' '				;Print spacer
-			RST		8
+			CALL	CON_PUTC
 			DEC		C					;Decrement C to keep track of number of lines printed
 MEMORY_DUMP_BYTES:
 			LD		A,(HL)				;Load Acc with databyte HL points to
@@ -170,19 +180,20 @@ MEMORY_DUMP_BYTES:
 
 ; Test hardware routine
 
-MON_TEST::		
-		LD	 HL, MON_TEST_VID_MSG
-		CALL CON_PRINT
-
-		LD BC, 700
-		CALL PAUSE
-
+MON_TEST::	
 		LD B, VDMODE			; Set text mode
 		LD E, 0
 		RST $20
 
-		LD HL, MON_TST_VID_MODE0
+		CALL CON_NL
+
+		LD HL, MON_TST_VID_MODE
 		CALL CON_PRINT
+
+		LD A, B 
+		CALL PRHEXBYTE
+
+		CALL CON_NL
 
 		LD BC, 700
 		CALL PAUSE
@@ -223,7 +234,7 @@ KEYLOOP:
 
 		CP ESCAPE
     	RET Z
-    	CP LF
+    	CP CR
     	JR Z, CRNL
 
     	CALL CON_PUTC
@@ -238,8 +249,7 @@ CRNL:
 			
 
 
-WELCOMEMSG:    .BYTE     CS
-               .BYTE     "Z80MiniFrame 32K",CR,LF
+WELCOMEMSG:    .BYTE     "Z80MiniFrame 32K",CR,LF
                .BYTE     "Firmware v1.2 by Tomeu Capo",CR,LF,0
 
 
@@ -266,6 +276,6 @@ MON_TEST_KBD_MSG:	.BYTE " * Testing keyboard", CR,LF,0
 MSG_TST_KBD:
     .BYTE "Press any key to test (RUN-STOP to exit)", CR, LF, 0    
 
-MON_TST_VID_MODE0:	.BYTE "MODE 0",CR,LF,0
+MON_TST_VID_MODE:	.BYTE "VIDEO MODE ",0
 
 .END
