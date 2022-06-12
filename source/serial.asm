@@ -7,7 +7,7 @@
 ;; kind of warranty: you can use them at your own risk.
 ;; You are free to use them for any non-commercial use: you are only asked to
 ;; maintain the copyright notices, include this advice and the note to the 
-;; attribution of the original version to Leonardo Miliani, if you intend to
+;; attribution of the original version to Tomeu Capó, if you intend to
 ;; redistribuite them.
 ;;
 
