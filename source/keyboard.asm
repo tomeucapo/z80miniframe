@@ -1,3 +1,15 @@
+;;
+;; keyboard.asm
+;; Keyboard driver
+;;
+;; Code and computer schematics are released under
+;; the therms of the GNU GPL License 3.0 and in the form of "as is", without no
+;; kind of warranty: you can use them at your own risk.
+;; You are free to use them for any non-commercial use: you are only asked to
+;; maintain the copyright notices, include this advice and the note to the 
+;; attribution of the original version to Tomeu Capó, if you intend to
+;; redistribuite them.
+
 include "globals.inc"
 include "psg.inc"
 include "keyboard.inc"
@@ -5,6 +17,26 @@ include "keyboard.inc"
         extern PAUSE, CON_PRINT, CON_PUTC, CON_NL, PRHEXBYTE
         extern BUFF_PUTC
         extern AYREGWRITE, AYREGREAD, PSGIOCFG
+
+
+KB_KEYSCAN::
+    PUSH AF
+    CALL PSGIOCFG           ; Ensure configure PSG IO as proper manner to manage keyboard matrix
+
+    LD A, $FF
+    LD (KBDROWMSK), A
+    LD (KBDCOLMSK), A
+
+    CALL KB_SCANKEYS
+    LD A, (KBDROWMSK)
+    CP $FF
+    JP Z, NOKEY
+
+    CALL KB_KEYCODE
+    LD (LASTKEYCODE), A
+NOKEY:
+    POP AF
+    RET
 
 ;;
 ;; KB_READKEY Wait for a keypress
@@ -28,6 +60,7 @@ KB_READKEY::
     CALL KB_KEYCODE
 
     LD (LASTKEYCODE), A
+
     RET
 
 KB_WAIT_RELEASE:

@@ -10,7 +10,7 @@ all: firmware.hex
 clean:
 	rm -f bin/*
 
-burn:
+burn: 
 	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
 
 ppi.rel: ppi.asm

@@ -1,13 +1,20 @@
-;******************************************************************
+;************************************************************************
 ; VDP (Video Display Processor) Routines for TMS9918
 ;
-; Tomeu Capó 2022 (C)               
-;******************************************************************
+; Tomeu Capó 2022
+;
+; This is adapted version from Leonardo Millani https://github.com/leomil72/LM80C  
+; Code are released under
+; the therms of the GNU GPL License 3.0 and in the form of "as is", without no
+; kind of warranty: you can use them at your own risk.
+; You are free to use them for any non-commercial use: you are only asked to
+; maintain the copyright notices, include this advice and the note to the 
+; attribution of the parts of original version to Leonardo Millani, if you intend to
+; redistribuite them.
+;************************************************************************
 
 include "globals.inc"
 include "vdp.inc"
-
-                extern GET_MODULE
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
@@ -35,29 +42,29 @@ VDP_INIT::      PUSH DE
 ; VDP_SET_MODE - Change VDP Mode
 ;       E = Mode number
 
-VDP_SET_MODE:   LD B, $08            ; 8 registers
-                LD HL, VDPMODESCONF  ; pointer to registers settings
+VDP_SET_MODE:   LD B, $08            
+                LD HL, VDPMODESCONF  
                 SLA E
                 PUSH DE
-                SLA E                
+                SLA E               
                 SLA E
                 ADD HL, DE
-                LD A, VDP_WREG+$00  ; start with REG0 ($80+register number)
+                LD A, VDP_WREG+$00  
                 
-LDREGVLS:       LD D, (HL)          ; load register's value
+LDREGVLS:       LD D, (HL)          
                 
                 PUSH BC
-                LD BC, VDP_REG      ; VDP port for registers access
-                OUT (C), D          ; send data to VDP
-                OUT (C), A          ; indicate the register to send data to
+                LD BC, VDP_REG      
+                OUT (C), D          
+                OUT (C), A          
                 POP BC
 
-                INC A               ; next register
-                INC HL              ; next value
-                DJNZ LDREGVLS       ; repeat for 8 registers
+                INC A               
+                INC HL              
+                DJNZ LDREGVLS       
                 
                 POP DE
-                LD HL, VDPMODESSIZES  ; pointer to screen mode sizes
+                LD HL, VDPMODESSIZES 
                 ADD HL, DE
 
                 LD A, (HL)             ; Initialize screen size variables
@@ -90,12 +97,12 @@ VDP_SET_COLOR_TABLE:
 
                 LD      B, $20           ; 32 bytes of colors
 LDCLRTBMD1:     PUSH    BC
-                LD      BC,VDP_DATA      ; VDP data mode
-                OUT     (C),A           ; after first byte, the VDP autoincrements VRAM pointer
+                LD      BC,VDP_DATA    
+                OUT     (C),A          
                 POP     BC
                 NOP
                 NOP
-                DJNZ    LDCLRTBMD1      ; repeat for 32 bytes
+                DJNZ    LDCLRTBMD1     
 
                 POP     HL
                 RET
@@ -103,56 +110,56 @@ LDCLRTBMD1:     PUSH    BC
 ; ************************************************************************************
 ; VDP_RESET_VRAM - Clear VRAM content
 
-VDP_RESET_VRAM: LD HL, $4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
+VDP_RESET_VRAM: LD HL, $4000            
                 XOR A, A
                 
-                LD BC, VDP_REG       ; load VPD port value
-                OUT (C), L           ; low byte of address to VDP
-                OUT (C), H           ; high byte address to VDP
+                LD BC, VDP_REG     
+                OUT (C), L         
+                OUT (C), H         
                 
-                LD B, $40            ; $40 pages of RAM...
-                LD D, A              ; ...each one with $100 cells (tot. $4000 bytes)
+                LD B, $40          
+                LD D, A            
 EMPTYVRAM:      PUSH BC
                 LD BC, VDP_DATA
-                OUT (C), A     ; after first byte, the VDP autoincrements VRAM pointer
+                OUT (C), A    
                 POP BC
                 NOP
                 NOP
-                INC D               ; next cell
-                JR NZ, EMPTYVRAM     ; repeat until page is fully cleared
-                DJNZ EMPTYVRAM      ; repeat for $40 pages
+                INC D              
+                JR NZ, EMPTYVRAM   
+                DJNZ EMPTYVRAM     
                 RET
 
 ; ************************************************************************************
 ; VDP_LOADCHARSET - Load charset
 
 VDP_LOADCHARSET:
-                LD HL, $4000        ; fist pattern cell $0000 (MSB must be 0 & 1)
-                LD BC, VDP_REG      ; load VDP address into C
-                OUT (C), L          ; send low byte of address
-                OUT (C), H          ; send high byte
+                LD HL, $4000        
+                LD BC, VDP_REG      
+                OUT (C), L          
+                OUT (C), H          
 
-                LD B, 0              ; 0 = 256 chars to be loaded
+                LD B, 0             
 
-                LD HL, CHARSET68     ; Si es mode texte empra fonts 6x8 i si no la de 8x8 pixels
+                LD HL, CHARSET68    
                 LD A, (SCR_MODE)
                 AND A
                 JR Z, NXTCHAR
                 LD HL, CHARSET88
                 
-NXTCHAR:        LD D, $08            ; 8 bytes per pattern char
-SENDCHRPTRNS:   LD A, (HL)           ; load byte to send to VDP
+NXTCHAR:        LD D, $08           
+SENDCHRPTRNS:   LD A, (HL)          
                 
                 PUSH BC
                 LD BC, VDP_DATA
-                OUT (C), A           ; send byte to VRAM
+                OUT (C), A          
                 POP BC
                 NOP
                 
-                INC HL              ; inc byte pointer
-                DEC D               ; 8 bytes sents (1 char)?
-                JR NZ, SENDCHRPTRNS  ; no, continue
-                DJNZ NXTCHAR        ; yes, decrement chars counter and continue for all the 127 chars
+                INC HL              
+                DEC D               
+                JR NZ, SENDCHRPTRNS 
+                DJNZ NXTCHAR        
                 RET                
 
 VDP_SET_ADDR:
@@ -694,74 +701,6 @@ VDP_WRITE_VIDEO_LOC::
                 out     (C),A          
                 pop     BC             
                 ret                    
-
-; ************************************************************************************
-; VDP_PLOT - Draw point on screen
-;       A = X
-;       E = Y
-
-VDP_PLOT:
-        CALL    VDP_XY_TO_ADDR           
-        JP      NC, END_PLOT
-        
-END_PLOT:
-        RET
-
-VDP_XY_TO_ADDR:
-        ; formula is: ADDRESS=(INT(X/8))*8 + (INT(Y/8))*256 + R(Y/8)
-        ; where R(Y/8) is the remainder of (Y/8)
-        ; the pixel to be set is given by R(X/8), and data is taken from the array
-
-        LD      B, A    ; X
-        LD      D, E    ; Y
-
-        LD      A, D
-        CP      $C0             ; Y>=192?
-        RET     NC              ; yes, so leave
-
-        AND     A, 11111000b    ; Divide Y by 8
-        RRCA
-        RRCA
-        RRCA
-        
-        LD      L, B            
-        LD      E, A
-        CALL    GET_MODULE
-
-        LD      C,A             ; store remainder into C
-        LD      B,E             ; B=(INT(Y/8))*256 (we simply copy quotient into B)
-        
-        LD      H, B
-        LD      L, C
-        
-        LD      A, B
-        AND     A, 11111000b    ; Divide X by 8
-        RRCA
-        RRCA
-        RRCA
-
-        LD      L, B
-        LD      E, A
-        CALL    GET_MODULE
-        
-        ld      C,A             ; store remainder into C
-        ld      A,D             ; move quotient into A
-        add     A,A
-        add     A,A
-        add     A,A             ; multiply quotient by 8
-        ld      E,A             ; store result into E
-        ld      D,$00           ; reset D
-        add     HL,DE           ; add DE to HL, getting the final VRAM address
-        ex      DE,HL           ; move VRAM address into DE
-        ld      HL,PXLSET       ; starting address of table for pixel to draw
-        ld      B,$00           ; reset B
-        add     HL,BC           ; add C (remainder of X/8) to get address of pixel to turn on
-        ld      A,(HL)          ; load pixel data
-        ex      DE,HL           ; retrieve VRAM pattern address into HL
-        scf                     ; set Carry for normal exit
-        ret                     ; return to caller
-
-
 
 include "vdp/config.inc"
 include "vdp/font68.inc"

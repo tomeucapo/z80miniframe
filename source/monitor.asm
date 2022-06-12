@@ -147,32 +147,32 @@ HEX_READ_DATA:
 
 
 MEMORY_DUMP_COMMAND:
-			LD 		HL, MDC_1			;Print some messages 
+			LD 		HL, MDC_1			
 			CALL    CON_PRINT
-			CALL    GETHEXWORD		;HL now points to databyte location	
-			PUSH	HL					;Save HL that holds databyte location on stack
+			CALL    GETHEXWORD		
+			PUSH	HL					
 			
 			CALL CON_NL
 			
-			POP		HL					;Restore HL that holds databyte location on stack
-			LD		C,11				;Register C holds counter of dump lines to print
+			POP		HL					
+			LD		C,11				
 MEMORY_DUMP_LINE:	
-			LD		B,8					;Register B holds counter of dump bytes to print
-			CALL	PRHEXWORD		    ;Print dump line address in hex form
-			LD		A,' '				;Print spacer
+			LD		B,8					
+			CALL	PRHEXWORD		    
+			LD		A,' '				
 			CALL	CON_PUTC
-			DEC		C					;Decrement C to keep track of number of lines printed
+			DEC		C					
 MEMORY_DUMP_BYTES:
-			LD		A,(HL)				;Load Acc with databyte HL points to
-			CALL	PRHEXBYTE		;Print databyte in HEX form 
-			LD		A,' '				;Print spacer
+			LD		A,(HL)				
+			CALL	PRHEXBYTE		
+			LD		A,' '				
 			RST		8		
-			INC 	HL					;Increase HL to next address pointer
-			DJNZ	MEMORY_DUMP_BYTES	;Print 16 bytes out since B holds 16
-			LD		B,C					;Load B with C to keep track of number of lines printed
-			CALL    CON_NL				;Get ready for next dump line
-			DJNZ	MEMORY_DUMP_LINE	;Print 10 line out since C holds 10 and we load B with C
-			LD		A,$FF				;Load $FF into Acc so MON_COMMAND finishes
+			INC 	HL					
+			DJNZ	MEMORY_DUMP_BYTES	
+			LD		B,C					
+			CALL    CON_NL				
+			DJNZ	MEMORY_DUMP_LINE	
+			LD		A,$FF				
 			RET
 
 			

@@ -1,3 +1,20 @@
+;
+; psg.asm
+; AY-3-8910 Sound Generator driver module 
+;
+; Tomeu Capó 2022
+;
+; This is adapted version from Leonardo Millani https://github.com/leomil72/LM80C  
+;
+; Code and computer schematics are released under
+; the therms of the GNU GPL License 3.0 and in the form of "as is", without no
+; kind of warranty: you can use them at your own risk.
+; You are free to use them for any non-commercial use: you are only asked to
+; maintain the copyright notices, include this advice and the note to the 
+; attribution of the original version to Leonardo Miliani, if you intend to
+; redistribuite them.
+;
+
 include "globals.inc"
 include "psg.inc"
 
@@ -6,16 +23,16 @@ include "psg.inc"
 ;; PSG_INIT - Initialize PSG 
 
 PSG_INIT::
-                ld      HL,CHASNDDTN    ; Clear all PSG RAM Variables 
-                ld      B,11             
-                xor     A               
-EMPTSNDBFR:     ld      (HL),A          
-                inc     HL              
-                djnz    EMPTSNDBFR      
+                ld      HL,CHASNDDTN   
+                ld      B,11           
+                xor     A              
+EMPTSNDBFR:     ld      (HL),A         
+                inc     HL             
+                djnz    EMPTSNDBFR     
 
-CLRPSGREGS:     ld     B, 16           ; 16 registers to set
-                ld     HL,SNDREGCFG    ; starting address of register settings
-                ld     D,$00           ; first register
+CLRPSGREGS:     ld     B, 16           
+                ld     HL,SNDREGCFG    
+                ld     D,$00           
 RSTPSG:         LD     A, D
                 LD     C, (HL)
                 CALL   AYREGWRITE   
@@ -24,6 +41,7 @@ RSTPSG:         LD     A, D
                 djnz   RSTPSG          
                 ret                     
 
+;; PSGIOCFG - Sample sound code
 
 PSGIOCFG::
                 ld      A, AYMIXCTRL
@@ -109,8 +127,6 @@ AYREGREAD::
             IN  A, (C)          ; Read PSG register data
             POP BC         
             RET
-
-
                 
 SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,10111111b          
                 defb $00,$00,$00,$00,$00,$00,$00,$00

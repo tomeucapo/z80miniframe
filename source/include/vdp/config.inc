@@ -33,7 +33,7 @@ VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
                  ; VDP register settings for a graphics 1 mode
 
                 defb    00000000b       ; reg.0: ext. video off
-                defb    11000100b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
+                defb    11100100b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
                 defb    $06             ; reg.2: name table address: $1800
                 defb    $80             ; reg.3: color table address: $2000
                 defb    $00             ; reg.4: pattern table address: $0000

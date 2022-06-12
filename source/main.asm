@@ -13,7 +13,7 @@ include "svcroutine.inc"
                 extern CTC_INIT
                 extern CON_PRINT, VDP_PUTCHAR, MON_WELCOM, BASIC_INIT
                 extern PSG_INIT, CHIMPSOUND, PSG_LED_BLINK
-                extern VDP_CUR_BLINK, KB_READKEY
+                extern VDP_BLINK_CURSOR, KB_KEYSCAN,BUFF_PUTC
 
                 .ORG $0000
 
@@ -70,7 +70,6 @@ include "svcroutine.inc"
                 PUSH     HL
 
 		CALL	 UART_READ
-                ;CALL     VDP_CUR_BLINK
 
 		POP      HL
                 POP      AF
@@ -78,14 +77,27 @@ include "svcroutine.inc"
                 RETI
 
 ;------------------------------------------------------------------------------
-; NMI Interrupt vector
+; NMI Interrupt routine
 
                 .ORG    $0066
                 EX AF, AF'
                 EXX
 
-                NOP             ; TODO
+                LD A, (ENABLECTC)
+                CP 0
+                JR Z, EXITNMI
 
+                CALL    LEDBLINK
+                CALL    VDP_BLINK_CURSOR
+
+                ;CALL    KB_KEYSCAN
+                ;LD      A, (LASTKEYCODE)
+                ;CP      $FF
+                ;JR      Z, EXITNMI
+
+                ;CALL    VDP_PUTCHAR
+                ;CALL    BUFF_PUTC
+EXITNMI:  
                 EXX
                 EX AF, AF'            
                 EI
@@ -97,7 +109,7 @@ include "svcroutine.inc"
 INIT:            
                LD       HL,TEMPSTACK            ; Set up a temporary stack
                LD       SP,HL               
-
+                
                CALL	 PPI_INIT               ; Initialize PPI
                CALL      PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
                
@@ -129,7 +141,7 @@ WITHOUT_CTC:
                                        
                CALL      MON_WELCOM
 
-               LD        A, (ENABLECTC)         ; If CTC is initialized print to string CTC Enabled
+               LD        A, (ENABLECTC)         ; If CTC is initialized shows CTC Enabled message
                CP        0
                JR        Z, MAIN_LOOP
 
@@ -140,7 +152,17 @@ MAIN_LOOP:
                LD        (basicStarted),A        
                CALL      BASIC_INIT
 
+LEDBLINK:
+        PUSH AF
+        LD A, (CURSORSTATE)
+        SLA A
+        SLA A
+        SLA A
+        OUT (PIO1B), A      
+        POP AF
+        RET   
+
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
 
-                .end
+               .end
 
