@@ -14,10 +14,8 @@ include "globals.inc"
 include "psg.inc"
 include "keyboard.inc"
 
-        extern PAUSE, CON_PRINT, CON_PUTC, CON_NL, PRHEXBYTE
-        extern BUFF_PUTC
+        extern CON_PRINT, CON_PUTC, CON_NL, PRHEXBYTE
         extern AYREGWRITE, AYREGREAD, PSGIOCFG
-
 
 KB_KEYSCAN::
     PUSH AF
@@ -53,7 +51,7 @@ KB_READKEY::
     LD A, L
     LD (KBDMAP+1), A
 
-    CALL PSGIOCFG           ; Ensure configure PSG IO as proper manner to manage keyboard matrix
+    CALL PSGIOCFG               ; Ensure configure PSG IO as proper manner to manage keyboard matrix
 
     CALL KB_WAIT_RELEASE
     CALL KB_WAIT_KEYSTROKE
@@ -63,6 +61,8 @@ KB_READKEY::
 
     RET
 
+;; Key relase waiting loop
+
 KB_WAIT_RELEASE:
     CALL KB_SCANKEYS    
     LD A, (KBDROWMSK)
@@ -70,12 +70,16 @@ KB_WAIT_RELEASE:
     JP NZ, KB_WAIT_RELEASE
     RET
 
+;; Key stroke waiting loop
+
 KB_WAIT_KEYSTROKE:
     CALL KB_SCANKEYS
     LD A, (KBDROWMSK)
     CP $FF
     JP Z, KB_WAIT_KEYSTROKE
     RET
+
+;; Detect shift keypress
 
 KB_DETECT_SHIFT:
     LD A, (KBDCOLMSK)
@@ -85,6 +89,8 @@ KB_DETECT_SHIFT:
     LD A, (KBDROWMSK)
     CP $FD
     JR Z, KBUPCASE
+
+;; Changing keyboard code maps lower or upper case
 
 KBLOWCASE:
     LD HL, KEYS_LOWCASE
@@ -103,7 +109,6 @@ KBCHGMAP:
     LD A, L
     LD (KBDMAP+1), A
     RET
-
 
 GETKEYMAP:    
     LD A, (KBDMAP)
