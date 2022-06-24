@@ -4,8 +4,7 @@
 ; Tomeu Capó 2022
 ;
 ; This is adapted version from Leonardo Millani https://github.com/leomil72/LM80C  
-; Code are released under
-; the therms of the GNU GPL License 3.0 and in the form of "as is", without no
+; Code are released under the therms of the GNU GPL License 3.0 and in the form of "as is", without no
 ; kind of warranty: you can use them at your own risk.
 ; You are free to use them for any non-commercial use: you are only asked to
 ; maintain the copyright notices, include this advice and the note to the 

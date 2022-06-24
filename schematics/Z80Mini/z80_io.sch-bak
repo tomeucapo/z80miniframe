@@ -1318,24 +1318,22 @@ Wire Wire Line
 	11000 1000 11000 2500
 Connection ~ 9150 2500
 Wire Wire Line
-	8950 1000 8950 2500
-Wire Wire Line
 	8950 1000 9200 1000
+Wire Wire Line
+	7700 2500 7700 4850
+Wire Wire Line
+	8950 1000 8950 2500
 $Comp
-L Diode:1N4001 D5
-U 1 1 5F1BE8A0
-P 7700 5100
-F 0 "D5" V 7654 5179 50  0000 L CNN
-F 1 "1N4001" V 7745 5179 50  0000 L CNN
-F 2 "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal" H 7700 4925 50  0001 C CNN
-F 3 "http://www.vishay.com/docs/88503/1n4001.pdf" H 7700 5100 50  0001 C CNN
-	1    7700 5100
+L Device:Jumper JP3
+U 1 1 5F4EAF1C
+P 7700 5150
+F 0 "JP3" V 7654 5277 50  0000 L CNN
+F 1 "USB_VBUS" V 7745 5277 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7700 5150 50  0001 C CNN
+F 3 "~" H 7700 5150 50  0001 C CNN
+	1    7700 5150
 	0    1    1    0   
 $EndComp
-Wire Wire Line
-	7700 2500 7700 4950
-Wire Wire Line
-	7700 5450 7700 5250
 Wire Bus Line
 	650  1200 650  3100
 Wire Bus Line

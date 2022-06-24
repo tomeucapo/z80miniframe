@@ -16,6 +16,7 @@ MON_MAIN::
 MON_LOOP:		LD	      HL, MON_PRMPT
 				CALL	  CON_PRINT
 				CALL	  CON_GETCHAR
+				CALL	  TO_UPPER
 				LD		  H,A
 				RST		  8	  
 				CALL	  MON_OPTIONS
@@ -34,7 +35,11 @@ MON_LOOP:		LD	      HL, MON_PRMPT
  				CALL	  Z, MON_TEST
  				CP		  '?'
 				CALL	  Z, MON_HELP
+				CP		  CR
 				RET		  Z
+				CP		  BKSP
+				RET		  Z
+
 				CALL	  NZ, MON_UNK_CMD
 				RET
 
@@ -65,6 +70,7 @@ BASIC_INIT::   LD        A,(basicStarted); Check the BASIC STARTED flag
                CALL      CON_PRINT
 CORW:              
                CALL     CON_GETCHAR
+			   CALL		TO_UPPER
                CP       'C'
                JR       NZ, CHECKWARM
                RST      08H               
@@ -181,49 +187,6 @@ MEMORY_DUMP_BYTES:
 ; Test hardware routine
 
 MON_TEST::	
-		LD B, VDMODE			; Set text mode
-		LD E, 0
-		RST $20
-
-		CALL CON_NL
-
-		LD HL, MON_TST_VID_MODE
-		CALL CON_PRINT
-
-		LD A, B 
-		CALL PRHEXBYTE
-
-		CALL CON_NL
-
-		LD BC, 700
-		CALL PAUSE
-
-		LD C, 0
-		LD A, $F0
-		LD B, $F
-
-MON_TEST_COLOR:	
-		OR C
-		LD D, B
-		LD B, VDSETCOL
-		RST $20
-		INC C
-
-		LD B, D
-
-		PUSH BC
-
-		LD BC, 900
-		CALL PAUSE
-		
-		POP BC
-
-		DJNZ MON_TEST_COLOR
-
-		LD B, VDSETCOL
-		LD A, $F5
-		RST $20
-
 		LD HL, MON_TEST_KBD_MSG
 		CALL CON_PRINT
 

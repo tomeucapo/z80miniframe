@@ -23,6 +23,8 @@ include "psg.inc"
 ;; PSG_INIT - Initialize PSG 
 
 PSG_INIT::
+                PUSH    BC
+
                 ld      HL,CHASNDDTN   
                 ld      B,11           
                 xor     A              
@@ -39,9 +41,11 @@ RSTPSG:         LD     A, D
                 inc    D               
                 inc    HL              
                 djnz   RSTPSG          
+
+                POP    BC
                 ret                     
 
-;; PSGIOCFG - Sample sound code
+;; PSGIOCFG - Configure I/O submodule to use for keyboard
 
 PSGIOCFG::
                 ld      A, AYMIXCTRL

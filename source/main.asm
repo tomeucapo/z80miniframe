@@ -1,47 +1,53 @@
-;******************************************************************
-; Firmware main code
-; Tomeu Capó 2022                     
-;******************************************************************
+;;******************************************************************
+;; Firmware main code
+;; Tomeu Capó 2022     
+;;                
+;; Code and computer schematics are released under
+;; the therms of the GNU GPL License 3.0 and in the form of "as is", without no
+;; kind of warranty: you can use them at your own risk.
+;; You are free to use them for any non-commercial use: you are only asked to
+;; maintain the copyright notices, include this advice and the note to the 
+;; attribution of the original version to Tomeu Capó, if you intend to
+;; redistribuite them.
+;;******************************************************************
 
 include "globals.inc"
 include "ppi.inc"
 include "svcroutine.inc"
 
                 extern SVC_ROUTINE
-                extern UART_INIT, UART_READ, UART_WRITE, BUFF_GETC, BUFF_CKINCHAR
+                extern UART_INIT, UART_READ 
+                
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
                 extern CTC_INIT
-                extern CON_PRINT, VDP_PUTCHAR, MON_WELCOM, BASIC_INIT
-                extern PSG_INIT, CHIMPSOUND, PSG_LED_BLINK
-                extern VDP_BLINK_CURSOR, KB_KEYSCAN,BUFF_PUTC
+                extern PSG_INIT, CHIMPSOUND
+                extern VDP_INIT
+
+                extern CON_PRINT, CON_PUTC, CON_CKINCHAR, CON_GETCHAR
+                extern MON_WELCOM, BASIC_INIT
+               
 
                 .ORG $0000
-
                 DI                       ;Disable interrupts
                 JP       INIT            ;Initialize Hardware and go
 
 ;------------------------------------------------------------------------------
-; Put character to output (VDP and serial console)
+; Put character to output
 
                 .ORG     $0008
-
-                DI
-                CALL     VDP_PUTCHAR
-                EI
-                JP       UART_WRITE
+                JP       CON_PUTC
                       
-                
 ;------------------------------------------------------------------------------
 ; Get character for buffer if is available
 
                 .ORG    $0010
-                JP      BUFF_GETC           
+                JP      CON_GETCHAR
 
 ;------------------------------------------------------------------------------
 ; Check if any character into buffer are available
 
                 .ORG    $0018
-                JP      BUFF_CKINCHAR 
+                JP      CON_CKINCHAR 
 
 ;------------------------------------------------------------------------------
 ; Firmware service routine dispatcher
@@ -65,14 +71,13 @@ include "svcroutine.inc"
 ; Interrupt mode 1 routine
 
                 .ORG   $0038            
-
-                PUSH     AF
-                PUSH     HL
+                EX AF, AF'
+                EXX
 
 		CALL	 UART_READ
 
-		POP      HL
-                POP      AF
+                EXX
+                EX AF, AF'     
                 EI
                 RETI
 
@@ -88,7 +93,7 @@ include "svcroutine.inc"
                 JR Z, EXITNMI
 
                 CALL    LEDBLINK
-                CALL    VDP_BLINK_CURSOR
+               ; CALL    VDP_BLINK_CURSOR
 
                 ;CALL    KB_KEYSCAN
                 ;LD      A, (LASTKEYCODE)
@@ -106,7 +111,7 @@ EXITNMI:
 ;------------------------------------------------------------------------------
 ; Main code
 
-INIT:            
+INIT::            
                LD       HL,TEMPSTACK            ; Set up a temporary stack
                LD       SP,HL               
                 
@@ -117,28 +122,24 @@ INIT:
                LD	 L, C
                CALL      UART_INIT              ; Initialize UART at C speed
 
-               PUSH      BC
                CALL      PSG_INIT
-               POP       BC
-               
+
                LD        A, B
                LD        (ENABLECTC), A         ; Check if CTC are disabled or not
                CP        0
                JR        Z, WITHOUT_CTC
 
                CALL      CTC_INIT               ; Initialize CTC
-
 WITHOUT_CTC:              
+               LD        E, 0                   ; VDP Set video text mode
+               CALL      VDP_INIT
+
                CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
                CALL      CHIMPSOUND             ; Welcome sound
 
                IM   1                           ; Enable interrupt mode 1
                EI                          
 
-               LD        E, 0                   ; VDP Set video text mode
-               LD        B, VDMODE
-               RST       $20
-                                       
                CALL      MON_WELCOM
 
                LD        A, (ENABLECTC)         ; If CTC is initialized shows CTC Enabled message

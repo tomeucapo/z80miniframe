@@ -3,7 +3,7 @@ EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 1 2
+Sheet 1 3
 Title ""
 Date ""
 Rev ""
@@ -1407,8 +1407,6 @@ F 3 "~" H 4700 750 50  0001 C CNN
 	1    4700 750 
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	7950 3450 7950 3200
 Entry Wire Line
 	6150 3950 6250 4050
 Entry Wire Line
@@ -1455,8 +1453,6 @@ Text Label 6350 1150 0    50   ~ 0
 A4
 Wire Wire Line
 	6650 1150 6350 1150
-Wire Wire Line
-	7950 4050 7950 4300
 Wire Bus Line
 	4250 5050 5650 5050
 Connection ~ 5650 5050
@@ -1464,8 +1460,6 @@ Text Label 7700 3050 0    50   ~ 0
 D[0..7]
 Text Label 7650 1850 0    50   ~ 0
 A[0..15]
-Text Label 7950 4200 3    50   ~ 0
-INT
 Text Label 5500 3950 0    50   ~ 0
 D3
 Wire Wire Line
@@ -1642,8 +1636,6 @@ Wire Bus Line
 	5650 5050 7500 5050
 Wire Bus Line
 	7500 3050 8100 3050
-Wire Wire Line
-	8100 3200 7950 3200
 Wire Wire Line
 	7750 1350 8750 1350
 Wire Wire Line
@@ -1826,12 +1818,12 @@ $EndComp
 $Comp
 L 74xx:74HC14 U5
 U 3 1 5DB892B7
-P 7950 3750
-F 0 "U5" H 7950 4050 50  0000 C CNN
-F 1 "74HC14" H 7950 3950 50  0000 C CNN
-F 2 "Package_DIP:DIP-14_W7.62mm_LongPads" H 7950 3750 50  0001 C CNN
-F 3 "http://www.ti.com/lit/gpn/sn74HC14" H 7950 3750 50  0001 C CNN
-	3    7950 3750
+P 7850 3750
+F 0 "U5" H 7850 4050 50  0000 C CNN
+F 1 "74HC14" H 7850 3950 50  0000 C CNN
+F 2 "Package_DIP:DIP-14_W7.62mm_LongPads" H 7850 3750 50  0001 C CNN
+F 3 "http://www.ti.com/lit/gpn/sn74HC14" H 7850 3750 50  0001 C CNN
+	3    7850 3750
 	0    1    1    0   
 $EndComp
 $Comp
@@ -1860,6 +1852,59 @@ Text GLabel 5500 6500 2    50   Output ~ 0
 IO_RESET
 Wire Wire Line
 	5350 6500 5500 6500
+$Sheet
+S 8200 4300 600  1500
+U 62BC9CCB
+F0 "Interrupt Manager" 50
+F1 "int_manager.sch" 50
+F2 "INT0" I L 8200 4450 50 
+F3 "INT" O L 8200 5700 50 
+F4 "D[0..7]" B L 8200 5050 50 
+F5 "INT1" I R 8800 4450 50 
+F6 "INT2" I R 8800 4600 50 
+F7 "INT4" I R 8800 4750 50 
+F8 "INT5" I R 8800 5050 50 
+F9 "IORQ" I L 8200 5550 50 
+F10 "M1" I L 8200 5400 50 
+F11 "INT6" I R 8800 5200 50 
+F12 "INT7" I R 8800 5350 50 
+F13 "INT3" I R 8800 4900 50 
+$EndSheet
+$Comp
+L Device:Jumper_NC_Dual JP2
+U 1 1 62BCB640
+P 7850 4450
+F 0 "JP2" H 7850 4597 50  0000 C CNN
+F 1 "INT MANAGER" H 7850 4688 50  0000 C CNN
+F 2 "" H 7850 4450 50  0001 C CNN
+F 3 "~" H 7850 4450 50  0001 C CNN
+	1    7850 4450
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	8100 3200 7850 3200
+Wire Wire Line
+	7850 3200 7850 3450
+Wire Wire Line
+	7850 4050 7850 4350
+Wire Wire Line
+	8100 4450 8200 4450
+Wire Wire Line
+	7600 4450 7600 5700
+Wire Wire Line
+	7600 5700 7200 5700
+Wire Wire Line
+	8200 5700 7600 5700
+Connection ~ 7600 5700
+Text Label 7200 5700 0    50   ~ 0
+INT
+Wire Bus Line
+	8200 5050 7500 5050
+Connection ~ 7500 5050
+Wire Wire Line
+	8200 5550 7800 5550
+Wire Wire Line
+	8200 5400 7800 5400
 Wire Bus Line
 	4250 3750 4250 5050
 Wire Bus Line
@@ -1878,4 +1923,8 @@ Wire Bus Line
 	3950 1850 3950 3900
 Wire Bus Line
 	6150 1850 6150 3950
+Text Label 7800 5400 0    50   ~ 0
+M1
+Text Label 7800 5550 0    50   ~ 0
+IORQ
 $EndSCHEMATC

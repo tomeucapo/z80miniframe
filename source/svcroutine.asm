@@ -1,3 +1,18 @@
+;;
+;; svcroutine.inc
+;; This a service firmware routine dispacher
+;;
+;; Tomeu Capó 2022
+;;
+;; Code and computer schematics are released under
+;; the therms of the GNU GPL License 3.0 and in the form of "as is", without no
+;; kind of warranty: you can use them at your own risk.
+;; You are free to use them for any non-commercial use: you are only asked to
+;; maintain the copyright notices, include this advice and the note to the 
+;; attribution of the original version to Tomeu Capó, if you intend to
+;; redistribuite them.
+;;
+
 include "svcroutine.inc"
 
                 extern MON_MAIN

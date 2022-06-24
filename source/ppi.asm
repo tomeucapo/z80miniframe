@@ -53,13 +53,13 @@ PPI_PBOUT::
 ;   C = MSB switches (0,1)
 
 PPI_GETSWSTATE::
-        IN	    A,(PIO1A)       ; Get 2 last bits switch state => B
-        AND	    A,$0C
+        IN	 A,(PIO1A)       ; Get 2 last bits switch state => B
+        AND	 A,$0C
         RRA       
         RRA
         LD       B, A
-        IN		A,(PIO1A)       ; Get 2 first bits switch state => C
-        AND	    A,$03
+        IN	 A,(PIO1A)       ; Get 2 first bits switch state => C
+        AND	 A,$03
         LD       C, A
         RET
 

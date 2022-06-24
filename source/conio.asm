@@ -6,6 +6,7 @@
 include "globals.inc"
 
         extern TO_UPPER, CHAR_ISHEX
+        extern VDP_PUTCHAR, UART_WRITE, BUFF_CKINCHAR, BUFF_GETC
 
 ;; CON_PRINT - Print string to console (TTY/VDP) until end of string character 0
 ;;      HL = Address of begin of string
@@ -42,16 +43,24 @@ CON_CLR::
 ;; CON_PUTC - Prints a character to console
 ;;      A = Character to print
 
-CON_PUTC::
-		RST		8
+CON_PUTC:: 
+        DI                              
+        CALL     VDP_PUTCHAR            
+        EI                              
+        JP       UART_WRITE             
 		RET
+
+;; CON_CKINCHAR - Check if exists any character into input buffer
+
+CON_CKINCHAR::
+        CALL BUFF_CKINCHAR
+        RET
 
 ;; CON_GETCHAR - Get available character from buffer
 ;;      Returns readed character to upper into A
 
 CON_GETCHAR::
-		RST   $10
-		CALL  TO_UPPER          
+        CALL BUFF_GETC           
 		RET 
 				
 ;; GETHEXBYTE

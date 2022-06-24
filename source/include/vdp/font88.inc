@@ -1,3 +1,6 @@
+;;
+;; MSX International 8x8 Character set definition
+;;
 
 CHARSET88:
     defb $00, $00, $00, $00, $00, $00, $00, $00 
