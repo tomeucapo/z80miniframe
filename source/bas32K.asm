@@ -22,6 +22,7 @@
 include "globals.inc"
 include "svcroutine.inc"
 include "bas32k.inc"
+include "ppi.inc"
         
 BASCOLD::   
         JP      STARTB          ; Jump for cold start
@@ -129,33 +130,34 @@ MEMMSG: .BYTE   "Memory top",0
 
 ; FUNCTION ADDRESS TABLE
 
-FNCTAB: .WORD   SGN
-        .WORD   INT
-        .WORD   ABS
-        .WORD   USR
-        .WORD   FRE
-        .WORD   INP
-        .WORD   POS
-        .WORD   SQR
+FNCTAB: .WORD   SGN     ; B9
+        .WORD   INT     
+        .WORD   ABS     
+        .WORD   USR     
+        .WORD   FRE     
+        .WORD   INP     
+        .WORD   POS     
+        .WORD   SQR     
         .WORD   RND
         .WORD   LOG
-        .WORD   EXP
-        .WORD   COS
+        .WORD   EXP     
+        .WORD   COS 
         .WORD   SIN
         .WORD   TAN
         .WORD   ATN
         .WORD   PEEK
         .WORD   DEEK
         .WORD   VPEEK
-        .WORD   POINT
+        .WORD   GETKEY
+        .WORD   POINT   ; CC
         .WORD   LEN
         .WORD   STR
         .WORD   VAL
-        .WORD   ASC
+        .WORD   ASC     
         .WORD   CHR
         .WORD   HEX
         .WORD   BIN
-        .WORD   LEFT
+        .WORD   LEFT    ; D4
         .WORD   RIGHT
         .WORD   MID
 
@@ -193,7 +195,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
         .BYTE   'M'+80H,"ONITOR"
-        .BYTE   'S'+80H,"ET"
+        .BYTE   'P'+80H,"SET"
         .BYTE   'R'+80H,"ESET"
         .BYTE   'P'+80H,"RINT"
         .BYTE   'C'+80H,"ONT"
@@ -244,6 +246,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'P'+80H,"EEK"
         .BYTE   'D'+80H,"EEK"
         .BYTE   'V'+80H,"PEEK"
+        .BYTE   'G'+80H,"ETKEY"
         .BYTE   'P'+80H,"OINT"
         .BYTE   'L'+80H,"EN"
         .BYTE   'S'+80H,"TR$"
@@ -291,7 +294,7 @@ WORDTB: .WORD   PEND
         .WORD   CLS
         .WORD   WIDTH
         .WORD   MONITR
-        .WORD   PSET
+        .WORD   PPSET
         .WORD   RESET
         .WORD   PRINT
         .WORD   CONT
@@ -331,8 +334,8 @@ ZEQUAL  .EQU    0B7H            ; =
 ZLTH    .EQU    0B8H            ; <
 
 ZSGN    .EQU    0B9H            ; SGN
-ZPOINT  .EQU    0CBH            ; POINT
-ZLEFT   .EQU    0D3H            ; LEFT$
+ZPOINT  .EQU    0CCH            ; POINT
+ZLEFT   .EQU    0D4H            ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -539,6 +542,11 @@ PRNTOK: XOR     A               ; Output "Ok" and get command
         CALL    STTLIN          ; Start new line
         LD      HL,OKMSG        ; "Ok" message
         CALL    PRS             ; Output "Ok"
+        
+;        LD      A, 1
+;        LD      B, VDCURSOR
+;        RST     $20          
+
 GETCMD: LD      HL,-1           ; Flag direct mode
         LD      (LINEAT),HL     ; Save as current line
         CALL    GETLIN          ; Get an input line
@@ -667,7 +675,12 @@ CLRPTR: LD      HL,(BASTXT)     ; Point to start of program
         INC     HL
         LD      (PROGND),HL     ; Set program end
 
-RUNFST: LD      HL,(BASTXT)     ; Clear all variables
+RUNFST:                         
+;        LD      A, 0           ; Try to disable cursor before RUN
+;        LD      B, VDCURSOR
+;        RST     $20          
+
+        LD      HL,(BASTXT)     ; Clear all variables
         DEC     HL
 
 INTVAR: LD      (BRKLIN),HL     ; Initialise RUN variables
@@ -4235,9 +4248,6 @@ MONITR:
         LD      B, MONMAIN
         RST     $20
 
-        ;JP      $0000           ; Restart (Normally Monitor Start)
-
-
 INITST: LD      A,0             ; Clear break flag
         LD      (BRKFLG),A
         JP      INIT
@@ -4335,6 +4345,14 @@ VPEEK:  CALL    DEINT
         EX      DE, HL
         RET
 
+GETKEY:
+        LD      B, KBWAITKEY
+        RST     $20
+
+        LD      A, B
+        JP      PASSA
+        RET
+
 ; check if the color is not 0 and into the range 1~15
 CHKCLR: and     A               ; is it 0?
         jp      Z,SNERR         ; yes, raise a SN error
@@ -4352,8 +4370,56 @@ CCALL:  CALL    GETNUM          ; Get memory address
 
         PUSH    BC
         JP      (HL)
-
 RETCALL:        
         RET
+
+PPSET:  call    CHKG2M          ; check if in G2 mode
+        call    GETINT          ; get X coords.
+        ld      (TMPBFR1),A     ; store it into a temp buffer
+        call    CHKSYN          ; Make sure ',' follows
+        defb    ','
+        call    GETINT          ; get Y coords,
+        cp      $C0             ; check if Y is in range 0~191
+        jp      NC,FCERR        ; no, raise an FC error
+        ld      (TMPBFR2),A     ; store into a temp buffer
+        
+        call    CLRPRM          ; check if param "color" has been passed
+
+        LD      A, (TMPBFR3)    
+        LD      C, A  
+        LD      A, (TMPBFR2) 
+        LD      E, A              
+        LD      A, (TMPBFR1)
+        
+        LD      B, VDPLOT
+        RST     $20
+
+        RET
+
+; check if a color is passed as argument with PLOT, DRAW, and CIRCLE
+; commands. If not present, the default foreground color will be used
+CLRPRM: ld      A,(FRGNDCLR)    ; load foreground color
+        ld      (TMPBFR3),A     ; store into temp buffer
+        dec     HL              ; dec 'cos GETCHR INCs
+        call    GETCHR          ; Get next character
+        ret     Z               ; return foreground color if nothing follows
+        call    CHKSYN          ; Make sure ',' follows
+        defb    ','
+        call    GETINT          ; get value
+        call    CHKCLR          ; check if color is in range 0~15
+        ld      (TMPBFR3),A     ; store color into temp buffer
+        ret                     ; return to caller
+
+; check if in graphics 2 mode
+CHKG2M: ld      A,(SCR_MODE)    ; check screen mode
+        cp      $02             ; actually, we can paint only in G2
+        jp      NZ,GMERR        ; no G2, print a No Graphics Mode Error
+        ret                     ; return to caller
+
+; no graphics mode error: raised when a graphics command is invoked
+; out of graphic 2 mode.
+GMERR:  ld      E,GM            ; load Graphics Mode Error flag
+        jp      ERROR           ; print error
+        
 .end
 

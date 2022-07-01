@@ -39,7 +39,10 @@ SCR_CUR_X       .EQU     SCR_LAST_CHAR+1
 SCR_CUR_Y       .EQU     SCR_CUR_X+1              ; $8049
 SCR_SIZE_W      .EQU     SCR_CUR_Y+1              ; $804A
 SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $804B
-SCR_MODE        .EQU     SCR_SIZE_H+1             ; $804C
+SCR_DOT_X       .EQU     SCR_SIZE_H+1             ; Last plotted locations in graphics mode
+SCR_DOT_Y       .EQU     SCR_DOT_X+1
+SCR_DOT_COLOR   .EQU     SCR_DOT_Y+1
+SCR_MODE        .EQU     SCR_DOT_COLOR+1             ; $804C
 VIDEOBUFF       .EQU     SCR_MODE+2               ; $804E (40) buffer used for video scrolling and other purposes
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word

@@ -1,5 +1,9 @@
-PXLSET: 
-                .DEFB    $80,$40,$20,$10,$08,$04,$02,$01
+               
+;; pixel to be set ON
+;; where R(X/8)=> 0=80h, 1=40h, 2=20h, 3=10h, 4=08h, 5=04h, 6=02h, 7=$01
+
+PXLSET:         .defb    $80,$40,$20,$10,$08,$04,$02,$01 
+                        
 
 ;; Screen mode dimensions
 
@@ -11,7 +15,7 @@ VDPMODESSIZES:
                 .DEFB 32, 24
 
 VDPCURSORS:
-                .DEFB $FF, 219, 0, 0, 0                
+                .DEFB 219, 219, 0, 0, 0                
 
 ;; Table names
 
@@ -39,7 +43,7 @@ VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
                 defb    $00             ; reg.4: pattern table address: $0000
                 defb    $36             ; reg.5: sprite attr. table address: $1B00
                 defb    $07             ; reg.6: sprite pattern table addr.: $3800
-                defb    $05             ; reg.7: backdrop color (light blue)
+                defb    VDP_DEFAULT_COLOR             ; reg.7: backdrop color (light blue)
 
                 ; VDP register settings for a graphics 2 mode
                 
@@ -50,7 +54,7 @@ VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
                 defb    $03             ; reg.4: pattern table addr.: $0000
                 defb    $36             ; reg.5: sprite attr. table addr.: $1B00
                 defb    $07             ; reg.6: sprite pattern table addr.: $3800
-                defb    $C5             ; reg.7: backdrop color: light blue
+                defb    $05             ; reg.7: backdrop color: light blue
 
                 ; VDP register settings for a multicolor mode
 

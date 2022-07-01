@@ -104,6 +104,34 @@ LOOP2PITCH:  LD     A, 1
              POP    DE
              RET
 
+
+PSG_BEEP::
+            PUSH    AF
+            PUSH    BC
+
+
+            LD     A, R10               
+            LD     C, 255
+            CALL   AYREGWRITE
+
+
+            LD     A, AYMIXCTRL
+            LD     C, 200
+            CALL   AYREGWRITE
+
+            LD     BC, 1500
+            CALL   PAUSE
+
+            LD     A, R10
+            LD     C, 0
+            CALL   AYREGWRITE
+
+
+            POP    BC
+            POP    AF
+            RET
+
+
 ;; AYREGWRITE - Modify PSG register
 ;;      A = Register number
 ;;      C = Data

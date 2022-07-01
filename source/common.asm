@@ -67,3 +67,21 @@ GET_MODULE::
         NEG           ;  8T 2B -- A := (x div 7) * -7 [low bits]
         ADD A, L      ;  4T 1B -- A := x mod 7  
         RET            
+
+;; 8/8 division by Leonardo Milliani
+;; INPUT: D (dividend), E (divisor)
+;; OPERATION: D/E
+;; OUTPUT: D (quotient), A (remainder)
+
+DIV_8_8::    xor     A
+            push    BC
+            ld      B,08h
+DIV_8_8LOOP:sla     D
+            rla
+            cp      E
+            jr      C,$+4
+            sub     E
+            inc     D
+            djnz    DIV_8_8LOOP
+            pop     BC
+            ret        

@@ -7,6 +7,7 @@ include "globals.inc"
 
         extern TO_UPPER, CHAR_ISHEX
         extern VDP_PUTCHAR, UART_WRITE, BUFF_CKINCHAR, BUFF_GETC
+        extern PSG_BEEP
 
 ;; CON_PRINT - Print string to console (TTY/VDP) until end of string character 0
 ;;      HL = Address of begin of string
@@ -44,6 +45,10 @@ CON_CLR::
 ;;      A = Character to print
 
 CON_PUTC:: 
+        CP      CTRLG
+        CALL    Z, PSG_BEEP
+        RET     Z
+        
         DI                              
         CALL     VDP_PUTCHAR            
         EI                              

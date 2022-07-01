@@ -99,3 +99,4 @@ UF      .EQU    22H             ; UnDEFined FN function
 MO      .EQU    24H             ; Missing operand
 HX      .EQU    26H             ; HEX error
 BN      .EQU    28H             ; BIN error
+GM      .EQU    2AH     

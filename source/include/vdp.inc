@@ -3,9 +3,9 @@
 VDP_DATA        .EQU    $002E
 VDP_REG         .EQU    $002F
 
-VDP_WREG        .EQU    10000000b   ; to be added to the REG value
-VDP_RRAM        .EQU    00000000b   ; to be added to the ADRS value
-VDP_WRAM        .EQU    01000000b   ; to be added to the ADRS value
+VDP_RRAM        .EQU    $00   ; to be added to the ADRS value
+VDP_WRAM        .EQU    $40   ; to be added to the ADRS value
+VDP_WREG        .EQU    $80
 
 VDP_R0          .EQU    00h
 VDP_R1          .EQU    01h
