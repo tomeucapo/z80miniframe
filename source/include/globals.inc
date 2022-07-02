@@ -35,7 +35,10 @@ basicStarted    .EQU     serBufUsed+1             ; $8045
 SCR_X           .EQU     basicStarted+1           ; $8046
 SCR_Y           .EQU     SCR_X+1                  ; $8047
 SCR_LAST_CHAR   .EQU     SCR_Y+1
-SCR_CUR_X       .EQU     SCR_LAST_CHAR+1           
+SCR_COLOR_FG    .EQU     SCR_LAST_CHAR+1
+SCR_COLOR_BG    .EQU     SCR_COLOR_FG+1
+
+SCR_CUR_X       .EQU     SCR_COLOR_BG+1           
 SCR_CUR_Y       .EQU     SCR_CUR_X+1              ; $8049
 SCR_SIZE_W      .EQU     SCR_CUR_Y+1              ; $804A
 SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $804B
@@ -43,7 +46,20 @@ SCR_DOT_X       .EQU     SCR_SIZE_H+1             ; Last plotted locations in gr
 SCR_DOT_Y       .EQU     SCR_DOT_X+1
 SCR_DOT_COLOR   .EQU     SCR_DOT_Y+1
 SCR_MODE        .EQU     SCR_DOT_COLOR+1             ; $804C
-VIDEOBUFF       .EQU     SCR_MODE+2               ; $804E (40) buffer used for video scrolling and other purposes
+SCR_NAM_TB      .EQU     SCR_MODE+2
+
+X1              .equ     SCR_DOT_X               ; Line variables
+Y1              .equ     SCR_DOT_Y
+X2              .equ     SCR_NAM_TB+2
+Y2              .equ     X2+2
+ER              .equ     Y2+2
+E2              .equ     ER+2
+SX              .equ     E2+2
+SY              .equ     SX+2
+DX              .equ     SY+2
+DY              .equ     DX+2
+
+VIDEOBUFF       .EQU     DY+2                     ; $804E (40) buffer used for video scrolling and other purposes
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079

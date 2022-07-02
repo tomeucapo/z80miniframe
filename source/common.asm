@@ -1,6 +1,15 @@
 ;;
 ;; Common routines
 ;;
+;; Some routines from Leonardo Milliani used on utils.asm
+;;
+;; * WKT are routines from WikiTI:
+;; http://wikiti.brandonw.net/index.php?title=WikiTI_Home
+;;
+;; * LAC are routines from Learn@Cemetch
+;; https://learn.cemetech.net/index.php/Main_Page
+;;
+
 
 
 ;; Pause in n*100uS (for n = 10000 for 1 second pause) 
@@ -85,3 +94,49 @@ DIV_8_8LOOP:sla     D
             djnz    DIV_8_8LOOP
             pop     BC
             ret        
+
+
+;; ----------------------------------------------------------------------
+;; absolute value of HL (same applies to other 16-bit register pairs)
+;; also, invert value of HL (or any other 16-bit register, just adjust the code)
+;;
+;; inputs: HL
+;; destroys: A
+;; operation: ABS(HL)
+;; returns: HL with no sign or negated
+;; Source: WKT
+
+absHL:: bit     7,H
+        ret     Z
+negHL:: xor     A
+        sub     L
+        ld      L,A
+        sbc     A,A
+        sub     H
+        ld      H,A
+        ret            
+
+
+; compare two 16-bit registers, HL (minuend) and DE (subtrahend)
+; values can be both signed or unsigned words
+; inputs: HL, DE
+; destroys: A,F,HL
+;
+; returns: Z=1 if HL = DE
+; for UNSIGNED: C=1 if HL<DE  //  C=0 if HL>DE
+; for SIGNED:   S=1 (M) if HL<DE  //  S=0 (P) if HL>DE
+; if HL=DE: Z,P,NC  - Z=1, S=0; C=0
+; if HL>DE: NZ,P,NC - Z=0, S=0; C=0
+; if HL<DE: NZ,M,C  - Z=0, S=1; C=1
+; Source: ALS
+
+CMP16:: or      A           ; clear CARRY
+        sbc     HL,DE       ; subtract DE from HL
+        ret     PO          ; return if no overflow
+        ld      A,H         ; overflow - invert SIGN flag
+        rra                 ; save CARRY flag in bit 7
+        xor     $40         ; complement bit 6 (SIGN bit)
+        scf                 ; ensure a Non-Zero result
+        adc     A,A         ; restore CARRY, complemented SIGN
+                            ; ZERO flag = 0 for sure
+        ret                 ; return        

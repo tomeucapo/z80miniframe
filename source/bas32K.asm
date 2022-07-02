@@ -122,7 +122,7 @@ BRKRET: CALL    CLREG           ; Clear registers and stack
 
 BFREE:  .BYTE   " Bytes free",CR,LF,0,0
 
-SIGNON: .BYTE   "Z80 BASIC Ver 4.7b",CR,LF
+SIGNON: .BYTE   "Z80 BASIC Ver 4.7c",CR,LF
         .BYTE   "Copyright (C)"
         .BYTE   " 1978 by Microsoft",CR,LF,0,0
 
@@ -191,6 +191,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'C'+80H,"OLOR"
         .BYTE   'L'+80H,"OCATE"
         ;.BYTE   'C'+80H,"ALL"
+        .BYTE   'L'+80H,"INE"
         .BYTE   'L'+80H,"INES"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
@@ -290,6 +291,7 @@ WORDTB: .WORD   PEND
         .WORD   COLOR
         .WORD   LOCATE
         ;.WORD   CCALL
+        .WORD   LINE
         .WORD   LINES
         .WORD   CLS
         .WORD   WIDTH
@@ -313,29 +315,29 @@ ZDATA   .EQU    083H            ; DATA
 ZGOTO   .EQU    088H            ; GOTO
 ZGOSUB  .EQU    08CH            ; GOSUB
 ZREM    .EQU    08EH            ; REM           
-ZPRINT  .EQU    0A1H            ; PRINT        
-ZNEW    .EQU    0A7H            ; NEW                         
+ZPRINT  .EQU    0A2H            ; PRINT        
+ZNEW    .EQU    0A8H            ; NEW                         
 
-ZTAB    .EQU    0A8H            ; TAB
-ZTO     .EQU    0A9H            ; TO
-ZFN     .EQU    0AAH            ; FN
-ZSPC    .EQU    0ABH            ; SPC
-ZTHEN   .EQU    0ACH            ; THEN
-ZNOT    .EQU    0ADH            ; NOT
-ZSTEP   .EQU    0AEH            ; STEP
+ZTAB    .EQU    0A9H            ; TAB
+ZTO     .EQU    0AAH            ; TO
+ZFN     .EQU    0ABH            ; FN
+ZSPC    .EQU    0ACH            ; SPC
+ZTHEN   .EQU    0ADH            ; THEN
+ZNOT    .EQU    0AEH            ; NOT
+ZSTEP   .EQU    0AFH            ; STEP
 
-ZPLUS   .EQU    0AFH            ; +
-ZMINUS  .EQU    0B0H            ; -
-ZTIMES  .EQU    0B1H            ; *
-ZDIV    .EQU    0B2H            ; /
-ZOR     .EQU    0B5H            ; OR
-ZGTR    .EQU    0B6H            ; >
-ZEQUAL  .EQU    0B7H            ; =
-ZLTH    .EQU    0B8H            ; <
+ZPLUS   .EQU    0B0H            ; +
+ZMINUS  .EQU    0B1H            ; -
+ZTIMES  .EQU    0B2H            ; *
+ZDIV    .EQU    0B3H            ; /
+ZOR     .EQU    0B6H            ; OR
+ZGTR    .EQU    0B7H            ; >
+ZEQUAL  .EQU    0B8H            ; =
+ZLTH    .EQU    0B9H            ; <
 
-ZSGN    .EQU    0B9H            ; SGN
-ZPOINT  .EQU    0CCH            ; POINT
-ZLEFT   .EQU    0D4H            ; LEFT$
+ZSGN    .EQU    0BAH            ; SGN
+ZPOINT  .EQU    0CDH            ; POINT
+ZLEFT   .EQU    0D5H            ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -4393,10 +4395,47 @@ PPSET:  call    CHKG2M          ; check if in G2 mode
         
         LD      B, VDPLOT
         RST     $20
-
         RET
 
-; check if a color is passed as argument with PLOT, DRAW, and CIRCLE
+LINE:   call    CHKG2M          ; check if in G2 mode
+
+        call    GETINT          ; get X coords.
+        ld      (TMPBFR1),A     ; store it into a temp buffer
+        call    CHKSYN          ; Make sure ',' follows
+        defb    ','
+        call    GETINT          ; get Y coords,
+        cp      $C0             ; check if Y is in range 0~191
+        jp      NC,FCERR        ; no, raise an FC error
+        ld      (TMPBFR2),A     ; store into a temp buffer
+        defb    ','
+        call    GETINT          ; get X2 coords.
+        ld      (TMPBFR4),A          ; store it into a temp buffer
+        call    CHKSYN          ; Make sure ',' follows
+        defb    ','
+        call    GETINT          ; get Y2 coords
+        cp      $C0             ; check if Y2 is in range 0~191
+        jp      NC,FCERR        ; no, raise an FC error
+        ld      (TMPBFR5),A          ; store it into a temp buffer
+        
+        call    CLRPRM          ; check if param "color" has been passed
+
+        ;  A = X, E = Y, D = X2, H = Y2, C = Color
+
+        LD      A, (TMPBFR5)  
+        LD      H, A 
+        LD      A, (TMPBFR4)    
+        LD      D, A 
+        LD      A, (TMPBFR3)    
+        LD      C, A  
+        LD      A, (TMPBFR2) 
+        LD      E, A        
+        LD      A, (TMPBFR1)
+        
+        LD      B, VDLINE
+        RST     $20
+        RET
+
+; check if a color is passed as argument with PLOT, LINE, and CIRCLE
 ; commands. If not present, the default foreground color will be used
 CLRPRM: ld      A,(FRGNDCLR)    ; load foreground color
         ld      (TMPBFR3),A     ; store into temp buffer

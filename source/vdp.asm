@@ -16,7 +16,7 @@
 include "globals.inc"
 include "vdp.inc"
 
-                extern DIV_8_8
+                extern DIV_8_8, absHL, negHL, CMP16
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
@@ -32,14 +32,31 @@ VDP_INIT::      PUSH DE
 
                 LD A, (SCR_MODE)
                 CP $02
-                JR Z, ENDINIT
+                JR Z, INIT2
 
                 CALL VDP_LOADCHARSET                
                 LD  A, VDP_DEFAULT_COLOR                             
                 CALL VDP_SET_COLOR_TABLE
-ENDINIT:
+
                 LD A, 1
                 LD (ENABLEDCURSOR), A
+
+                JR ENDINIT
+
+INIT2:                
+                ld      HL,$1800        ; Mode 2 name table
+                call    SETNAMETABLE    ; Configure table name
+
+                xor     A
+                LD      (X1),A
+                LD      (X1+1),A
+                LD      (Y1),A 
+                LD      (Y1+1),A 
+                LD      (X2),A
+                LD      (X2+1),A
+                LD      (Y2),A
+                LD      (Y2+1),A
+ENDINIT:
 
                 POP DE
                 RET
@@ -62,8 +79,7 @@ MODECFG:        LD HL, VDPMODESCONF
                 ADD HL, DE
                 LD A, VDP_WREG
                 
-LDREGVLS:       LD D, (HL)          
-                
+LDREGVLS:       LD D, (HL)                          
                 PUSH BC
                 LD BC, VDP_REG      
                 OUT (C), D          
@@ -121,20 +137,18 @@ LDCLRTBMD1:     PUSH    BC
 ; ************************************************************************************
 ; VDP_RESET_VRAM - Clear VRAM content
 
-VDP_RESET_VRAM: LD HL, $4000            
-                XOR A, A
-                
-                LD BC, VDP_REG     
-                OUT (C), L         
-                OUT (C), H         
-                
+VDP_RESET_VRAM: XOR A
+                LD H,A
+                LD L,A                
+                CALL VDP_SET_ADDR
+
                 LD B, $40          
                 LD D, A            
+                DEC C
 EMPTYVRAM:      PUSH BC
                 LD BC, VDP_DATA
                 OUT (C), A    
                 POP BC
-                NOP
                 NOP
                 INC D              
                 JR NZ, EMPTYVRAM   
@@ -318,6 +332,32 @@ VDP_HOME:       LD A, 0
                 CALL VDP_SETPOS                
                 LD (SCR_LAST_CHAR), A
                 RET
+
+
+
+;; SETNAMETABLE - Set name table for G2 mode (patterns from $00 to $FF for each of the 3 areas of the screen)
+;;      HL = Table name
+
+SETNAMETABLE:   
+                call    VDP_SET_ADDR    ; send address to VDP
+                dec     C               ; VDP address for passing data
+                ld      h, b
+                ld      l, c
+                ld      D,$03           ; 3 pages to fill into VRAM (768 cells)
+                xor     A               ; starting char name #0 (chars go from 0 to 255)
+                ld      B,A             ; reset B
+  
+RPTFLL1:        push    bc
+                ld      b, h
+                ld      c, l
+                out     (C),A           ; send name to VRAM
+                pop     bc
+                nop
+                inc     A               ; increment # of name
+                djnz    RPTFLL1         ; repeat for 256 cells (1 page)
+                dec     D               ; did we fill all the pages?
+                jr      NZ,RPTFLL1      ; no, continue
+                ret                     ; return to caller
 
 ; ************************************************************************************
 ; VDP_PUTCHAR - Output character to VDP routine with character control decisions
@@ -683,13 +723,13 @@ VDP_WRITEADDR:
 ; value is returned into A
 
 VDP_READ_VIDEO_LOC:: 
-                push    BC              
-                ld      C,VDP_REG       
-                ld      B,H
-                res     7,B
-                res     6,B
+                push    BC                             
+                ld      A,H
+                res     7,A
+                res     6,A
+                ld      BC, VDP_REG     
                 out     (C),L           
-                out     (C),B                           
+                out     (C),A                                           
                 nop                     
                 nop                     
                 nop
@@ -706,16 +746,18 @@ VDP_READ_VIDEO_LOC::
 
 VDP_WRITE_VIDEO_LOC::
                 push    BC             
-                ld      C, VDP_REG      
-                ld      B,H            
-                res     7,B
-                set     6,B            
+                push    AF
+                ld      A,H            
+                res     7,A
+                set     6,A                        
+                ld      BC, VDP_REG     
                 out     (C),L          
-                out     (C),B                           
+                out     (C),A                           
                 nop                    
                 nop                    
                 nop
                 nop
+                pop     AF
                 ld      BC, VDP_DATA    
                 out     (C),A          
                 pop     BC             
@@ -733,7 +775,7 @@ VDP_PLOT::
         ld      (SCR_DOT_Y), A
         ld      A, C
         ld      (SCR_DOT_COLOR), A
-        
+PLOT:        
         push    HL              ; store HL ** do NOT remove these PUSHs since this
         push    BC              ; store BC ** function is called from other routines
         push    DE              ; store DE ***
@@ -781,11 +823,123 @@ NOGD:   pop     DE              ; retrieve DE
         pop     HL              ; retrieve HL
         ret                     ; return to caller
 
+
+;; LINE X1,Y1,X2,Y2[,color]
+;; Draw a line using Bresenham's line algorithm from X1,Y1 to X2,Y2
+;; X1,Y1 can be either less than or greater than X2,Y2 (meaning that)
+;; the drawing will be ever done from X1,Y2 to X2,Y2, regardless of
+;; the values. If color is not specified, the foreground color set
+;; with COLOR will be used 
+;;      A = X, E = Y, D = X2, H = Y2, C = Color
+
+VDP_LINE::   
+        RET            ; DISABLED MEANWHILE FIGUREOUT HOW IT WORKS!
+
+        ld      (X1), A         ; X1
+        ld      A, E            ; Y1
+        ld      (Y1), A
+        ld      A, D            ; X2
+        ld      (X2), A
+        ld      A, H            ; Y2
+        ld      (Y2), A
+        ld      A, C
+        ld      (SCR_DOT_COLOR), A      
+
+        push    HL              ; store register we'll use
+        ld      DE,(X1)         ; load X1 and
+        ld      HL,(X2)         ; X2
+        or      A               ; clear CARRY
+        sbc     HL,DE           ; DX=X2-X1
+        call    absHL           ; DX=ABS(DX)
+        ld      (DX),HL         ; store DX
+        ld      BC,$FFFF        ; SX=-1
+        ld      HL,(X1)
+        ld      DE,(X2)
+        call    CMP16           ; X1<X2?
+        jp      Z,X1GR          ; no, X1=X2
+        jp      P,X1GR          ; no, X1>X2
+        ld      BC,$0001        ; yes, so set SX=1
+X1GR:   ld      (SX),BC         ; store SX
+        ld      DE,(Y1)
+        ld      HL,(Y2)
+        or      A               ; clear Carry
+        sbc     HL,DE           ; DY=Y2-Y1
+        call    absHL           ; DY=ABS(DY)
+        ld      (DY),HL         ; store DY
+        ld      BC,$FFFF        ; SY=-1
+        ld      HL,(Y1)
+        ld      DE,(Y2)
+        call    CMP16           ; is Y1<Y2?
+        jp      Z,Y1GR          ; no, Y1=Y2
+        jp      P,Y1GR          ; no, Y1>Y2 - jump over
+        ld      BC,$0001        ; yes, so set SY=1
+Y1GR:   ld      (SY),BC         ; store SY
+        ld      HL,(DY)         ; ER=DY
+        call    negHL           ; ER=-DY
+        ld      (ER),HL         ; store ER
+        ld      HL,(DX)
+        ld      DE,(DY)
+        call    CMP16           ; DX>DY?
+        jp      Z,ER2           ; no, DX=DY
+        jp      M,ER2           ; no, DX<DY
+        ld      HL,(DX)         ; reload DX
+        ld      (ER),HL         ; yes: DX>DY, so ER=DX
+ER2:    ld      HL,(ER)         ; load ER
+        sra     H               ; right shift (and preserve sign)...
+        rr      L               ; ...of HL, so ER=INT(ER/2)
+        bit     7,H             ; is the number negative?
+        jp      Z,STRE2         ; no, jump over
+        inc     HL              ; yes, add 1 'cos INT of a negative number needs to be incremented
+STRE2:  ld      (ER),HL         ; store ER
+RPTDRW: 
+        call    PLOT            ; plot first pixel
+        ld      HL,(X1)
+        ld      DE,(X2)
+        call    CMP16           ; X1=X2?
+        jr      NZ,CNTDRW       ; no, continue drawing
+        ld      HL,(Y1)         ; yes, so check
+        ld      DE,(Y2)         ; also Y
+        call    CMP16           ; Y1=Y2?
+        jp      Z,ENDDRAW       ; yes, finished drawing: exit
+CNTDRW: ld      DE,(ER)
+        ld      (E2),DE         ; E2=ER
+        ld      HL,(DX)
+        call    negHL           ; DX=-DX
+        ex      DE,HL           ; invert DE and HL => HL=E2, DE=-DX
+        call    CMP16           ; E2>-DX?
+        jp      Z,DXGR          ; no, E2=-DX: jump
+        jp      M,DXGR          ; no, E2<-DX: jump
+        ld      HL,(ER)         ; yes
+        ld      DE,(DY)
+        or      A               ; clear CARRY
+        sbc     HL,DE           ; ER=ER-DY
+        ld      (ER),HL
+        ld      HL,(X1)
+        ld      DE,(SX)
+        add     HL,DE           ; X1=X1+SX (increment X1)
+        ld      (X1),HL
+DXGR:   ld      HL,(E2)
+        ld      DE,(DY)
+        call    CMP16           ; E2<DY?
+        jp      Z,RPTDRW        ; no, E2=DY: jump
+        jp      P,RPTDRW        ; no, E2>DY: jump
+        ld      HL,(ER)         ; yes
+        ld      DE,(DX)
+        add     HL,DE           ; ER=ER+DX
+        ld      (ER),HL
+        ld      HL,(Y1)
+        ld      DE,(SY)
+        add     HL,DE           ; Y1=Y1+SY (increment Y1)
+        ld      (Y1),HL
+        jp      RPTDRW          ; repeat
+ENDDRAW:pop     HL              ; retrieve HL
+        ret                     ; return to caller
+
 ; ************************************************************************************
 ; XY2HL
 ;
 ; compute the VRAM address of the byte containing the pixel
-; being pointed by X,Y (TMPBFR1,TMPBFR2)
+; being pointed by X,Y (SCR_DOT_X, SCR_DOT_Y)
 ; byte address is returned into HL
 ; pixel is returned into A
 
@@ -805,8 +959,6 @@ XY2HL:  ; formula is: ADDRESS=(INT(X/8))*8 + (INT(Y/8))*256 + R(Y/8)
         
         ld      H, B            ; copy BC into HL: now HL has the VRAM address of the byte being set
         ld      L, C
-        
-        ;ld      HL,BC           
         
         ld      A, (SCR_DOT_X)
         ld      D,A             ; and move it into D (dividend)
@@ -829,6 +981,8 @@ XY2HL:  ; formula is: ADDRESS=(INT(X/8))*8 + (INT(Y/8))*256 + R(Y/8)
         ex      DE,HL           ; retrieve VRAM pattern address into HL
         scf                     ; set Carry for normal exit
         ret                     ; return to caller
+
+
 include "vdp/config.inc"
 include "vdp/font68_new.inc"
 include "vdp/font88.inc"

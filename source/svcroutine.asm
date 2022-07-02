@@ -17,7 +17,7 @@ include "svcroutine.inc"
 
                 extern MON_MAIN
                 extern VDP_INIT, VDP_LOCATE, VDP_SETCOLOR, VDP_WRITE_VIDEO_LOC, VDP_READ_VIDEO_LOC, VDP_PLOT
-                extern VDP_CURSOR, KB_READKEY
+                extern VDP_CURSOR, VDP_LINE, KB_READKEY
 
 ;;
 ;; Main RST 20 firmware service routine dispacher
@@ -47,6 +47,8 @@ SVC_ROUTINE::
                 JR      Z, _VDP_CURSOR          
                 CP      VDPLOT
                 JR      Z, _VDP_PLOT  
+                CP      VDLINE
+                JR      Z, _VDP_LINE
 
                 ;; Keyboard control
 
@@ -91,6 +93,12 @@ _VDP_CURSOR:
 _VDP_PLOT:
                 EX      AF, AF'
                 CALL    VDP_PLOT
+                JP      END20
+
+
+_VDP_LINE:
+                EX      AF, AF'
+                CALL    VDP_LINE
                 JP      END20
 
 _KB_WAITFORKEY:

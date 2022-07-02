@@ -69,7 +69,9 @@ BKGNDCLR        .EQU     FRGNDCLR+$01    ; (1) background color as set by SCREEN
 TMPBFR1         .EQU     BKGNDCLR+$02    ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR2         .EQU     TMPBFR1+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 TMPBFR3         .EQU     TMPBFR2+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
-SCRMODE         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+TMPBFR4         .EQU     TMPBFR3+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+TMPBFR5         .EQU     TMPBFR4+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
+SCRMODE         .EQU     TMPBFR5+$02     ; (2) word for general purposes use (temp. buffer for 1 or 2 bytes)
 
 PBUFF   .EQU    SCRMODE+1     ; Number print buffer
 MULVAL  .EQU    PBUFF+$0D     ; Multiplier
