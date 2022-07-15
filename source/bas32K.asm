@@ -24,6 +24,9 @@ include "svcroutine.inc"
 include "bas32k.inc"
 include "ppi.inc"
         
+        extern  DIV_16_16
+        extern  CASWRFILE
+
 BASCOLD::   
         JP      STARTB          ; Jump for cold start
 BASWARM::   
@@ -192,6 +195,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'L'+80H,"OCATE"
         ;.BYTE   'C'+80H,"ALL"
         .BYTE   'L'+80H,"INE"
+        .BYTE   'C'+80H,"IRCLE"
         .BYTE   'L'+80H,"INES"
         .BYTE   'C'+80H,"LS"
         .BYTE   'W'+80H,"IDTH"
@@ -292,6 +296,7 @@ WORDTB: .WORD   PEND
         .WORD   LOCATE
         ;.WORD   CCALL
         .WORD   LINE
+        .WORD   CIRCLE
         .WORD   LINES
         .WORD   CLS
         .WORD   WIDTH
@@ -302,8 +307,8 @@ WORDTB: .WORD   PEND
         .WORD   CONT
         .WORD   LIST
         .WORD   CLEAR
-        .WORD   REM             ; CLOAD
-        .WORD   REM             ; CSAVE
+        .WORD   CLOAD           ; CLOAD
+        .WORD   CSAVE           ; CSAVE
         .WORD   NEW
 
 
@@ -315,29 +320,29 @@ ZDATA   .EQU    083H            ; DATA
 ZGOTO   .EQU    088H            ; GOTO
 ZGOSUB  .EQU    08CH            ; GOSUB
 ZREM    .EQU    08EH            ; REM           
-ZPRINT  .EQU    0A2H            ; PRINT        
-ZNEW    .EQU    0A8H            ; NEW                         
+ZPRINT  .EQU    0A3H            ; PRINT        
+ZNEW    .EQU    0A9H            ; NEW                         
 
-ZTAB    .EQU    0A9H            ; TAB
-ZTO     .EQU    0AAH            ; TO
-ZFN     .EQU    0ABH            ; FN
-ZSPC    .EQU    0ACH            ; SPC
-ZTHEN   .EQU    0ADH            ; THEN
-ZNOT    .EQU    0AEH            ; NOT
-ZSTEP   .EQU    0AFH            ; STEP
+ZTAB    .EQU    0AAH            ; TAB
+ZTO     .EQU    0ABH            ; TO
+ZFN     .EQU    0ACH            ; FN
+ZSPC    .EQU    0ADH            ; SPC
+ZTHEN   .EQU    0AEH            ; THEN
+ZNOT    .EQU    0AFH            ; NOT
+ZSTEP   .EQU    0B0H            ; STEP
 
-ZPLUS   .EQU    0B0H            ; +
-ZMINUS  .EQU    0B1H            ; -
-ZTIMES  .EQU    0B2H            ; *
-ZDIV    .EQU    0B3H            ; /
-ZOR     .EQU    0B6H            ; OR
-ZGTR    .EQU    0B7H            ; >
-ZEQUAL  .EQU    0B8H            ; =
-ZLTH    .EQU    0B9H            ; <
+ZPLUS   .EQU    0B1H            ; +
+ZMINUS  .EQU    0B2H            ; -
+ZTIMES  .EQU    0B3H            ; *
+ZDIV    .EQU    0B4H            ; /
+ZOR     .EQU    0B7H            ; OR
+ZGTR    .EQU    0B8H            ; >
+ZEQUAL  .EQU    0B9H            ; =
+ZLTH    .EQU    0BAH            ; <
 
-ZSGN    .EQU    0BAH            ; SGN
-ZPOINT  .EQU    0CDH            ; POINT
-ZLEFT   .EQU    0D5H            ; LEFT$
+ZSGN    .EQU    0BBH            ; SGN
+ZPOINT  .EQU    0CEH            ; POINT
+ZLEFT   .EQU    0D6H            ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -4435,6 +4440,33 @@ LINE:   call    CHKG2M          ; check if in G2 mode
         RST     $20
         RET
 
+CIRCLE: call    CHKG2M          ; check if in G2 mode
+        call    GETINT          ; get X coords.
+        ld      (TMPBFR1),A          ; store it into a temp buffer
+        call    CHKSYN          ; Make sure ',' follows
+        defb    ','
+        call    GETINT          ; get Y coords,
+        ld      (TMPBFR2),A          ; store it into a temp buffer
+        call    CHKSYN          ; Make sure ',' follows
+        defb    ','
+        call    GETINT          ; get radius
+        ld      (TMPBFR4),A      ; store it into a temp buffer
+        call    CLRPRM          ; check if param "color" has been passed
+
+        ;  A = X, E = Y, D = RADIUS, C = Color
+
+        LD      A, (TMPBFR3)      ; COLOR
+        LD      C, A  
+        LD      A, (TMPBFR4)      ; RADIUS
+        LD      D, A 
+        LD      A, (TMPBFR2)      ; YC
+        LD      E, A        
+        LD      A, (TMPBFR1)      ; XC
+        
+        LD      B, VDCIRCLE
+        RST     $20
+        RET
+
 ; check if a color is passed as argument with PLOT, LINE, and CIRCLE
 ; commands. If not present, the default foreground color will be used
 CLRPRM: ld      A,(FRGNDCLR)    ; load foreground color
@@ -4460,5 +4492,82 @@ CHKG2M: ld      A,(SCR_MODE)    ; check screen mode
 GMERR:  ld      E,GM            ; load Graphics Mode Error flag
         jp      ERROR           ; print error
         
+
+CSAVE:
+        DEC     HL              ; DEC 'cos GETCHR INCs
+        CALL    GETCHR          ; Get next character
+        jp      Z,SNERR         ; if nothing else, raise a syntax error
+        call    EVAL
+        ld      A,(TYPE)        ; Get variable type
+        or      A  
+        jp      Z,SNERR
+        call    CHKFN1
+        ld      (TMPBFR4),DE    ; store lenght into another buffer
+        ld      (TPBF4+2),BC    ; store address into another buffer
+        ld      A,$80           ; set BAS as file type
+        ld      (TPBF4),A
+        dec     HL              ; dec 'cos GETCHR INCs
+        call    GETCHR          ; check if something follows
+        jr      Z,SAVE1         ; no, jump over
+        ret
+
+SAVE1: 
+        ld      HL,(PROGND)
+        ld      DE,PROGST             
+
+        xor     a
+        sbc     hl, de
+
+        ld      a,h
+        cp      $00
+        jp      nz, prsave
+        ld      a,l
+        cp      $03
+        ret     z
+
+prsave:
+        ld      HL,(PROGND)     ; Pointer of end of program    
+        ld      DE,PROGND       ; Address of pointer of end of program  
+
+        xor     a
+        sbc     hl, de
+
+        ld      A,H             ; program length
+        ld      C,L            
+        ld      DE, $0100       ; block size
+        call    DIV_16_16       ; lenght/block size = nbr. of blocks
+        or      L               ; ...remainder (HL) is 0
+        jr      Z,SAVFL6        ; yes, jump over
+        inc     BC              ; no, so we need another sector
+SAVFL6: ld      b, c        
+        ld      hl, (TPBF4+2)
+        ld      de, PROGST        
+        call    CASWRFILE
+
+        ret
+
+CLOAD:  
+        ret
+
+; check that a disk/file name follows
+CHKFLNM:dec     HL              ; dec 'cause GETCHR increments
+        call    GETCHR          ; check if something follows
+        jp      Z,SNERR         ; if nothing else, raise a syntax error
+        call    EVAL            ; Evaluate expression
+CHKFN1: call    TSTSTR          ; Make sure it's a string
+CHKFN2: ld      (TMPDBF+2),HL   ; store code string pointer into a temp buffer
+        call    GSTRCU          ; get current string into pool
+        call    LOADFP          ; Move string block to BCDE (BC=pointer, E=length)
+        ld      A,E             ; check if lenght = 0
+        and     A               ; null string?
+        jp      Z,SNERR         ; yes, syntax error
+        ld      (DKLNPT),DE     ; no, store lenght
+        ld      (DKNMPT),BC     ; store address of temp string
+        ld      HL,(TMPDBF+2)   ; retrieve code string pointer
+        ret                     ; return to caller
+
+DKNMPT: equ     TMPBFR2         ; store the pointer to the disk name string
+DKLNPT: equ     TMPBFR3         ; store the pointer to the lenght of disk name string
+
 .end
 

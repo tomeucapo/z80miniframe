@@ -8,5 +8,6 @@ VDPEEK           .EQU        15
 VDCURSOR         .EQU        16
 VDPLOT           .EQU        17
 VDLINE           .EQU        18
+VDCIRCLE         .EQU        19
 
 KBWAITKEY        .EQU        30

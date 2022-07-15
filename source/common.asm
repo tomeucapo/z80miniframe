@@ -95,6 +95,27 @@ DIV_8_8LOOP:sla     D
             pop     BC
             ret        
 
+; ----------------------------------------------------------------------
+; divide a 16-bit number by a 16-bit number
+; (16/16 division)
+;
+; inputs: AC (Dividend), DE (divisor)
+; destroys: HL,A,C
+; OPERATION: AC/DE
+; returns: AC (quotient), HL (remainder)
+; source: WKT
+DIV_16_16::  ld      HL, 0
+            ld      B, 16
+DV16_16_LP: sla     C
+            set     0,C         ; this simulates the SLL undocumented instruction
+            rla
+            adc     HL,HL
+            sbc     HL,DE
+            jr      NC, $+4
+            add     HL,DE
+            dec     C
+            djnz    DV16_16_LP
+            ret
 
 ;; ----------------------------------------------------------------------
 ;; absolute value of HL (same applies to other 16-bit register pairs)
@@ -140,3 +161,14 @@ CMP16:: or      A           ; clear CARRY
         adc     A,A         ; restore CARRY, complemented SIGN
                             ; ZERO flag = 0 for sure
         ret                 ; return        
+
+
+STR_LEN::         
+        XOR      B
+	LD       A,(HL)          
+	OR       A               
+        RET      Z       
+        INC      B                
+        INC      HL              
+        JR       STR_LEN       
+        RET        

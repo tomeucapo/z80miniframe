@@ -15,8 +15,10 @@
 
 include "globals.inc"
 include "vdp.inc"
+include "common.inc"
 
                 extern DIV_8_8, absHL, negHL, CMP16
+                extern PRHEXBYTE, CON_PUTC, CON_NL
 
 ; ************************************************************************************
 ; VDP_INIT - VDP Initialization routine
@@ -367,6 +369,16 @@ VDP_PUTCHAR::   PUSH AF
                 PUSH DE
                 PUSH HL
                 PUSH BC
+
+                ; In mode 2 not write anything
+
+                LD B, A
+                
+                LD A, (SCR_MODE)
+                CP $02
+                JP Z, PUTEND
+
+                LD A, B
 
                 ; Store last character to variable
 
@@ -824,6 +836,7 @@ NOGD:   pop     DE              ; retrieve DE
         ret                     ; return to caller
 
 
+
 ;; LINE X1,Y1,X2,Y2[,color]
 ;; Draw a line using Bresenham's line algorithm from X1,Y1 to X2,Y2
 ;; X1,Y1 can be either less than or greater than X2,Y2 (meaning that)
@@ -833,8 +846,6 @@ NOGD:   pop     DE              ; retrieve DE
 ;;      A = X, E = Y, D = X2, H = Y2, C = Color
 
 VDP_LINE::   
-        RET            ; DISABLED MEANWHILE FIGUREOUT HOW IT WORKS!
-
         ld      (X1), A         ; X1
         ld      A, E            ; Y1
         ld      (Y1), A
@@ -982,6 +993,231 @@ XY2HL:  ; formula is: ADDRESS=(INT(X/8))*8 + (INT(Y/8))*256 + R(Y/8)
         scf                     ; set Carry for normal exit
         ret                     ; return to caller
 
+
+;; CIRCLE X,Y,R[,C]
+;; Draw a circle using Bresenham's circle algorithm with center in X,Y
+;; and radius R, with optional color C. If color is not specified, the
+;; foreground color set with COLOR will be used 
+
+VDP_CIRCLE::
+        PUSH    AF
+        CALL    CLRVARS
+        POP     AF
+
+        ld      (XC), A         ; X
+        ld      A, E            ; Y
+        ld      (YC), A
+        ld      A, D            ; RADIUS
+        ld      (RADIUS), A
+        ld      A, C
+        ld      (SCR_DOT_COLOR), A      
+ 
+        push    HL              ; store HL
+        xor     A               ; clear A,
+        ld      B,A             ; B,
+        ld      C,A             ; C,
+        ld      D,A             ; D,
+        ld      H,A             ; and H
+        ld      (XI),BC         ; clear XI
+        ld      A,(RADIUS)      ; load RADIUS into A
+        ld      L,A             ; HL now contains R
+        ld      (YI),HL         ; YI=RADIUS
+        add     HL,HL           ; R*2
+        ex      DE,HL           ; put HL into DE
+        ld      HL,$0003        ; HL = 3
+        xor     A               ; clear Carry
+        sbc     HL,DE           ; D=3-(2*R) => HL
+        ld      (DC),HL         ; store D
+        call    DRWCRL          ; draw initial point
+RPTCRL: ld      DE,(XI)         ; load XI
+        ld      HL,(YI)         ; load YI
+        call    CMP16           ; is YI<DI?
+        jp      Z,RPTCL1        ; no, YI=XI
+        jp      P,RPTCL1        ; no, YI>XI
+        jp      ENDCRL          ; yes, so we've finished
+RPTCL1: ld      HL,XI
+        inc     (HL)            ; XI=XI+1
+        ld      HL,(DC)         ; load D
+        ld      A,H
+        or      L               ; is D=0? Yes, jump over
+        jp      Z,DLSZ
+        bit     7,H             ; is D<0?
+        jr      NZ,DLSZ         ; yes, jump over
+        ld      DE,(YI)         ; D>0
+        dec     DE              ; so, YI=YI-1
+        ld      (YI),DE         ; store YI
+        xor     A               ; clear Carry
+        ld      HL,(XI)
+        sbc     HL,DE           ; HL=XI-YI
+        add     HL,HL
+        add     HL,HL           ; HL=HL*4
+        ld      DE,10
+        add     HL,DE           ; HL=HL+10
+        ld      DE,(DC)         ; load D
+        ex      DE,HL           ; invert DE and HL, so that HL=4*(XI-YI)+10 and DE=D
+        add     HL,DE           ; D=D+4*(XI-YI)+10
+        jr      PLTCRL          ; plot next pixel
+DLSZ:   ld      HL,(XI)         ; load XI
+        add     HL,HL
+        add     HL,HL           ; XI=XI*4
+        ld      DE,$0006
+        add     HL,DE
+        ld      DE,(DC)
+        ex      DE,HL           ; HL=D and DE=4*XI+6
+        add     HL,DE           ; D=D+4*XI+6
+PLTCRL: ld      (DC),HL         ; store new D
+        call    DRWCRL          ; plot pixel
+        jp      RPTCRL          ; repeat
+ENDCRL: pop     HL
+        ret                     ; return to caller
+DRWCRL: ld      HL,(XC)
+        ld      DE,(XI)
+        add     HL,DE           ; X=XC+XI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL1        ; if Carry is set, X is not valid
+        ld      HL,(YC)
+        ld      DE,(YI)
+        add     HL,DE           ; Y=YC+YI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+CNTCL1: xor     A               ; clear Carry
+        ld      HL,(XC)
+        ld      DE,(XI)
+        sbc     HL,DE           ; X=XC-XI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL2        ; if Carry is set, X is not valid
+        ld      HL,(YC)
+        ld      DE,(YI)
+        add     HL,DE           ; Y=YC+YI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+CNTCL2: ld      HL,(XC)
+        ld      DE,(XI)
+        add     HL,DE           ; X=XC+XI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL3        ; if Carry is set, X is not valid
+        xor     A               ; clear Carry
+        ld      HL,(YC)
+        ld      DE,(YI)
+        sbc     HL,DE           ; Y=YC-YI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+CNTCL3: xor     A               ; clear Carry
+        ld      HL,(XC)
+        ld      DE,(XI)
+        sbc     HL,DE           ; X=XC-XI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL4        ; if Carry is set, X is not valid
+        xor     A               ; clear Carry
+        ld      HL,(YC)
+        ld      DE,(YI)
+        sbc     HL,DE           ; Y=YC-YI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+CNTCL4: ld      HL,(XC)
+        ld      DE,(YI)
+        add     HL,DE           ; X=XC+YI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL5        ; if Carry is set, X is not valid
+        ld      HL,(YC)
+        ld      DE,(XI)
+        add     HL,DE           ; Y=YC+XI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+CNTCL5: xor     A               ; clear Carry
+        ld      HL,(XC)
+        ld      DE,(YI)
+        sbc     HL,DE           ; X=XC-YI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL6        ; if Carry is set, X is not valid
+        ld      HL,(YC)
+        ld      DE,(XI)
+        add     HL,DE           ; Y=YC+XI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+CNTCL6: ld      HL,(XC)
+        ld      DE,(YI)
+        add     HL,DE           ; X=XC+YI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        jp      C,CNTCL7        ; if Carry is set, X is not valid
+        xor     A               ; clear Carry
+        ld      HL,(YC)
+        ld      DE,(XI)
+        sbc     HL,DE           ; Y=YC-XI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT         ; if Carry is reset, Y is valid and plot the pixel
+CNTCL7: xor     A               ; clear Carry
+        ld      HL,(XC)
+        ld      DE,(YI)
+        sbc     HL,DE           ; X=XC-YI
+        ld      (SCR_DOT_X),HL         ; store X
+        call    VALIDX          ; check if X is valid (0~255)
+        ret     C               ; if Carry is set, X is not valid
+        xor     A               ; clear Carry
+        ld      HL,(YC)
+        ld      DE,(XI)
+        sbc     HL,DE           ; Y=YC-XI
+        ld      (SCR_DOT_Y),HL         ; store Y
+        call    VALIDY          ; check if Y is valid (0~191)
+        call    NC,PLOT      ; if Carry is reset, Y is valid and plot the pixel
+        ret                     ; return to caller
+
+; check if X,Y coordinates are valid: 0<=X<=255 and 0<=Y<=191
+; input: HL (value to check), can be negative
+; output: CARRY flag: reset => VALID  //  set => NOT VALID
+; destroys: A
+VALIDX: xor     A               ; reset A
+        or      H               ; check if H is 0 (this means that X is in range 0~255 and not negative)
+        ret     Z               ; yes, we can return (C is clear)
+        scf                     ; set Carry flag to raise error
+        ret                     ; return to caller
+
+VALIDY: xor     A               ; reset A
+        or      H               ; check if H is 0 (this means that Y is in range 0~255 and not negative)
+        jr      Z,CNTVALY       ; yes, continue checking
+        scf                     ; no, raise error by setting Carry flag
+        ret                     ; return to caller
+CNTVALY:ld      A,L
+        cp      $C0             ; is Y<192? Carry is set if Y<192
+        ccf                     ; invert Carry, so Carry=0 means OK, Carry=1 means ERROR
+        ret                     ; return to caller
+
+CLRVARS:
+        XOR A
+        
+        LD (SCR_DOT_X),A
+        LD (SCR_DOT_X+1),A
+        LD (SCR_DOT_Y),A
+        LD (SCR_DOT_Y+1),A
+        LD (XC),A
+        LD (XC+1),A
+        LD (YC),A
+        LD (YC+1),A
+        LD (XI),A
+        LD (XI+1),A
+        LD (YI),A
+        LD (YI+1),A
+
+        LD (RADIUS),A
+        LD (RADIUS+1),A
+
+        LD (DC),A
+        LD (DC+1),A
+        RET
 
 include "vdp/config.inc"
 include "vdp/font68_new.inc"

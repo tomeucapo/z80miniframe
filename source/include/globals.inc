@@ -42,14 +42,15 @@ SCR_CUR_X       .EQU     SCR_COLOR_BG+1
 SCR_CUR_Y       .EQU     SCR_CUR_X+1              ; $8049
 SCR_SIZE_W      .EQU     SCR_CUR_Y+1              ; $804A
 SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $804B
-SCR_DOT_X       .EQU     SCR_SIZE_H+1             ; Last plotted locations in graphics mode
-SCR_DOT_Y       .EQU     SCR_DOT_X+1
+SCR_DOT_X       .EQU     SCR_SIZE_H+2             ; Last plotted locations in graphics mode
+SCR_DOT_Y       .EQU     SCR_DOT_X+2
+X1              .equ     SCR_DOT_X               ; Line variables
+Y1              .equ     SCR_DOT_Y
 SCR_DOT_COLOR   .EQU     SCR_DOT_Y+1
 SCR_MODE        .EQU     SCR_DOT_COLOR+1             ; $804C
 SCR_NAM_TB      .EQU     SCR_MODE+2
 
-X1              .equ     SCR_DOT_X               ; Line variables
-Y1              .equ     SCR_DOT_Y
+
 X2              .equ     SCR_NAM_TB+2
 Y2              .equ     X2+2
 ER              .equ     Y2+2
@@ -59,7 +60,14 @@ SY              .equ     SX+2
 DX              .equ     SY+2
 DY              .equ     DX+2
 
-VIDEOBUFF       .EQU     DY+2                     ; $804E (40) buffer used for video scrolling and other purposes
+XC               .equ     DY+2
+YC               .equ     XC+2
+RADIUS           .equ     YC+2
+XI               .equ     RADIUS+2
+YI               .equ     XI+2
+DC               .equ     YI+2
+
+VIDEOBUFF       .EQU     DC+2                     ; $804E (40) buffer used for video scrolling and other purposes
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
@@ -96,7 +104,21 @@ LASTKEYCODE     .EQU     KBDCOLMSK+1
 KBDMAP          .EQU     LASTKEYCODE+1
 KBSHIFTSTATE    .EQU     KBDMAP+2
 
-BASIC_WRKSPC    .EQU     KBSHIFTSTATE+1
+CASLASTSINE    .EQU     KBSHIFTSTATE+1
+CASLASTBYTE    .EQU     CASLASTSINE+1
+CASBITMASK      .EQU    CASLASTBYTE+1
+CASCHKSUM       .EQU    CASBITMASK+1
+
+
+TMPDBF          .EQU    CASCHKSUM+1
+TPBF4           .EQU    TMPDBF+$24
+SRTMEM          .equ     TPBF4+$02
+
+BYT_SIZ         .equ     SRTMEM+$02     ; (2) file size in bytes
+SCT_SIZ         .equ     BYT_SIZ+$02     ; (1) file size in sectors
+
+BASIC_WRKSPC    .EQU     SCT_SIZ+2
+
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 
 ; CP/M CBIOS Address

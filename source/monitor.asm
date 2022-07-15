@@ -11,6 +11,7 @@ include "svcroutine.inc"
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 				extern BASCOLD, BASWARM
 				extern CON_PUTC, KB_READKEY, PRHEXBYTE
+				extern CASWRFILE
 
 MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
@@ -207,7 +208,7 @@ CRNL:
 	    LD A, CR
 	    CALL CON_PUTC
 	    LD A, LF
-	    CALL CON_PUTC
+	    CALL CON_PUTC		
 	    JR KEYLOOP
 			
 
@@ -240,5 +241,7 @@ MSG_TST_KBD:
     .BYTE "Press any key to test (RUN-STOP to exit)", CR, LF, 0    
 
 MON_TST_VID_MODE:	.BYTE "VIDEO MODE ",0
+
+TST_FILE_NAME:		.BYTE "MYPROG", 0
 
 .END

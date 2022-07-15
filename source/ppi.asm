@@ -81,3 +81,49 @@ PPI_LED_BLINK::
         POP     BC
         POP     AF
         RET                    
+
+;;
+;; PPI_SND_BYTE - Send byte to cassette via PPI Port C and D/A 6-bit conversor
+;; Destroys HL, BC
+;; A = Byte to send 
+;;
+
+PPI_SND_BYTE:: 
+        LD  (CASLASTBYTE), A        ; Store byte to send
+        LD  A, 1
+        LD  (CASBITMASK), A         ; Reset bit mask
+NEXTBIT:
+        LD      HL, (TAPE_SINE_TAB)            
+        LD      A, (CASLASTSINE)        ; Get last used SIN value
+        OUT     (PIO1C), A              ; Sends to cassette
+
+        LD A, (CASLASTBYTE)             ; Test bit 
+	LD B, A
+ 	LD A, (CASBITMASK)
+	AND B
+	JR Z, SEND_LOW	
+
+SEND_LOW:
+        LD B, 36
+SENDL:	LD  A, (HL)
+        OUT (PIO1C), A
+        INC HL
+	DJNZ SENDL
+        JR NEXT
+
+SEND_HIGH:
+        LD B, 18
+SENDH:  LD  A, (HL)
+        OUT (PIO1C), A
+        INC HL
+        INC HL
+        DJNZ SENDH     	
+
+NEXT: 	LD (CASLASTSINE), A
+        LD A, (CASBITMASK)
+	RLCA
+	LD (CASBITMASK), A
+	JR NC, NEXTBIT
+	RET
+
+.include "tape.inc"
