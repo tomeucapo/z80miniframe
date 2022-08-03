@@ -11,7 +11,7 @@ include "svcroutine.inc"
 				extern CON_PRINT, CON_NL, CON_GETCHAR, GETHEXBYTE, GETHEXWORD, PRHEXWORD, PRHEXBYTE
 				extern BASCOLD, BASWARM
 				extern CON_PUTC, KB_READKEY, PRHEXBYTE
-				extern CASWRFILE
+				extern CASWRLEADER
 
 MON_MAIN::				
 MON_LOOP:		LD	      HL, MON_PRMPT
@@ -40,6 +40,10 @@ MON_LOOP:		LD	      HL, MON_PRMPT
 				RET		  Z
 				CP		  BKSP
 				RET		  Z
+				CP		  0
+				RET		  Z
+				CP		  ESCAPE
+				RET	      Z
 
 				CALL	  NZ, MON_UNK_CMD
 				RET
@@ -188,6 +192,9 @@ MEMORY_DUMP_BYTES:
 ; Test hardware routine
 
 MON_TEST::	
+		LD B, 100
+		CALL CASWRLEADER
+
 		LD HL, MON_TEST_KBD_MSG
 		CALL CON_PRINT
 
@@ -228,7 +235,7 @@ MON_MENU:		.BYTE	CR,LF,"Monitor v1.2",CR,LF,CR,LF
 				.BYTE	"? - This help", CR, LF, 0
 
 BASICSTARTMSG: .BYTE     CR,LF
-               .BYTE     "Cold or warm start (C or W)? ",0
+               .BYTE     "(C)old or (W)arm start? ",0
 
 MDC_1: 			.BYTE CR,LF
 	   			.BYTE "Address (in hex): ",0

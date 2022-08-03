@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name "TMS9918")(type "Legacy")(uri "C:/Users/tomeu/OneDrive/Hardware/projectes/Z80/Z80Miniframe/schematics/TMS9918.lib")(options "")(descr ""))
+  (lib (name "ZILOG")(type "Legacy")(uri "C:/Users/tomeu/OneDrive/Hardware/projectes/Z80/Z80Miniframe/schematics/ZILOG.lib")(options "")(descr ""))
+)

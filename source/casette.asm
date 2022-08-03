@@ -162,7 +162,7 @@ SNDDATA:    LD  A, (DE)               ; Get data from buffer
 ;;  B = Number bytes of leader
 ;;
 
-CASWRLEADER:
+CASWRLEADER::
             DI
             PUSH HL
 SNDLEAD:    LD A, LeadByte          

@@ -1,1 +1,20 @@
 MASK:   .EQU    01111111b
+
+MSG_SCAN:
+    .BYTE "SCAN", CR,LF, 0    
+
+MSG_ROW:
+    .BYTE "ROW=", 0  
+
+MSG_COL:
+    .BYTE "COL=", 0  
+
+
+MSG_SHIFT:
+    .BYTE "SHIFT PRESSED", CR, LF, 0  
+
+MSG_WRELE:
+    .BYTE "WAITING FOR KEY RELEASE ...", CR, LF, 0    
+
+MSG_WKSTRK:
+    .BYTE "WAITING FOR KEY STROKE ...", CR, LF, 0    

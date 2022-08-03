@@ -4515,11 +4515,11 @@ SAVE1:
         ld      HL,(PROGND)
         ld      DE,PROGST             
 
-        xor     a
+        xor     a               ; Check if exists program in memory or not
         sbc     hl, de
 
         ld      a,h
-        cp      $00
+        cp      $00             ; If length of program is 3, then nothing
         jp      nz, prsave
         ld      a,l
         cp      $03
@@ -4534,16 +4534,17 @@ prsave:
 
         ld      A,H             ; program length
         ld      C,L            
-        ld      DE, $0100       ; block size
+        ld      DE, $0100       ; block size (256 bytes)
         call    DIV_16_16       ; lenght/block size = nbr. of blocks
         or      L               ; ...remainder (HL) is 0
-        jr      Z,SAVFL6        ; yes, jump over
-        inc     BC              ; no, so we need another sector
+        jr      Z,SAVFL6        
+        inc     BC              
 SAVFL6: ld      b, c        
         ld      hl, (TPBF4+2)
         ld      de, PROGST        
         call    CASWRFILE
 
+        xor     a
         ret
 
 CLOAD:  

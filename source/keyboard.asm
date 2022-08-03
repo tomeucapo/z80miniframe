@@ -15,7 +15,7 @@ include "psg.inc"
 include "keyboard.inc"
 
         extern CON_PRINT, CON_PUTC, CON_NL, PRHEXBYTE
-        extern AYREGWRITE, AYREGREAD, PSGIOCFG
+        extern PSGIOCFG
 
 KB_KEYSCAN::
     PUSH AF
@@ -122,44 +122,44 @@ GETKEYMAP:
 ;;
 
 KB_SCANKEYS:
-    LD A, $00
-    LD (KBDROWMSK),A    
-    LD A, MASK
+    XOR A
+    LD (KBDROWMSK), A    ; Clear row mask
+    LD A, MASK           ; Load column mask (inverted mask)
 
-KB_DOSCAN:    
-    LD  (KBDCOLMSK), A
+KB_DO_SCAN:    
+    LD (KBDCOLMSK), A
 
-    LD A, AYPORTB
+    LD A, AYPORTB        ; Select PSG Port B
     LD BC, AYCTRL       
     OUT (C), A
 
-    LD  A, (KBDCOLMSK)
+    LD  A, (KBDCOLMSK)   ; Output column mask to Port B (Keyboard column lines)
     LD BC, AYDATA       
     OUT (C), A
 
-    LD A, AYPORTA
+    LD A, AYPORTA        ; Select PSG Port A (Keyboard row lines)
     LD BC, AYCTRL       
     OUT (C), A
-    IN  A, (C)
-    LD  (KBDROWMSK), A
+    IN  A, (C)           ; Read row lines
+    LD  (KBDROWMSK), A   ; Save row lines state
     
-    CALL KB_DETECT_SHIFT
+    CALL KB_DETECT_SHIFT ; Check if shift is pressed
     
     LD A, (KBSHIFTSTATE)
     CP 1
-    JR Z, NEXTCOL
+    JR Z, NEXTCOL        
 
-    LD A, (KBDROWMSK)
+    LD A, (KBDROWMSK)    ; If any key is pressed then row mask not 11111111, then end scan and return this mask
     CP $FF                  
-    JR NZ, ENDSCAN
+    JR NZ, KB_END_SCAN
     
 NEXTCOL:
     LD  A, (KBDCOLMSK)
     RRCA    
-    JP C, KB_DOSCAN      
+    JP C, KB_DO_SCAN      
     RET
 
-ENDSCAN:
+KB_END_SCAN:
    RET
 
 
@@ -241,52 +241,6 @@ PR_STATUS:
     POP AF
     RET
 
-MSG_SCAN:
-    .BYTE "SCAN", CR,LF, 0    
+    ; Keyboard keymap data matrix
 
-MSG_ROW:
-    .BYTE "ROW=", 0  
-
-MSG_COL:
-    .BYTE "COL=", 0  
-
-
-MSG_SHIFT:
-    .BYTE "SHIFT PRESSED", CR, LF, 0  
-
-MSG_WRELE:
-    .BYTE "WAITING FOR KEY RELEASE ...", CR, LF, 0    
-
-MSG_WKSTRK:
-    .BYTE "WAITING FOR KEY STROKE ...", CR, LF, 0    
-
-
-POS_CODE:
-    .DB 01111111b
-    .DB 10111111b
-    .DB 11011111b
-    .DB 11101111b
-    .DB 11110111b
-    .DB 11111011b
-    .DB 11111101b
-    .DB 11111110b 
-
-KEYS_UPCASE:
-    .DB  BKSP, CR, 0, 118, 112, 114, 116, 0
-    .DB '#', 'W', 'A', '$', 'Z', 'S', 'E', 0
-    .DB '%', 'R', 'D', '&', 'C', 'F', 'T', 'X'
-    .DB 39, 'Y', 'G', '(', 'B', 'H', 'U', 'V'
-    .DB ')', 'I', 'J', '0', 'M', 'K', 'O', 'N'
-    .DB '+', 'P', 'L', '-', '>', '[', '@', '<'
-    .DB '|', '*', ']',  CS,   0, '=', '~', '?'
-    .DB '1',   0,   0, '"', ' ',   0, 'Q',  ESCAPE 
-
-KEYS_LOWCASE:
-    .DB  BKSP, CR, 0, 118, 112, 114, 116, 0
-    .DB '3', 'w', 'a', '4', 'z', 's', 'e', 0
-    .DB '5', 'r', 'd', '6', 'c', 'f', 't', 'x'
-    .DB '7', 'y', 'g', '8', 'b', 'h', 'u', 'v'
-    .DB '9', 'i', 'j', '0', 'm', 'k', 'o', 'n'
-    .DB '+', 'p', 'l', '-', '.', ':', '@', ','
-    .DB '|', '*', ';',  CS,   0, '=', '~', '/'
-    .DB '1',   0,   0, '2', ' ',   0, 'q',  ESCAPE     
+    include "keymap.inc"

@@ -12,6 +12,7 @@
 
 include "globals.inc"
 include "ppi.inc"
+include "tape.inc"
 
         extern PAUSE
                 
@@ -89,13 +90,13 @@ PPI_LED_BLINK::
 ;;
 
 PPI_SND_BYTE:: 
-        LD  (CASLASTBYTE), A        ; Store byte to send
+        LD  (CASLASTBYTE), A            ; Store byte to send
         LD  A, 1
-        LD  (CASBITMASK), A         ; Reset bit mask
+        LD  (CASBITMASK), A             ; Reset bit mask
 NEXTBIT:
-        LD      HL, (TAPE_SINE_TAB)            
-        LD      A, (CASLASTSINE)        ; Get last used SIN value
-        OUT     (PIO1C), A              ; Sends to cassette
+        LD  HL, (TAPE_SINE_TAB)            
+        LD   A, (CASLASTSINE)        ; Get last used SIN value
+        OUT  (PIO1C), A              ; Sends to cassette
 
         LD A, (CASLASTBYTE)             ; Test bit 
 	LD B, A
@@ -125,5 +126,3 @@ NEXT: 	LD (CASLASTSINE), A
 	LD (CASBITMASK), A
 	JR NC, NEXTBIT
 	RET
-
-.include "tape.inc"
