@@ -59,7 +59,9 @@ INIT2:
                 LD      (Y2),A
                 LD      (Y2+1),A
 ENDINIT:
-
+                LD      A, $FF
+                LD      (VDP_READY), A
+                 
                 POP DE
                 RET
 
@@ -304,7 +306,11 @@ CLR_LAST_LINE:  PUSH BC
 ; ************************************************************************************
 ; VDP_CLRSCR - Clear text screen area routine
 
-VDP_CLRSCR:     PUSH BC
+VDP_CLRSCR:     LD    A, (VDP_READY)        
+                CP    0
+                RET   Z  
+
+                PUSH BC
 
                 CALL VDP_GETTABLENAME
                 LD D, B
@@ -365,10 +371,16 @@ RPTFLL1:        push    bc
 ; VDP_PUTCHAR - Output character to VDP routine with character control decisions
 ;       A = Character to output
 
-VDP_PUTCHAR::   PUSH AF
+VDP_PUTCHAR::   
+                LD    A, (VDP_READY)        
+                CP    0
+                RET   Z  
+
+                PUSH AF
                 PUSH DE
                 PUSH HL
                 PUSH BC
+
 
                 ; In mode 2 not write anything
 

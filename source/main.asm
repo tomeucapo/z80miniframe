@@ -71,42 +71,26 @@ include "svcroutine.inc"
 ; Interrupt mode 1 routine
 
                 .ORG   $0038            
-                EX AF, AF'
-                EXX
-
-		CALL	 UART_READ
-
-                EXX
-                EX AF, AF'     
-                EI
-                RETI
+                DEFW   INT_HND_UART
 
 ;------------------------------------------------------------------------------
 ; NMI Interrupt routine
 
                 .ORG    $0066
-                EX AF, AF'
-                EXX
-
-                LD A, (ENABLECTC)
-                CP 0
-                JR Z, EXITNMI
-
-                CALL    LEDBLINK
-               ; CALL    VDP_BLINK_CURSOR
-
-                ;CALL    KB_KEYSCAN
-                ;LD      A, (LASTKEYCODE)
-                ;CP      $FF
-                ;JR      Z, EXITNMI
-
-                ;CALL    VDP_PUTCHAR
-                ;CALL    BUFF_PUTC
-EXITNMI:  
-                EXX
-                EX AF, AF'            
                 EI
                 RETN
+;------------------------------------------------------------------------------
+; Interrupt mode 2 vector
+
+                .ORG    $0070           
+                DEFW    INT_HND_UNKNOWN
+                DEFW    INT_HND_UNKNOWN
+                DEFW    INT_HND_UNKNOWN
+                DEFW    INT_HND_UNKNOWN
+                DEFW    INT_HND_EXT1   
+                DEFW    INT_HND_VDP             
+                DEFW    INT_HND_UART
+                DEFW    INT_HND_CTC
 
 ;------------------------------------------------------------------------------
 ; Main code
@@ -122,24 +106,36 @@ INIT::
                LD	 L, C
                CALL      UART_INIT              ; Initialize UART at C speed
 
-               CALL      PSG_INIT
-
                LD        A, B
-               LD        (ENABLECTC), A         ; Check if CTC are disabled or not
+               LD        (ENABLECTC), A         ; Check if starts without VDP, CTC and PSG
                CP        0
-               JR        Z, WITHOUT_CTC
+               JR        Z, ONLY_CORE
 
                CALL      CTC_INIT               ; Initialize CTC
-WITHOUT_CTC:              
+
+               ifndef    VDP_DISABLE
                LD        E, 0                   ; VDP Set video text mode
-               CALL      VDP_INIT
+               CALL      VDP_INIT 
+               endif
 
-               CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
+               ifndef    PSG_DISABLE               
+               CALL      PSG_INIT               ; Initialize PSG
                CALL      CHIMPSOUND             ; Welcome sound
+               endif
+ONLY_CORE:                      
+               CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
+        
+               ifdef    IM_1
+               IM   1                           ; Interrupt mode 1
+               endif
 
-               IM   1                           ; Enable interrupt mode 1
-               EI                          
+               ifdef    IM_2
+               xor  A                           ; Interrupt mode 2
+               ld   I,A                         ; set high byte of interrupt vectors to point to page 0
+               IM   2
+               endif
 
+               EI
                CALL      MON_WELCOM
 
                LD        A, (ENABLECTC)         ; If CTC is initialized shows CTC Enabled message
@@ -153,15 +149,38 @@ MAIN_LOOP:
                LD        (basicStarted),A        
                CALL      BASIC_INIT
 
-LEDBLINK:
-        PUSH AF
-        LD A, (CURSORSTATE)
-        SLA A
-        SLA A
-        SLA A
-        OUT (PIO1B), A      
-        POP AF
-        RET   
+
+INT_HND_UART:
+                DI
+                EX AF, AF'
+                EXX
+
+		CALL	 UART_READ
+
+                EXX
+                EX AF, AF'     
+                EI
+                RETI
+
+INT_HND_CTC:
+                DI
+                EI
+                RETI
+
+INT_HND_VDP:
+                DI
+                EI
+                RETI                
+
+INT_HND_EXT1:   
+                DI
+                EI
+                RETI
+                
+INT_HND_UNKNOWN:                
+                DI
+                EI
+                RETI
 
 CTCENABLEDMSG: .BYTE    "CTC Enabled", CR,LF,0
 

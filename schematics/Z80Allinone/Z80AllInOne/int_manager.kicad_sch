@@ -1909,7 +1909,7 @@
     (property "Reference" "RN1" (id 0) (at 96.2152 57.2516 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "R_Network08" (id 1) (at 96.2152 59.563 0)
+    (property "Value" "4K7" (id 1) (at 96.2152 59.563 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Resistor_THT:R_Array_SIP9" (id 2) (at 98.425 58.42 90)

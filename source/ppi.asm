@@ -54,12 +54,12 @@ PPI_PBOUT::
 ;   C = MSB switches (0,1)
 
 PPI_GETSWSTATE::
-        IN	 A,(PIO1A)       ; Get 2 last bits switch state => B
+        IN	 A,(SW_PORT)       ; Get 2 last bits switch state => B
         AND	 A,$0C
         RRA       
         RRA
         LD       B, A
-        IN	 A,(PIO1A)       ; Get 2 first bits switch state => C
+        IN	 A,(SW_PORT)       ; Get 2 first bits switch state => C
         AND	 A,$03
         LD       C, A
         RET
@@ -68,16 +68,20 @@ PPI_LED_BLINK::
         PUSH    AF
         PUSH    BC
 
-        LD      A, 4
-        OUT     (PIO1B), A
+        LD      A, LED_PIN_1
+        OUT     (LED_PORT), A
+        
         LD      BC, 500
         CALL    PAUSE       
-        LD      A, 8
-        OUT     (PIO1B), A
+
+        LD      A, LED_PIN_2
+        OUT     (LED_PORT), A
+        
         LD      BC, 500
         CALL    PAUSE       
+        
         LD      A, 0
-        OUT	(PIO1B), A
+        OUT	(LED_PORT), A
 
         POP     BC
         POP     AF
@@ -96,7 +100,7 @@ PPI_SND_BYTE::
 NEXTBIT:
         LD  HL, (TAPE_SINE_TAB)            
         LD   A, (CASLASTSINE)        ; Get last used SIN value
-        OUT  (PIO1C), A              ; Sends to cassette
+        OUT  (CAS_PORT_OUT), A              ; Sends to cassette
 
         LD A, (CASLASTBYTE)             ; Test bit 
 	LD B, A
@@ -107,7 +111,7 @@ NEXTBIT:
 SEND_LOW:
         LD B, 36
 SENDL:	LD  A, (HL)
-        OUT (PIO1C), A
+        OUT (CAS_PORT_OUT), A
         INC HL
 	DJNZ SENDL
         JR NEXT
@@ -115,7 +119,7 @@ SENDL:	LD  A, (HL)
 SEND_HIGH:
         LD B, 18
 SENDH:  LD  A, (HL)
-        OUT (PIO1C), A
+        OUT (CAS_PORT_OUT), A
         INC HL
         INC HL
         DJNZ SENDH     	

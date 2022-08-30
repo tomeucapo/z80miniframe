@@ -22,7 +22,7 @@
 include "globals.inc"
 include "svcroutine.inc"
 include "bas32k.inc"
-include "ppi.inc"
+;include "ppi.inc"
         
         extern  DIV_16_16
         extern  CASWRFILE

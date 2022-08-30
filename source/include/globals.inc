@@ -22,8 +22,6 @@ ESC     .EQU    1BH             ; Escape
 ESCAPE  .EQU     1BH
 DEL     .EQU    7FH             ; Delete
 
-
-
 ; Firmware memory variables stars at $8000 RAM Address
 
 serBuf          .EQU     $8000                    ; $8000  
@@ -67,7 +65,9 @@ XI               .equ     RADIUS+2
 YI               .equ     XI+2
 DC               .equ     YI+2
 
-VIDEOBUFF       .EQU     DC+2                     ; $804E (40) buffer used for video scrolling and other purposes
+VDP_READY       .EQU     DC+1
+
+VIDEOBUFF       .EQU     VDP_READY+2                     ; $804E (40) buffer used for video scrolling and other purposes
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
