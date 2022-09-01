@@ -5519,7 +5519,7 @@
     (property "Value" "CF Card IDE" (id 1) (at 299.72 160.02 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Footprint" "Connector_PinHeader_2.00mm:PinHeader_2x20_P2.00mm_Vertical" (id 2) (at 293.37 185.42 0)
+    (property "Footprint" "Connector_IDC:IDC-Header_2x20_P2.54mm_Vertical" (id 2) (at 293.37 185.42 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 293.37 185.42 0)
@@ -7140,7 +7140,7 @@
       (reference "J8") (unit 1) (value "TRGS/TOS") (footprint "Connector_PinHeader_2.54mm:PinHeader_1x07_P2.54mm_Vertical")
     )
     (path "/b7886d78-4480-4e86-b304-8d6c50c98eaa"
-      (reference "J10") (unit 1) (value "CF Card IDE") (footprint "Connector_PinHeader_2.00mm:PinHeader_2x20_P2.00mm_Vertical")
+      (reference "J10") (unit 1) (value "CF Card IDE") (footprint "Connector_IDC:IDC-Header_2x20_P2.54mm_Vertical")
     )
     (path "/8d56bc60-b04c-4adc-bf64-8e46195cb167/f174a3a7-91a1-458f-8bb4-a754507a43eb"
       (reference "JE1") (unit 1) (value "EXPANSION_BUS") (footprint "Connector_PCBEdge:EdgeConector_40pin")

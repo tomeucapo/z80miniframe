@@ -24,7 +24,7 @@ include "svcroutine.inc"
                 extern VDP_INIT
 
                 extern CON_PRINT, CON_PUTC, CON_CKINCHAR, CON_GETCHAR
-                extern MON_WELCOM, BASIC_INIT
+                extern MON_WELCOM, BASIC_INIT, MON_MAIN
                
 
                 .ORG $0000
@@ -71,7 +71,7 @@ include "svcroutine.inc"
 ; Interrupt mode 1 routine
 
                 .ORG   $0038            
-                DEFW   INT_HND_UART
+                JP     INT_HND_UART
 
 ;------------------------------------------------------------------------------
 ; NMI Interrupt routine
@@ -79,14 +79,15 @@ include "svcroutine.inc"
                 .ORG    $0066
                 EI
                 RETN
+
 ;------------------------------------------------------------------------------
 ; Interrupt mode 2 vector
 
                 .ORG    $0070           
-                DEFW    INT_HND_UNKNOWN
-                DEFW    INT_HND_UNKNOWN
-                DEFW    INT_HND_UNKNOWN
-                DEFW    INT_HND_UNKNOWN
+                DEFW    INT_HND_USR4
+                DEFW    INT_HND_USR3
+                DEFW    INT_HND_USR2
+                DEFW    INT_HND_USR1
                 DEFW    INT_HND_EXT1   
                 DEFW    INT_HND_VDP             
                 DEFW    INT_HND_UART
@@ -99,11 +100,11 @@ INIT::
                LD       HL,TEMPSTACK            ; Set up a temporary stack
                LD       SP,HL               
                 
-               CALL	 PPI_INIT               ; Initialize PPI
-               CALL      PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
+               CALL	    PPI_INIT               ; Initialize PPI
+               CALL     PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
                
                LD        H, 0   
-               LD	 L, C
+               LD	     L, C
                CALL      UART_INIT              ; Initialize UART at C speed
 
                LD        A, B
@@ -125,14 +126,12 @@ INIT::
 ONLY_CORE:                      
                CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
         
-               ifdef    IM_1
-               IM   1                           ; Interrupt mode 1
-               endif
-
                ifdef    IM_2
-               xor  A                           ; Interrupt mode 2
-               ld   I,A                         ; set high byte of interrupt vectors to point to page 0
-               IM   2
+                   xor  A                           ; Interrupt mode 2
+                   ld   I,A                         ; set high byte of interrupt vectors to point to page 0
+                   IM   2
+               else
+                   IM   1                           ; Interrupt mode 1
                endif
 
                EI
@@ -147,37 +146,38 @@ ONLY_CORE:
 MAIN_LOOP:
                LD        A, 'N'
                LD        (basicStarted),A        
-               CALL      BASIC_INIT
+               CALL      MON_MAIN
+               HALT
 
+;; Interrupt handler routines
 
-INT_HND_UART:
-                DI
-                EX AF, AF'
-                EXX
+INT_HND_UART:  DI
+               EX AF, AF'
+               EXX
 
-		CALL	 UART_READ
+		       CALL	 UART_READ
 
-                EXX
-                EX AF, AF'     
-                EI
-                RETI
+               EXX
+               EX AF, AF'     
+               EI
+               RETI
 
-INT_HND_CTC:
-                DI
-                EI
-                RETI
+INT_HND_CTC:   DI
+               EI
+               RETI
 
-INT_HND_VDP:
-                DI
-                EI
-                RETI                
+INT_HND_VDP:   DI
+               EI
+               RETI                
 
-INT_HND_EXT1:   
-                DI
-                EI
-                RETI
-                
-INT_HND_UNKNOWN:                
+INT_HND_EXT1:  DI
+               EI
+               RETI
+
+INT_HND_USR1:                
+INT_HND_USR2:
+INT_HND_USR3:
+INT_HND_USR4:
                 DI
                 EI
                 RETI

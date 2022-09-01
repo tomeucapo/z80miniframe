@@ -14,7 +14,8 @@ include "svcroutine.inc"
 				extern CASWRLEADER
 
 MON_MAIN::				
-MON_LOOP:		LD	      HL, MON_PRMPT
+MON_LOOP:		EI
+				LD	      HL, MON_PRMPT
 				CALL	  CON_PRINT
 				CALL	  CON_GETCHAR
 				CALL	  TO_UPPER

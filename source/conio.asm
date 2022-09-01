@@ -46,12 +46,12 @@ CON_CLR::
 ;;      A = Character to print
 
 CON_PUTC:: 
-        ifdef VDP_DISABLE
-        DI               
-        CALL     VDP_PUTCHAR            
-        EI 
+        ifndef VDP_DISABLE
+          DI               
+          CALL     VDP_PUTCHAR            
+          EI 
         endif
-
+        
         JP       UART_WRITE                     
 		RET
 

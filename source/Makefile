@@ -1,11 +1,10 @@
 ASM=zmac
 LD=ld80
 SYSTEM=Z80AIO
-OPTS=-I include --rel7 -D$(SYSTEM) -DVDP_DISABLE -DIM_1
+OPTS=-I include --rel7 -D$(SYSTEM) -DVDP_DISABLE -DPSG_DISABLE
 SREC=srec_cat
 MEMTYPE=27256
-COMEPROM=COM3
-
+COMEPROM=COM6
 
 all: firmware.hex
 
