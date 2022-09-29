@@ -33,6 +33,9 @@ KB_KEYSCAN::
     CALL KB_KEYCODE
     LD (LASTKEYCODE), A
 NOKEY:
+    XOR  A
+    LD  (LASTKEYCODE), A
+
     POP AF
     RET
 

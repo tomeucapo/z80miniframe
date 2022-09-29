@@ -6584,8 +6584,8 @@
     (path "/23865bc6-4148-4516-8911-f33bd444a662"
       (reference "#PWR060") (unit 1) (value "VCC") (footprint "")
     )
-    (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/134d47c7-d94e-47bd-a93d-3898e3f42daa"
-      (reference "#PWR061") (unit 1) (value "GND") (footprint "")
+    (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/b7ce1dd4-c19f-4208-a21a-3196f35cd216"
+      (reference "#PWR061") (unit 1) (value "VCC") (footprint "")
     )
     (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/6457af8d-12eb-4698-bbe7-2f0ca54ddbbb"
       (reference "#PWR062") (unit 1) (value "VCC") (footprint "")
@@ -6721,6 +6721,9 @@
     )
     (path "/c614446b-cac3-4ded-a436-ee9047297bb2"
       (reference "#PWR0107") (unit 1) (value "GND") (footprint "")
+    )
+    (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/20b0ea10-785d-4525-b8cd-d1f101bba96d"
+      (reference "#PWR0108") (unit 1) (value "GND") (footprint "")
     )
     (path "/30f0f4cb-b63c-41bd-b60b-c65cd8b5a065"
       (reference "#PWR0114") (unit 1) (value "VCC") (footprint "")
@@ -7091,6 +7094,9 @@
     (path "/b17fd6f5-ec48-476d-b314-068e70e0544c/08c86d02-a844-4a6b-9cf9-9e72ba0f89f4"
       (reference "D4") (unit 1) (value "LED_RESET") (footprint "LED_THT:LED_D3.0mm")
     )
+    (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/3f78d108-5a65-4ca2-ac73-c42f256d353e"
+      (reference "D5") (unit 1) (value "INTR") (footprint "LED_THT:LED_D3.0mm")
+    )
     (path "/bdd5085d-1698-4dc9-a3c5-e2ec01293f0a"
       (reference "D6") (unit 1) (value "LED_POWER") (footprint "LED_THT:LED_D3.0mm")
     )
@@ -7310,6 +7316,9 @@
     (path "/fd118ff9-5277-4012-b5ea-12bcc251a2f8"
       (reference "R44") (unit 1) (value "1K") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
     )
+    (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/bbb445ed-91fd-4969-a924-77abea7cce52"
+      (reference "R45") (unit 1) (value "470") (footprint "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P10.16mm_Horizontal")
+    )
     (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/7ce1e323-fb33-4b62-b443-4ff940cc1f72"
       (reference "RN1") (unit 1) (value "4K7") (footprint "Resistor_THT:R_Array_SIP9")
     )
@@ -7471,9 +7480,6 @@
     )
     (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/b9259eeb-ceac-42a9-b58a-1196e4e4eb81"
       (reference "U25") (unit 3) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm_LongPads")
-    )
-    (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/92853151-6365-43ee-933e-14fe1db2727c"
-      (reference "U25") (unit 4) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm_LongPads")
     )
     (path "/3ba5f80f-5b24-4f96-9656-9b360d550b51/9a9e8b07-d6d5-42a3-a123-71da2e139e0b"
       (reference "U25") (unit 5) (value "74LS32") (footprint "Package_DIP:DIP-14_W7.62mm_LongPads")
