@@ -52,7 +52,7 @@ CON_PUTC::
           EI 
         endif
         
-        JP       UART_WRITE                     
+        CALL       UART_WRITE                     
 		RET
 
 ;; CON_CKINCHAR - Check if exists any character into input buffer

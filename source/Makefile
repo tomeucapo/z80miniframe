@@ -1,7 +1,7 @@
 ASM=zmac
 LD=ld80
 SYSTEM=Z80AIO
-OPTS=-I include --rel7 -D$(SYSTEM) -DVDP_DISABLE -DIM_2 
+OPTS=-I include --rel7 -D$(SYSTEM) -DVDP_DISABLE -DIM_2
 SREC=srec_cat
 MEMTYPE=27256
 COMEPROM=COM6
@@ -9,7 +9,7 @@ COMEPROM=COM6
 all: firmware.hex
 
 clean:
-	rm -Force bin/*
+	del /Q bin\*.*
 
 burn: 
 	epromng -mem $(MEMTYPE) -spi y -auto y bin/firmware.hex $(COMEPROM)
@@ -22,6 +22,9 @@ psg.rel: psg.asm
 
 ctc.rel: ctc.asm
 	$(ASM) ctc.asm $(OPTS) -o bin/ctc.rel
+
+pit.rel: pit.asm
+	$(ASM) pit.asm $(OPTS) -o bin/pit.rel
 
 vdp.rel: vdp.asm
 	$(ASM) vdp.asm $(OPTS) -o bin/vdp.rel
@@ -56,8 +59,8 @@ main.rel: main.asm
 bas32K.rel: bas32K.asm 
 	$(ASM) bas32K.asm $(OPTS) -o bin/bas32K.rel
 
-firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel ctc.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel
+firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel ctc.rel pit.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel
 	pushd
 	cd bin
-	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel ctc.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel bas32K.rel 
+	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel ctc.rel pit.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel bas32K.rel 
 	dos2unix firmware.hex

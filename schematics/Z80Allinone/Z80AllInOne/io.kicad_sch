@@ -4375,7 +4375,7 @@
   (symbol (lib_id "74xx:7400") (at 118.11 161.29 270) (unit 4)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid ac8987df-1f30-4901-9f63-8964aa8f8af7)
-    (property "Reference" "U13" (id 0) (at 123.19 160.0199 90)
+    (property "Reference" "U12" (id 0) (at 123.19 160.0199 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Value" "7400" (id 1) (at 123.19 162.5599 90)

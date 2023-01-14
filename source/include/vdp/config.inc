@@ -26,7 +26,7 @@ VDPTABLENAMES:
 ;; VDP registers settings to set up a text mode
 
 VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
-                defb 11110000b          ; reg.1: text mode (40x24), enable display, enable interrupts
+                defb 11100000b          ; reg.1: text mode (40x24), enable display, disabled interrupts
                 defb $02                ; reg.2: name table set to $800 ($02x$400)
                 defb $00                ; reg.3: not used in text mode
                 defb $00                ; reg.4: pattern table set to $0000

@@ -71,7 +71,7 @@ VIDEOBUFF       .EQU     VDP_READY+2                     ; $804E (40) buffer use
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
-TMRCNT          .EQU     CURSORSTATE+$01            ; $807C (4) TMR counter for 1/100 seconds
+TMRCNT          .EQU     CURSORSTATE+$01          ; $807C (4) TMR counter for 1/100 seconds
 CTC0IV          .EQU     TMRCNT+$04               ; $8080 (3) CTC0 interrupt vector
 CTC1IV          .EQU     CTC0IV+$03               ; $8083 (3) CTC1 interrupt vector
 CTC2IV          .EQU     CTC1IV+$03               ; $8086 (3) CTC2 interrupt vector
@@ -108,7 +108,6 @@ CASLASTSINE    .EQU     KBSHIFTSTATE+1
 CASLASTBYTE    .EQU     CASLASTSINE+1
 CASBITMASK      .EQU    CASLASTBYTE+1
 CASCHKSUM       .EQU    CASBITMASK+1
-
 
 TMPDBF          .EQU    CASCHKSUM+1
 TPBF4           .EQU    TMPDBF+$24
