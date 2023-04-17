@@ -19,7 +19,7 @@ include "svcroutine.inc"
                 extern UART_INIT, UART_READ 
                 
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
-                extern CTC_INIT, PIT_INIT, PIT_RESET
+                extern PIT_INIT, PIT_RESET
                 extern PSG_INIT, CHIMPSOUND
                 extern VDP_INIT, BUFF_PUTC, KB_KEYSCAN
 
@@ -89,15 +89,15 @@ include "svcroutine.inc"
                 defw    INT_HND_EXT1        ; $78
                 defw    INT_HND_VDP         ; $7A
                 defw    INT_HND_UART        ; $7C
-                defw    INT_HND_CTC         ; $7E
+                defw    INT_HND_PIT         ; $7E
                 
 ;------------------------------------------------------------------------------
 ; Main code
 
 INIT::            
-               LD       HL,TEMPSTACK            ; Set up a temporary stack
+               LD       HL,TEMPSTACK           ; Set up a temporary stack
                LD       SP,HL               
-                
+                                           
                CALL	    PPI_INIT               ; Initialize PPI
                CALL     PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
                
@@ -119,55 +119,42 @@ INIT::
                LD      A, 2
                OUT     (LED_PORT), A
 
-               LD        A, B
-               LD        (ENABLECTC), A         ; Check if starts without VDP, CTC and PSG
-               CP        0
-               JR        Z, ONLY_CORE
+            ;    LD        A, B
+            ;    LD        (ENABLECTC), A         ; Check if starts without VDP, CTC and PSG
+            ;    CP        0
+            ;    JR        Z, ONLY_CORE
 
-               ifdef    CTC_ENABLE
-               CALL      CTC_INIT               ; Initialize CTC 
-               else
-               CALL      PIT_INIT               ; Initialize PIT
-               endif
-
-               LD      A, 3
-               OUT     (LED_PORT), A
+            ;    LD      A, 3
+            ;    OUT     (LED_PORT), A
 
                ifndef    VDP_DISABLE
                LD        E, 0                   ; VDP Set video text mode
                CALL      VDP_INIT 
                endif
-
-               CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
-
+            
                ifndef    PSG_DISABLE               
                CALL      PSG_INIT               ; Initialize PSG
                CALL      CHIMPSOUND             ; Welcome sound
                endif
              
-ONLY_CORE:     EI
+               CALL      PIT_INIT               ; Initialize PIT
+               CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
                         
                xor  A
-               ld   A, (TMRCNT)
+               ld   (TMRCNT), A                
 
                LD   A, 1
-               LD   (CURSORSTATE), A
+               LD   (CURSORSTATE), A   
                 
                CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome                               
-               CALL      MON_WELCOM
-               
-               LD        A, (ENABLECTC)         ; If CTC is initialized shows CTC Enabled message
-               CP        0
-               JR        Z, MAIN_LOOP
+               CALL      MON_WELCOM      
 
-               LD        HL,CTCENABLEDMSG    
-               CALL      CON_PRINT               
+               EI
 
-MAIN_LOOP:     LD        A, 'N'
+               LD        A, 'N'
                LD        (basicStarted),A        
                CALL      BASIC_INIT
                  
-
 ;;-----------------------------------------------------------------------------
 ;; Interrupt handler routines
 
@@ -184,44 +171,31 @@ INT_HND_UART:  DI
                EI
                RETI
 
-INT_HND_CTC:   DI
-              
-               PUSH    AF
-               ; Call keyboard scan and put key into buffer
-               CALL    KB_KEYSCAN
-               LD      A, (LASTKEYCODE)
-               JP      Z, EXIT_INTCTC               
-               CALL    BUFF_PUTC  
-               CALL    CON_PUTC
-               POP     AF
-               
-EXIT_INTCTC:               
+INT_HND_PIT:   DI
+               ; Reset counter
+
                CALL PIT_RESET
+
+               PUSH AF
+               PUSH BC
+
+               LD      A, (ENABLEDCURSOR)
+               OUT     (LED_PORT), A
+               CPL
+               LD      (ENABLEDCURSOR), A       
+
+;                ld      HL,TMRCNT       ; load starting address of the timer
+;                ld      B,$04           ; 4 bytes to check
+; INCTMR3:       inc     (HL)            ; increment timer
+;                jr      NZ,EXIT_INT     ; if not zero then exit (finished increment)
+;                inc     HL              ; if yes, there was an overflow, so increment next byte
+;                djnz    INCTMR3         ; repeat for 4 bytes
+; EXIT_INT:                 
+               POP     BC
+               POP     AF
+
                EI
-               RETI              
-
-;                 push    AF              
-;                 push    BC              
-;                 push    DE              
-;                 push    HL              
-
-;                 ld      HL,TMRCNT       
-;                 ld      B,$04           
-; INCTMR3:        inc     (HL)            
-;                 jr      NZ,CHKCRSR      
-;                 inc     HL              
-;                 djnz    INCTMR3         
-; CHKCRSR:        ;call    FLASHCURSOR    
-;                 ;call    MNGSNDS        
-;                 ld      A,(TMRCNT)      
-;                 rra                     
-;                 ;call    NC,KEYBOARD    
-
-;                 pop     HL              
-;                 pop     DE              
-;                 pop     BC              
-;                 pop     AF              
-
+               RETI            
 
 INT_HND_VDP:  
 INT_HND_EXT1:  
@@ -229,14 +203,6 @@ INT_HND_USR1:
 INT_HND_USR2:
 INT_HND_USR3:
 INT_HND_USR4:   EI
-                RETI
-
-
-INT_HND_CTC0:   
-INT_HND_CTC1:
-INT_HND_CTC2:
-INT_HND_CTC3:   
-                EI
                 RETI
 
 

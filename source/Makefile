@@ -20,9 +20,6 @@ ppi.rel: ppi.asm
 psg.rel: psg.asm
 	$(ASM) psg.asm $(OPTS) -o bin/psg.rel
 
-ctc.rel: ctc.asm
-	$(ASM) ctc.asm $(OPTS) -o bin/ctc.rel
-
 pit.rel: pit.asm
 	$(ASM) pit.asm $(OPTS) -o bin/pit.rel
 
@@ -59,8 +56,8 @@ main.rel: main.asm
 bas32K.rel: bas32K.asm 
 	$(ASM) bas32K.asm $(OPTS) -o bin/bas32K.rel
 
-firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel ctc.rel pit.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel
+firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel pit.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel
 	pushd
 	cd bin
-	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel ctc.rel pit.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel bas32K.rel 
+	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel pit.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel bas32K.rel 
 	dos2unix firmware.hex

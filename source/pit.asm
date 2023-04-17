@@ -3,26 +3,23 @@ include "pit.inc"
 
 PIT_INIT::
         PUSH AF
+        PUSH BC
 
-        LD A, 31h               	; Configure as mode 0 interrut on terminal count
+        LD A, 31h                   ; Configure as mode 0 interrupt on terminal count
         OUT (PITCTRL), A
-         
-        LD A, 25h                   ; LSB Counter Reg. 0
-        OUT (PITCNT0), A
 
-        LD A, 01h                   ; MSB Counter Reg. 0
-        OUT (PITCNT0), A
+        LOADCNT PITCNT0, 50h, 20h
           
+        POP BC
         POP AF
         RET 
 
 PIT_RESET::
         PUSH AF
-        
-        LD A, 25h                   ; LSB Counter Reg. 0
-        OUT (PITCNT0), A
+        PUSH BC
 
-        LD A, 01h                   ; MSB Counter Reg. 0
-        OUT (PITCNT0), A
+        LOADCNT PITCNT0, 50h, 20h
+
+        POP BC
         POP AF
         RET

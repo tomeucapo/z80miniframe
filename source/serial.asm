@@ -47,7 +47,7 @@ UART_READ::
     RET      Z
 
     IN       A,(UART0)
-    CALL     BUFF_PUTC
+    CALL     BUFF_PUTC       ; Put received character to input buffer
     RET
 
 UART_TX_RDY:    
@@ -65,7 +65,7 @@ UART_WRITE::
     RET
 
 UART_GETCHAR::
-    CALL BUFF_GETC
+    CALL BUFF_GETC          ; Get latest character from input buffer
 	RET 
 
 

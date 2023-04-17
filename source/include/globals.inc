@@ -29,6 +29,7 @@ serInPtr        .EQU     serBuf+SER_BUFSIZE+1     ; $8040
 serRdPtr        .EQU     serInPtr+2               ; $8042
 serBufUsed      .EQU     serRdPtr+2               ; $8044
 basicStarted    .EQU     serBufUsed+1             ; $8045
+bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
 
 SCR_X           .EQU     basicStarted+1           ; $8046
 SCR_Y           .EQU     SCR_X+1                  ; $8047
@@ -42,12 +43,11 @@ SCR_SIZE_W      .EQU     SCR_CUR_Y+1              ; $804A
 SCR_SIZE_H      .EQU     SCR_SIZE_W+1             ; $804B
 SCR_DOT_X       .EQU     SCR_SIZE_H+2             ; Last plotted locations in graphics mode
 SCR_DOT_Y       .EQU     SCR_DOT_X+2
-X1              .equ     SCR_DOT_X               ; Line variables
+X1              .equ     SCR_DOT_X                ; Line variables
 Y1              .equ     SCR_DOT_Y
 SCR_DOT_COLOR   .EQU     SCR_DOT_Y+1
 SCR_MODE        .EQU     SCR_DOT_COLOR+1             ; $804C
 SCR_NAM_TB      .EQU     SCR_MODE+2
-
 
 X2              .equ     SCR_NAM_TB+2
 Y2              .equ     X2+2
@@ -71,30 +71,18 @@ VIDEOBUFF       .EQU     VDP_READY+2                     ; $804E (40) buffer use
 VIDTMP1         .EQU     VIDEOBUFF+$28            ; $8075      (2) temporary video word
 VIDTMP2         .EQU     VIDTMP1+$02              ; $8078      (2) temporary video word
 CURSORSTATE     .EQU     VIDTMP2+1                ; $8079
-TMRCNT          .EQU     CURSORSTATE+$01          ; $807C (4) TMR counter for 1/100 seconds
-CTC0IV          .EQU     TMRCNT+$04               ; $8080 (3) CTC0 interrupt vector
-CTC1IV          .EQU     CTC0IV+$03               ; $8083 (3) CTC1 interrupt vector
-CTC2IV          .EQU     CTC1IV+$03               ; $8086 (3) CTC2 interrupt vector
-CTC3IV          .EQU     CTC2IV+$03               ; $8089 (3) CTC3 interrupt vector
-ENABLEDCURSOR   .EQU     CTC3IV+$01               ; $808A
+TMRCNT          .EQU     CURSORSTATE+$01          ; $801A 
+ENABLEDCURSOR   .EQU     TMRCNT+$04               ; $808A
 ENABLECTC       .EQU     ENABLEDCURSOR+$01        ; $808B
 CHASNDDTN       .EQU     ENABLECTC+$02            ; $808D
 CHBSNDDTN       .EQU     CHASNDDTN+$02            ; $808F
 CHCSNDDTN       .EQU     CHBSNDDTN+$02            ; $8091
-KBDNPT          .EQU     CHCSNDDTN+$02            ; $8093 (1) temp cell used to flag if input comes from keyboard
-KBTMP           .EQU     KBDNPT+$01               ; $8094 (1) temp cell used by keyboard scanner
-TMPKEYBFR       .EQU     KBTMP+$01                ; $8095 (1) temp buffer for last key pressed
-LASTKEYPRSD     .EQU     TMPKEYBFR+$01            ; $8096 (1) last key code pressed
-CONTROLKEYS     .EQU     LASTKEYPRSD+$01          ; $8097 (1) flags for control keys (bit#0=SHIFT; bit#1=CTRL; bit#2=C=)
-CHR4VID         .EQU     CONTROLKEYS+$01          ; $8098
 
-bufWrap         .EQU     (serBuf + SER_BUFSIZE) & $FF
+MON_HEX_LEN 	.EQU	 CHCSNDDTN+1
+MON_HEX_TYPE 	.EQU	 MON_HEX_LEN+1
+MON_HEX_ADDR 	.EQU	 MON_HEX_TYPE+1
 
-MON_HEX_LEN:	.EQU	 CHR4VID+1
-MON_HEX_TYPE:	.EQU	 MON_HEX_LEN+1
-MON_HEX_ADDR:	.EQU	 MON_HEX_TYPE+1
-
-PPI_CONF:       .EQU     MON_HEX_ADDR+1
+PPI_CONF        .EQU     MON_HEX_ADDR+1
 
 KBDROW          .EQU     PPI_CONF+1            
 KBDCOL          .EQU     KBDROW+1            
@@ -111,9 +99,8 @@ CASCHKSUM       .EQU    CASBITMASK+1
 
 TMPDBF          .EQU    CASCHKSUM+1
 TPBF4           .EQU    TMPDBF+$24
-SRTMEM          .equ     TPBF4+$02
 
-BYT_SIZ         .equ     SRTMEM+$02     ; (2) file size in bytes
+BYT_SIZ         .equ     TPBF4+$02     ; (2) file size in bytes
 SCT_SIZ         .equ     BYT_SIZ+$02     ; (1) file size in sectors
 
 BASIC_WRKSPC    .EQU     SCT_SIZ+2
