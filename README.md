@@ -9,7 +9,9 @@ Core firmware source code and schematics from Z80MiniFrame hardware. This is a Z
 * 32KBytes RAM
 * VDP TMS9918
 * PSG AY-3-8910
-* USB-Serial Console Interface 
+* USB-Serial Console Interface
+ 
+![alt text](https://cdn.hackaday.io/images/9041991566431402353.jpg)
 
 ### Software
 
