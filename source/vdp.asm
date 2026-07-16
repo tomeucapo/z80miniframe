@@ -96,7 +96,13 @@ LDREGVLS:       LD D, (HL)
                 
                 POP DE
                 LD HL, VDPMODESSIZES 
-                ADD HL, DE
+                
+                LD A,E
+                ADD A,A
+                LD E,A
+                LD D,0
+                
+                ;ADD HL, DE
 
                 LD A, (HL)             ; Initialize screen size variables
                 LD (SCR_SIZE_W), A    
@@ -141,18 +147,20 @@ LDCLRTBMD1:     PUSH    BC
 ; ************************************************************************************
 ; VDP_RESET_VRAM - Clear VRAM content
 
-VDP_RESET_VRAM: XOR A
-                LD H,A
-                LD L,A                
-                CALL VDP_SET_ADDR
-
-                LD B, $40          
-                LD D, A            
-                DEC C
+VDP_RESET_VRAM: LD HL, $4000         ; first RAM cell $0000 (MSBs must be 0 & 1, resp.)
+                XOR A, A
+                
+                LD BC, VDP_REG       ; load VPD port value
+                OUT (C), L           ; low byte of address to VDP
+                OUT (C), H           ; high byte address to VDP
+                
+                LD B, $40            ; $40 pages of RAM...
+                LD D, A              ; ...each one with $100 cells (tot. $4000 bytes)
 EMPTYVRAM:      PUSH BC
                 LD BC, VDP_DATA
-                OUT (C), A    
+                OUT (C), A      
                 POP BC
+                NOP
                 NOP
                 INC D              
                 JR NZ, EMPTYVRAM   
@@ -442,6 +450,8 @@ DELCHAR:        XOR A
                 LD A, (SCR_Y)
                 LD E, A
                 LD A, (SCR_X)
+                OR A
+                JR Z,PUTE
                 DEC A
 
                 PUSH DE

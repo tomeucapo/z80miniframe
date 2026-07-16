@@ -2694,7 +2694,7 @@
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 7514dbe4-5a4b-4405-9a17-ec68761b03dd)
   )
-  (hierarchical_label "XTAL_DIV2" (shape input) (at 92.71 121.92 270)
+  (hierarchical_label "PSG_XTAL" (shape input) (at 92.71 121.92 270)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 7bfbd475-5eec-4244-b3ce-1b834feae26f)
   )

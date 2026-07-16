@@ -26,7 +26,7 @@ VDPTABLENAMES:
 ;; VDP registers settings to set up a text mode
 
 VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
-                defb 11100000b          ; reg.1: text mode (40x24), enable display, disabled interrupts
+                defb 11110000b          ; reg.1: text mode (40x24), enable display, disabled interrupts
                 defb $02                ; reg.2: name table set to $800 ($02x$400)
                 defb $00                ; reg.3: not used in text mode
                 defb $00                ; reg.4: pattern table set to $0000
@@ -37,7 +37,7 @@ VDPMODESCONF:   defb 00000000b          ; reg.0: external video disabled
                  ; VDP register settings for a graphics 1 mode
 
                 defb    00000000b       ; reg.0: ext. video off
-                defb    11100000b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
+                defb    11000000b       ; reg.1: 16K Vram; video on, int off, graphics mode 1, sprite size 8x8, sprite magn. 0
                 defb    $06             ; reg.2: name table address: $1800
                 defb    $80             ; reg.3: color table address: $2000
                 defb    $00             ; reg.4: pattern table address: $0000

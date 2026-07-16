@@ -1,7 +1,7 @@
 ASM=zmac
 LD=ld80
 SYSTEM=Z80AIO
-OPTS=-I include --rel7 -D$(SYSTEM) -DVDP_DISABLE -DIM_2
+OPTS=-I include --rel7 -D$(SYSTEM) -DIM_2
 SREC=srec_cat
 MEMTYPE=27256
 COMEPROM=COM6
