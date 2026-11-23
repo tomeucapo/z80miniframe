@@ -15,11 +15,16 @@ include "globals.inc"
 include "ppi.inc"
 include "svcroutine.inc"
 
+                public IRQFAULT_VECTOR
+
                 extern SVC_ROUTINE
                 extern UART_INIT, UART_READ 
                 
                 extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
+                ifdef Z80AIO
                 extern PIT_INIT, PIT_RESET
+                endif
+                extern KB_INIT
                 extern PSG_INIT, CHIMPSOUND
                 extern VDP_INIT, BUFF_PUTC, KB_KEYSCAN
 
@@ -78,8 +83,8 @@ include "svcroutine.inc"
 ; NMI Interrupt routine
 
                 .ORG    $0066
-                EI
-                RETN                
+                ; RETN restores IFF1 from IFF2; do not force-enable IRQs here.
+                RETN
               
                 .ORG    $0170
                 defw    INT_HND_USR4        ; $70
@@ -89,7 +94,11 @@ include "svcroutine.inc"
                 defw    INT_HND_EXT1        ; $78
                 defw    INT_HND_VDP         ; $7A
                 defw    INT_HND_UART        ; $7C
+                ifdef Z80AIO
                 defw    INT_HND_PIT         ; $7E
+                else
+                defw    INT_HND_SPURIOUS    ; $7E (no PIT on Z80FRAME)
+                endif
                 
 ;------------------------------------------------------------------------------
 ; Main code
@@ -97,7 +106,10 @@ include "svcroutine.inc"
 INIT::            
                LD       HL,TEMPSTACK           ; Set up a temporary stack
                LD       SP,HL               
-                                           
+
+               XOR      A
+               LD       (IRQFAULT_VECTOR),A    ; Clear unhandled IRQ record
+
                CALL	    PPI_INIT               ; Initialize PPI
                CALL     PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
                
@@ -132,13 +144,16 @@ INIT::
                CALL      VDP_INIT 
                endif
             
-               ifndef    PSG_DISABLE               
-               CALL      PSG_INIT               ; Initialize PSG
-               CALL      CHIMPSOUND             ; Welcome sound
-               endif
+                ifndef    PSG_DISABLE
+                CALL      PSG_INIT               ; Initialize PSG
+                CALL      CHIMPSOUND             ; Welcome sound
+                CALL      KB_INIT                ; Reset C64 keyboard scanner state
+                endif
              
-               CALL      PIT_INIT               ; Initialize PIT
-               CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
+                ifdef Z80AIO
+                CALL      PIT_INIT               ; Initialize the Allinone 8253 PIT
+                endif
+                CALL      PPI_LED_BLINK          ; PPI LED Hello world welcome
                         
                xor  A
                ld   (TMRCNT), A                
@@ -171,6 +186,7 @@ INT_HND_UART:  DI
                EI
                RETI
 
+                ifdef Z80AIO
 INT_HND_PIT:   DI
                ; Reset counter
 
@@ -195,15 +211,52 @@ INT_HND_PIT:   DI
                POP     AF
 
                EI
-               RETI            
+               RETI
+                endif
 
-INT_HND_VDP:  
-INT_HND_EXT1:  
-INT_HND_USR1:                
+INT_HND_VDP:
+                PUSH    AF
+                LD      A,$7A
+                JR      INT_HND_UNHANDLED
+
+INT_HND_EXT1:
+                PUSH    AF
+                LD      A,$78
+                JR      INT_HND_UNHANDLED
+
+INT_HND_USR1:
+                PUSH    AF
+                LD      A,$76
+                JR      INT_HND_UNHANDLED
+
 INT_HND_USR2:
+                PUSH    AF
+                LD      A,$74
+                JR      INT_HND_UNHANDLED
+
 INT_HND_USR3:
-INT_HND_USR4:   EI
-                RETI
+                PUSH    AF
+                LD      A,$72
+                JR      INT_HND_UNHANDLED
+
+INT_HND_USR4:
+                PUSH    AF
+                LD      A,$70
+                JR      INT_HND_UNHANDLED
+
+INT_HND_SPURIOUS:
+                PUSH    AF
+                LD      A,$7E
+
+; No device-specific acknowledge routine is installed for this vector.
+; Record the IM2 byte and stop until reset.  Returning to application code
+; could execute an EI and re-enable a still-asserted level-triggered source.
+INT_HND_UNHANDLED:
+                DI
+                LD      (IRQFAULT_VECTOR),A
+IRQ_FAULT_HALT:
+                HALT
+                JR      IRQ_FAULT_HALT
 
 
 HELLOWORLD:
@@ -218,4 +271,3 @@ CTCENABLEDMSG:  .BYTE    "PIT Enabled", CR,LF,0
 UARTENABLEDMSG: .BYTE   "UART Enabled", CR,LF,0
 
                .end
-
