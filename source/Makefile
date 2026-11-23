@@ -41,6 +41,12 @@ conio.rel: common.asm conio.asm
 casette.rel: ppi.asm casette.asm
 	$(ASM) casette.asm $(OPTS) -o bin/casette.rel
 
+cf.rel: cf.asm include/cf.inc include/globals.inc
+	$(ASM) cf.asm $(OPTS) -o bin/cf.rel
+
+fat32.rel: fat32.asm include/fat32.inc include/cf.inc include/globals.inc
+	$(ASM) fat32.asm $(OPTS) -o bin/fat32.rel
+
 monitor.rel: common.asm conio.asm monitor.asm 
 	$(ASM) monitor.asm $(OPTS) -o bin/monitor.rel
 
@@ -56,8 +62,8 @@ main.rel: main.asm
 bas32K.rel: bas32K.asm 
 	$(ASM) bas32K.asm $(OPTS) -o bin/bas32K.rel
 
-firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel pit.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel
+firmware.hex: main.rel svcroutine.rel monitor.rel bas32K.rel conio.rel common.rel ppi.rel psg.rel pit.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel cf.rel fat32.rel
 	pushd
 	cd bin
-	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel pit.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel bas32K.rel 
+	$(LD) -O hex -o firmware.hex -s symbols.sym main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel pit.rel psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel cf.rel fat32.rel bas32K.rel
 	dos2unix firmware.hex

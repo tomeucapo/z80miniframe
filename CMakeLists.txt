@@ -23,7 +23,7 @@ file(GLOB_RECURSE ASSEMBLER_INCLUDES CONFIGURE_DEPENDS
     "${SOURCE_DIR}/include/*.inc")
 
 set(ASSEMBLY_MODULES
-    ppi psg pit vdp buffer serial keyboard conio casette monitor common
+    ppi psg pit vdp buffer serial keyboard conio casette cf fat32 monitor common
     svcroutine main bas32K)
 
 set(OBJECT_FILES)
@@ -51,7 +51,8 @@ endforeach()
 # Keep the link order used by the original Makefile.
 set(LINK_OBJECTS
     main.rel svcroutine.rel monitor.rel common.rel conio.rel ppi.rel pit.rel
-    psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel bas32K.rel)
+    psg.rel vdp.rel buffer.rel serial.rel keyboard.rel casette.rel cf.rel
+    fat32.rel bas32K.rel)
 set(LINK_INPUTS)
 foreach(object IN LISTS LINK_OBJECTS)
     list(APPEND LINK_INPUTS "${BIN_DIR}/${object}")

@@ -18,6 +18,7 @@ include "svcroutine.inc"
                 extern MON_MAIN
                 extern VDP_INIT, VDP_LOCATE, VDP_SETCOLOR, VDP_WRITE_VIDEO_LOC, VDP_READ_VIDEO_LOC, VDP_PLOT
                 extern VDP_CURSOR, VDP_LINE, VDP_CIRCLE, KB_READKEY
+                extern F32DIR
 
 ;;
 ;; Main RST 20 firmware service routine dispacher
@@ -56,6 +57,8 @@ SVC_ROUTINE::
 
                 CP      KBWAITKEY
                 JR      Z, _KB_WAITFORKEY
+                CP      F32DIRSVC
+                JR      Z, _F32_DIR
 
                 EX      AF, AF'
                 JP      END20
@@ -103,5 +106,11 @@ _KB_WAITFORKEY:
                 EX      AF, AF' 
                 CALL    KB_READKEY
                 LD      B, A
-                
+                JP      END20
+
+_F32_DIR:
+                EX      AF, AF'
+                CALL    F32DIR
+                JP      END20
+
 END20:          RET
