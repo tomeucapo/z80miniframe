@@ -109,6 +109,13 @@ PSG_BEEP::
             PUSH    AF
             PUSH    BC
 
+            LD     A, 0                  ; Channel A tone period low
+            LD     C, 100                ; ~2.2 kHz with 3.5 MHz clock
+            CALL   AYREGWRITE
+
+            LD     A, 1                  ; Channel A tone period high
+            LD     C, 0
+            CALL   AYREGWRITE
 
             LD     A, R10               
             LD     C, 255

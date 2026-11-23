@@ -75,7 +75,10 @@ VDP_SET_MODE:   LD A, E
                 LD B, $08                     
                 JR MODECFG
 MODE2:          LD B, $07               ; If mode 2 only uses 7 registers
+
 MODECFG:        LD HL, VDPMODESCONF  
+
+                
                 SLA E
                 PUSH DE
                 SLA E               
@@ -96,13 +99,7 @@ LDREGVLS:       LD D, (HL)
                 
                 POP DE
                 LD HL, VDPMODESSIZES 
-                
-                LD A,E
-                ADD A,A
-                LD E,A
-                LD D,0
-                
-                ;ADD HL, DE
+                ADD HL, DE
 
                 LD A, (HL)             ; Initialize screen size variables
                 LD (SCR_SIZE_W), A    
@@ -229,7 +226,7 @@ SCROLL_LOOP:    LD A, (SCR_SIZE_W)              ; Jump next row
                 LD H, 0
                 ADD HL, DE
                 EX DE, HL
-                CALL VDP_WRITEADDR
+                CALL VDP_READADDR
                 LD (VIDTMP2), DE
 
                 PUSH BC
@@ -250,8 +247,7 @@ COPYROW:        PUSH BC
                 POP AF
                 POP BC
 
-                LD DE, (VIDTMP1)            
-                DEC DE       
+                LD DE, (VIDTMP1)
                 CALL VDP_WRITEADDR              ; Jump to previous row
 
                 PUSH BC
@@ -747,6 +743,20 @@ VDP_WRITEADDR:
         SET     6, D 
         OUT     (C), E
         OUT     (C), D            
+
+        POP     DE
+        POP     BC
+        RET
+
+VDP_READADDR:
+        PUSH    BC
+        PUSH    DE
+
+        LD      BC, VDP_REG
+        RES     6, D
+        RES     7, D
+        OUT     (C), E
+        OUT     (C), D
 
         POP     DE
         POP     BC

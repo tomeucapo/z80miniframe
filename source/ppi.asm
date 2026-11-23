@@ -98,7 +98,7 @@ PPI_SND_BYTE::
         LD  A, 1
         LD  (CASBITMASK), A             ; Reset bit mask
 NEXTBIT:
-        LD  HL, (TAPE_SINE_TAB)            
+        LD  HL, TAPE_SINE_TAB
         LD   A, (CASLASTSINE)        ; Get last used SIN value
         OUT  (CAS_PORT_OUT), A              ; Sends to cassette
 
@@ -106,7 +106,8 @@ NEXTBIT:
 	LD B, A
  	LD A, (CASBITMASK)
 	AND B
-	JR Z, SEND_LOW	
+	JR Z, SEND_LOW
+	JR SEND_HIGH
 
 SEND_LOW:
         LD B, 36
