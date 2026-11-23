@@ -8,22 +8,24 @@ POS_CODE:
     .DB 11111101b
     .DB 11111110b 
     
+; ASCII console map for the C64 matrix. Function, cursor, CTRL and C= keys
+; without a single-byte ASCII equivalent are ignored (mapped to zero).
 KEYS_UPCASE:
-    .DB  BKSP, CR, 0, 118, 112, 114, 116, 0
+    .DB  BKSP, CR, 0,   0,   0,   0,   0, 0
     .DB '#', 'W', 'A', '$', 'Z', 'S', 'E', 0
     .DB '%', 'R', 'D', '&', 'C', 'F', 'T', 'X'
     .DB 39, 'Y', 'G', '(', 'B', 'H', 'U', 'V'
     .DB ')', 'I', 'J', '0', 'M', 'K', 'O', 'N'
     .DB '+', 'P', 'L', '-', '>', '[', '@', '<'
     .DB '|', '*', ']',  CS,   0, '=', '~', '?'
-    .DB '1',   0,   0, '"', ' ',   0, 'Q',  ESCAPE 
+    .DB '!',   0,   0, '"', ' ',   0, 'Q',  CTRLC
 
 KEYS_LOWCASE:
-    .DB  BKSP, CR, 0, 118, 112, 114, 116, 0
+    .DB  BKSP, CR, 0,   0,   0,   0,   0, 0
     .DB '3', 'w', 'a', '4', 'z', 's', 'e', 0
     .DB '5', 'r', 'd', '6', 'c', 'f', 't', 'x'
     .DB '7', 'y', 'g', '8', 'b', 'h', 'u', 'v'
     .DB '9', 'i', 'j', '0', 'm', 'k', 'o', 'n'
     .DB '+', 'p', 'l', '-', '.', ':', '@', ','
     .DB '|', '*', ';',  CS,   0, '=', '~', '/'
-    .DB '1',   0,   0, '2', ' ',   0, 'q',  ESCAPE     
+    .DB '1',   0,   0, '2', ' ',   0, 'q',  CTRLC

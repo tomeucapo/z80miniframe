@@ -91,8 +91,12 @@ KBDCOLMSK       .EQU     KBDROWMSK+1
 LASTKEYCODE     .EQU     KBDCOLMSK+1         
 KBDMAP          .EQU     LASTKEYCODE+1
 KBSHIFTSTATE    .EQU     KBDMAP+2
+KBDCHAR         .EQU     KBSHIFTSTATE+1
+KBDCHARREADY    .EQU     KBDCHAR+1
+KBDHELDROW      .EQU     KBDCHARREADY+1
+KBDHELDCOL      .EQU     KBDHELDROW+1
 
-CASLASTSINE    .EQU     KBSHIFTSTATE+1
+CASLASTSINE    .EQU     KBDHELDCOL+1
 CASLASTBYTE    .EQU     CASLASTSINE+1
 CASBITMASK      .EQU    CASLASTBYTE+1
 CASCHKSUM       .EQU    CASBITMASK+1
@@ -103,12 +107,14 @@ TPBF4           .EQU    TMPDBF+$24
 BYT_SIZ         .equ     TPBF4+$02     ; (2) file size in bytes
 SCT_SIZ         .equ     BYT_SIZ+$02     ; (1) file size in sectors
 
-BASIC_WRKSPC    .EQU     SCT_SIZ+2
+; IM2 vector last recorded by the fail-safe unhandled-interrupt handler.
+; Zero means no unhandled interrupt has been recorded since startup.
+IRQFAULT_VECTOR .EQU     SCT_SIZ+2
+
+BASIC_WRKSPC    .EQU     IRQFAULT_VECTOR+1
 
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 
 ; CP/M CBIOS Address
 BOOT_CPM                .EQU     $4388
 
-
-    

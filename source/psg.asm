@@ -50,8 +50,8 @@ RSTPSG:         LD     A, D
 PSGIOCFG::
                 ld      A, AYMIXCTRL
                 CALL    AYREGREAD
-                set     7,A            ; Configure PORT B as output
-                res     6,A            ; Configure PORT A as input
+                set     6,A            ; Port A drives the keyboard columns
+                res     7,A            ; Port B reads the keyboard rows
                 ld      C,A
                 ld      A, AYMIXCTRL
                 CALL    AYREGWRITE
@@ -167,7 +167,6 @@ AYREGREAD::
             POP BC         
             RET
                 
-SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,10111111b          
+SNDREGCFG:      defb $00,$00,$00,$00,$00,$00,$00,01111111b
                 defb $00,$00,$00,$00,$00,$00,$00,$00
-
 

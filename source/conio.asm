@@ -9,6 +9,9 @@ include "globals.inc"
         extern VDP_PUTCHAR, UART_WRITE, BUFF_CKINCHAR, BUFF_GETC
         extern PSG_BEEP
         extern PPI_SND_BYTE
+ifdef Z80AIO
+        extern KB_CKINCHAR, KB_GETCHAR
+endif
 
 ;; CON_PRINT - Print string to console (TTY/VDP) until end of string character 0
 ;;      HL = Address of begin of string
@@ -58,6 +61,13 @@ CON_PUTC::
 ;; CON_CKINCHAR - Check if exists any character into input buffer
 
 CON_CKINCHAR::
+ifdef Z80AIO
+ifndef PSG_DISABLE
+        CALL KB_CKINCHAR
+        OR   A
+        RET  NZ
+endif
+endif
         CALL BUFF_CKINCHAR
         RET
 
@@ -65,8 +75,29 @@ CON_CKINCHAR::
 ;;      Returns readed character to upper into A
 
 CON_GETCHAR::
-        CALL BUFF_GETC           
-		RET 
+ifdef Z80AIO
+ifndef PSG_DISABLE
+CON_GETCHAR_WAIT:
+        CALL KB_CKINCHAR
+        OR   A
+        JR   NZ, CON_GETCHAR_KEYBOARD
+
+        CALL BUFF_CKINCHAR
+        JR   Z, CON_GETCHAR_WAIT
+        CALL BUFF_GETC
+        RET
+
+CON_GETCHAR_KEYBOARD:
+        CALL KB_GETCHAR
+        RET
+else
+        CALL BUFF_GETC
+        RET
+endif
+else
+        CALL BUFF_GETC
+        RET
+endif
 				
 ;; GETHEXBYTE
 ;;      Return HEX byte into A
@@ -164,4 +195,4 @@ PRINT_HEX_NIB:
 PRINT_HEX_NIB_1:
 			RST 	8	        		;Print the nibble
 			POP		AF
-			RET            
+			RET
