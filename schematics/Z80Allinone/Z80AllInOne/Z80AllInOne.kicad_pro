@@ -571,7 +571,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "gerbers_102/",
       "specctra_dsn": "",
       "step": "",
       "vrml": ""
@@ -721,16 +721,16 @@
       {
         "filename": "Z80AllInOne.kicad_sch",
         "name": "Z80AllInOne",
-        "uuid": "00000000-0000-0000-0000-000000000000"
+        "uuid": "e348c8a4-22c3-4723-b3a5-be65b9110626"
       }
     ],
-    "used_designators": "",
+    "used_designators": "#PWR150-151,R10,R42",
     "variants": []
   },
   "sheets": [
     [
       "e348c8a4-22c3-4723-b3a5-be65b9110626",
-      ""
+      "Z80AllInOne"
     ],
     [
       "c7b178f0-ea1a-4493-9f33-8d72ff2748ef",

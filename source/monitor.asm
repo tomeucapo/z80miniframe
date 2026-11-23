@@ -206,29 +206,26 @@ MEMORY_DUMP_COMMAND:
 			LD 		HL, MDC_1			
 			CALL    CON_PRINT
 			CALL    GETHEXWORD		
-			PUSH	HL					
-			
-			CALL CON_NL
-			
-			POP		HL					
-			LD		C,11				
-MEMORY_DUMP_LINE:	
-			LD		B,8					
-			CALL	PRHEXWORD		    
-			LD		A,' '				
+			PUSH	HL
+			CALL	CON_NL
+			POP		HL
+
+			LD		D,10				; Ten rows, eight bytes per row
+MEMORY_DUMP_LINE:
+			CALL	PRHEXWORD			; Address of the first byte in this row
+			LD		A,' '
 			CALL	CON_PUTC
-			DEC		C					
+			LD		B,8
 MEMORY_DUMP_BYTES:
-			LD		A,(HL)				
-			CALL	PRHEXBYTE		
-			LD		A,' '				
-			RST		8		
-			INC 	HL					
-			DJNZ	MEMORY_DUMP_BYTES	
-			LD		B,C					
-			CALL    CON_NL				
-			DJNZ	MEMORY_DUMP_LINE	
-			LD		A,$FF				
+			LD		A,(HL)
+			CALL	PRHEXBYTE
+			INC		HL
+			LD		A,' '
+			CALL	CON_PUTC
+			DJNZ	MEMORY_DUMP_BYTES
+			CALL	CON_NL
+			DEC		D
+			JR		NZ,MEMORY_DUMP_LINE
 			RET
 
 			
