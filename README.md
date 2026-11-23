@@ -19,12 +19,18 @@ Core firmware source code and schematics from Z80MiniFrame hardware. This is a Z
 * Created RST $20 routine service to call firmware routines like VDP routines.
 
 ## Required tools
-This project uses ZMAC Z80 Macro assembler and LD80 Linker from http://48k.ca/zmac.html. And finally needs make or nmake or Make to build project.
+This project uses the ZMAC Z80 Macro assembler and LD80 linker from
+http://48k.ca/zmac.html, as well as CMake.
 
 ## Build software
 ```
-nmake all
+cmake -S . -B build
+cmake --build build
 ```
 
-This produces firmware.hex into bin directory and this file can burn into 32KBytes EEPROM like AT28C256.
+This produces `build/bin/firmware.hex`. To program an EPROM, install `epromng`
+and run `cmake --build build --target burn`.
 
+The firmware system and EPROM programming settings can be changed at configure
+time, for example with `-DFIRMWARE_SYSTEM=Z80AIO`,
+`-DEPROM_MEMTYPE=27256`, and `-DEPROM_COM_PORT=COM6`.
