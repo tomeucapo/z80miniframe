@@ -203,6 +203,8 @@ KEYLOOP:
 
 		CP ESCAPE
     	RET Z
+		CP CTRLC
+		RET Z
     	CP CR
     	JR Z, CRNL
 

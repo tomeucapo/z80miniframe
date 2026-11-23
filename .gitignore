@@ -5,3 +5,4 @@ docs/
 *.rom
 *.log
 *.rel
+*.lck
