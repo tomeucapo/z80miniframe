@@ -155,6 +155,7 @@ GO_COMMAND:
 
 			; Get Address to write
 			CALL GETHEXWORD
+			RET C
 			JP (HL)
 
 
@@ -420,6 +421,7 @@ MEMORY_DUMP_COMMAND:
 			LD 		HL, MDC_1			
 			CALL    CON_PRINT
 			CALL    GETHEXWORD		
+			RET		C
 			PUSH	HL
 			CALL	CON_NL
 			POP		HL
