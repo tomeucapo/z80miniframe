@@ -14,6 +14,7 @@ include "svcroutine.inc"
 				extern CASWRLEADER
 				extern CF_INIT
 				extern F32MNT
+				extern UART_GETCHAR
 
 MON_MAIN::				
 MON_LOOP:		EI
@@ -41,9 +42,13 @@ MON_LOOP:		EI
 				JP		  Z, CF_INIT_COMMAND
 				CP		  'F'
 				JP		  Z, FAT32_MOUNT_COMMAND
+				CP		  'L'
+				JP		  Z, FAT32_LIST_COMMAND
 				CP		  '?'
 				JP		  Z, MON_HELP
 				CP		  CR
+				RET		  Z
+				CP		  LF
 				RET		  Z
 				CP		  BKSP
 				RET		  Z
@@ -91,6 +96,13 @@ FAT32_MOUNT_FAILED:
 				POP		AF
 				CALL	PRHEXBYTE
 				CALL	CON_NL
+				RET
+
+; List the FAT32 root through the same RST $20 service used by BASIC FILES.
+FAT32_LIST_COMMAND:
+				CALL	CON_NL
+				LD		B,F32DIRSVC
+				RST		$20
 				RET
 
 MON_UNK_CMD:
@@ -148,58 +160,260 @@ GO_COMMAND:
 
 RECEIVE_HEX_COMMAND:
 			CALL CON_NL
-			LD  A,'*'
-			RST 8
+			LD		HL,HXMSG0
+			CALL	CON_PRINT
+			XOR		A
+			LD		(HBASE),A
+			LD		(HBASE+1),A
 
-WAIT_BEGIN: CALL	CON_GETCHAR
-			CP  	ESCAPE
-			RET 	Z
+; Intel HEX records are read from the UART only. Ignore leading CR/LF/noise.
+RXSEEK:
+			CALL	UART_GETCHAR
+			CP		ESCAPE
+			JP		Z,RXABRT
 			CP		':'
-			JR 		NZ, WAIT_BEGIN
+			JR		NZ,RXSEEK
 
-			; Get length of data
-			CALL GETHEXBYTE
-			LD (MON_HEX_LEN), A
-	
-			LD A, ' '
-			RST 8
+			XOR		A
+			LD		(HXSUM),A
 
-			; Get Address to write
-			CALL GETHEXBYTE
-			LD (MON_HEX_ADDR), HL
+; Record length.
+			CALL	RXBYTE
+			JP		C,RXERR
+			LD		(MON_HEX_LEN),A
+			CALL	HXADD
 
-			LD A, ' '
-			RST 8
-			
-			; Get record type: 0 = Data, 1 = End of file
-			CALL GETHEXBYTE
-			CP 1
-			RET Z
+; 16-bit address, Intel HEX byte order is high then low.
+			CALL	RXBYTE
+			JP		C,RXERR
+			LD		(MON_HEX_ADDR+1),A
+			CALL	HXADD
+			CALL	RXBYTE
+			JP		C,RXERR
+			LD		(MON_HEX_ADDR),A
+			CALL	HXADD
 
-			LD A, ' '
-			RST 8
-			
-			LD A, (MON_HEX_LEN)
-			LD B, A
-HEX_READ_DATA:	
-			PUSH BC
-			CALL GETHEXBYTE
+; Record type.
+			CALL	RXBYTE
+			JP		C,RXERR
+			LD		(MON_HEX_TYPE),A
+			CALL	HXADD
 
-			LD HL, (MON_HEX_ADDR) 
-			LD (HL), A
-			INC HL
-			LD (MON_HEX_ADDR), HL 
-			
-			LD A, ' '
-			RST 8
+; Buffer data until the checksum is verified, so a bad record writes nothing.
+			LD		A,(MON_HEX_LEN)
+			LD		(HCOUNT),A
+			LD		HL,HEXBUF
+RXDATA:
+			LD		A,(HCOUNT)
+			OR		A
+			JR		Z,RXCSUM
+			CALL	RXBYTE
+			JP		C,RXERR
+			LD		(HL),A
+			INC		HL
+			CALL	HXADD
+			LD		A,(HCOUNT)
+			DEC		A
+			LD		(HCOUNT),A
+			JR		RXDATA
 
-			POP BC	
-			DJNZ HEX_READ_DATA 
-			
-			CALL CON_NL
-			JP RECEIVE_HEX_COMMAND
+; Sum of length, address, type, data and checksum must be zero modulo 256.
+RXCSUM:
+			CALL	RXBYTE
+			JP		C,RXERR
+			CALL	HXADD
+			LD		A,(HXSUM)
+			OR		A
+			JP		NZ,RXERR
 
+			LD		A,(MON_HEX_TYPE)
+			OR		A
+			JP		Z,RXWRIT
+			CP		1
+			JP		Z,RXEOF
+			CP		2
+			JP		Z,RXSEG
+			CP		4
+			JP		Z,RXLINE
+			CP		3
+			JP		Z,RXIGNR
+			CP		5
+			JP		Z,RXIGNR
+			JP		RXERR
+
+; Data record: address = segment base + record offset.
+RXWRIT:
+			LD		HL,(MON_HEX_ADDR)
+			LD		DE,(HBASE)
+			ADD		HL,DE
+			JP		C,RXRANG
+			LD		(HSTART),HL
+			LD		A,(MON_HEX_LEN)
+			OR		A
+			JP		Z,RXSEEK
+
+; Reject overflow and the reserved FAT32 sector-buffer region ($FE00-$FFFF).
+			DEC		A
+			LD		E,A
+			LD		D,0
+			LD		HL,(HSTART)
+			ADD		HL,DE
+			JP		C,RXRANG
+			LD		A,H
+			CP		$FE
+			JP		NC,RXRANG
+
+; Keep the monitor's globals and stack below TEMPSTACK intact while receiving.
+			LD		HL,(HSTART)
+			LD		DE,TEMPSTACK+1
+			OR		A
+			SBC		HL,DE
+			JP		C,RXRANG
+
+			LD		A,(MON_HEX_LEN)
+			LD		B,A
+			LD		HL,(HSTART)
+			LD		DE,HEXBUF
+RXCOPY:
+			LD		A,(DE)
+			LD		(HL),A
+			INC		DE
+			INC		HL
+			DJNZ	RXCOPY
+			JP		RXSEEK
+
+; Extended segment address record (type 02), segment << 4.
+RXSEG:
+			LD		A,(MON_HEX_LEN)
+			CP		2
+			JP		NZ,RXERR
+			LD		HL,(MON_HEX_ADDR)
+			LD		A,H
+			OR		L
+			JP		NZ,RXERR
+			LD		A,(HEXBUF)
+			CP		$10
+			JP		NC,RXRANG
+			LD		H,A
+			LD		A,(HEXBUF+1)
+			LD		L,A
+			ADD		HL,HL
+			ADD		HL,HL
+			ADD		HL,HL
+			ADD		HL,HL
+			LD		(HBASE),HL
+			JP		RXSEEK
+
+; Extended linear address record (type 04). Only the 64-KiB address space
+; is available; accept the zero upper word and reject addresses above it.
+RXLINE:
+			LD		A,(MON_HEX_LEN)
+			CP		2
+			JP		NZ,RXERR
+			LD		HL,(MON_HEX_ADDR)
+			LD		A,H
+			OR		L
+			JP		NZ,RXERR
+			LD		A,(HEXBUF)
+			LD		B,A
+			LD		A,(HEXBUF+1)
+			OR		B
+			JP		NZ,RXRANG
+			XOR		A
+			LD		(HBASE),A
+			LD		(HBASE+1),A
+			JP		RXSEEK
+
+; Start-address records are checksum-validated, then ignored.
+RXIGNR:
+			LD		A,(MON_HEX_LEN)
+			CP		4
+			JP		NZ,RXERR
+			JP		RXSEEK
+
+RXEOF:
+			LD		A,(MON_HEX_LEN)
+			OR		A
+			JP		NZ,RXERR
+			LD		HL,(MON_HEX_ADDR)
+			LD		A,H
+			OR		L
+			JP		NZ,RXERR
+			LD		HL,HXMSG1
+			CALL	CON_PRINT
+			CALL	CON_NL
 			RET
+
+; Read one byte represented by two hex digits; carry reports malformed input.
+RXBYTE:
+			CALL	RXNIB
+			RET		C
+			RLCA
+			RLCA
+			RLCA
+			RLCA
+			LD		B,A
+			CALL	RXNIB
+			RET		C
+			OR		B
+			OR		A
+			RET
+
+RXNIB:
+			CALL	UART_GETCHAR
+			CP		'0'
+			JR		C,RXNBAD
+			CP		'9'+1
+			JR		C,RXNDIG
+			CALL	TO_UPPER
+			CP		'A'
+			JR		C,RXNBAD
+			CP		'F'+1
+			JR		NC,RXNBAD
+			SUB		'A'-10
+			OR		A
+			RET
+RXNDIG:
+			SUB		'0'
+			OR		A
+			RET
+RXNBAD:
+			SCF
+			RET
+
+; Add A to the modulo-256 record checksum and return A unchanged.
+HXADD:
+			LD		B,A
+			LD		A,(HXSUM)
+			ADD		A,B
+			LD		(HXSUM),A
+			LD		A,B
+			RET
+
+RXRANG:
+			LD		HL,HXMSG3
+			CALL	CON_PRINT
+			CALL	CON_NL
+			RET
+RXERR:
+			LD		HL,HXMSG2
+			CALL	CON_PRINT
+			CALL	CON_NL
+			RET
+RXABRT:
+			LD		HL,HXMSG4
+			CALL	CON_PRINT
+			CALL	CON_NL
+			RET
+
+; Reuse the RAM sector-cache area; the monitor and FAT routines are not
+; active concurrently.  Keep the top 512 bytes reserved from BASIC.
+HEXBUF		.EQU	$FE00
+HXMSG0:		.BYTE	"Send Intel HEX; ESC cancels",CR,LF,0
+HXMSG1:		.BYTE	"Intel HEX received",CR,LF,0
+HXMSG2:		.BYTE	"Intel HEX format/checksum error",CR,LF,0
+HXMSG3:		.BYTE	"Intel HEX address out of range",CR,LF,0
+HXMSG4:		.BYTE	"Intel HEX receive cancelled",CR,LF,0
 
 
 MEMORY_DUMP_COMMAND:
@@ -275,6 +489,7 @@ MON_MENU:		.BYTE	CR,LF,"Monitor v1.2",CR,LF,CR,LF
 				.BYTE   "T - Tests", CR, LF
 				.BYTE   "C - Initialize CompactFlash", CR, LF
 				.BYTE   "F - Mount FAT32 volume", CR, LF
+				.BYTE   "L - List FAT32 root directory", CR, LF
 				.BYTE	"? - This help", CR, LF, 0
 
 CF_INIT_START_MSG: .BYTE "Initializing CompactFlash...", CR, LF, 0
