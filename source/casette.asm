@@ -256,7 +256,6 @@ SNDLEAD:    LD A, LeadByte
 ;;
 
 CASRDFILE::
-            DI
             LD  (CFNPTR), HL
             LD  (CFLEN), A
             LD  (CDPTR), DE
@@ -264,6 +263,10 @@ CASRDFILE::
             LD  HL, 0
             LD  (CLDSIZ), HL
 
+            LD  HL, CASRDSEARCHMSG
+            CALL CON_PRINT
+            CALL CON_NL
+            DI
             CALL CASMON             ; Start cassette motor via PC1
             LD  A, (CFLEN)
             CP  8
@@ -298,7 +301,7 @@ RFILE_NAME_LEN_OK:
             ; If a name was supplied, compare it with the padded 8-byte field.
             LD  A, (CFLEN)
             OR  A
-            JR  Z, RFILE_DATA
+            JR  Z, RFILE_FOUND
             LD  (CLEFT), A
             LD  HL, CNMBUF
             LD  DE, (CFNPTR)
@@ -322,6 +325,9 @@ RFILE_NAME_COMPARE:
             JP  NZ, RFILE_ERROR
             INC HL
             DJNZ RFILE_NAME_LOOP
+
+RFILE_FOUND:
+            CALL PR_RFILE_FOUND
 
 RFILE_DATA:
             ; Each data block is checked before advancing to the next one.
@@ -376,6 +382,46 @@ RFILE_ERROR:
             CALL CASMOF
             EI
             SCF
+            RET
+
+PR_RFILE_FOUND:
+            LD  HL, CASRDFOUNDMSG
+            CALL CON_PRINT
+
+            ; Print the 8-byte name without its right-padding spaces.
+            LD  A, 8
+            LD  (CLEFT), A
+            LD  HL, CNMBUF+7
+RFILE_TRIM_NAME:
+            LD  A, (CLEFT)
+            OR  A
+            JR  Z, RFILE_NAME_TRIMMED
+            LD  A, (HL)
+            CP  ' '
+            JR  NZ, RFILE_NAME_TRIMMED
+            DEC HL
+            LD  A, (CLEFT)
+            DEC A
+            LD  (CLEFT), A
+            JR  RFILE_TRIM_NAME
+RFILE_NAME_TRIMMED:
+            LD  A, (CLEFT)
+            OR  A
+            JR  Z, RFILE_FOUND_NL
+            LD  B, A
+            LD  HL, CNMBUF
+RFILE_PRINT_NAME:
+            LD  A, (HL)
+            PUSH HL
+            PUSH BC
+            CALL CON_PUTC
+            POP  BC
+            POP  HL
+            INC HL
+            DJNZ RFILE_PRINT_NAME
+RFILE_FOUND_NL:
+            CALL CON_NL
+            DI                      ; CON_PUTC enables interrupts while printing
             RET
 
 ;;
@@ -496,4 +542,6 @@ RDFIND_TEST:
             OR   A                       ; Clear carry on success
             RET
 
-CASWRMSG:   .BYTE "Saving file: ", 0
+CASWRMSG:       .BYTE "Saving file: ", 0
+CASRDSEARCHMSG: .BYTE "Searching ...", 0
+CASRDFOUNDMSG:  .BYTE "Found: ", 0
