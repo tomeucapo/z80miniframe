@@ -20,7 +20,7 @@ include "svcroutine.inc"
                 extern SVC_ROUTINE
                 extern UART_INIT, UART_READ 
                 
-                extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK
+                extern PPI_INIT, PPI_GETSWSTATE, PPI_LED_BLINK, PPI_LWRT
                 ifdef Z80AIO
                 extern PIT_INIT, PIT_RESET
                 endif
@@ -113,8 +113,8 @@ INIT::
                CALL	    PPI_INIT               ; Initialize PPI
                CALL     PPI_GETSWSTATE         ; Get dipswitches configuration for UART speed
                
-               LD      A, 1
-               OUT     (LED_PORT), A
+                LD      A, 1
+                CALL    PPI_LWRT
 
                LD        H, 0   
                LD	     L, C
@@ -128,8 +128,8 @@ INIT::
                    IM   1                       ; Interrupt mode 1
                endif
 
-               LD      A, 2
-               OUT     (LED_PORT), A
+                LD      A, 2
+                CALL    PPI_LWRT
 
             ;    LD        A, B
             ;    LD        (ENABLECTC), A         ; Check if starts without VDP, CTC and PSG
@@ -195,8 +195,8 @@ INT_HND_PIT:   DI
                PUSH AF
                PUSH BC
 
-               LD      A, (ENABLEDCURSOR)
-               OUT     (LED_PORT), A
+                LD      A, (ENABLEDCURSOR)
+                CALL    PPI_LWRT
                CPL
                LD      (ENABLEDCURSOR), A       
 

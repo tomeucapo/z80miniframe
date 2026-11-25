@@ -142,7 +142,28 @@ DIDX            .EQU     DSEC+1        ; Directory entries left in sector
 DPTR            .EQU     DIDX+1        ; Current directory entry pointer
 DNAME           .EQU     DPTR+2        ; Printable 8.3 name buffer
 
-BASIC_WRKSPC    .EQU     DNAME+13
+; Cassette writer workspace
+CASREM          .EQU     DNAME+13      ; Remaining data bytes (16-bit)
+CDPTR           .EQU     CASREM+2      ; Next data byte to write
+CFNPTR          .EQU     CDPTR+2       ; BASIC filename string pointer
+CFLEN           .EQU     CFNPTR+2      ; Filename length, capped at 8
+CCHUNK          .EQU     CFLEN+1       ; Length of current data block
+CNMBUF          .EQU     CCHUNK+1      ; 15-byte Dragon namefile payload
+CBTYPE          .EQU     CNMBUF+15    ; Current received block type
+CBLEN           .EQU     CBTYPE+1     ; Current received block length
+CBMAX           .EQU     CBLEN+1      ; Maximum allowed block payload (16-bit)
+CLEFT           .EQU     CBMAX+2      ; Filename comparison count
+CLDSIZ          .EQU     CLEFT+1      ; Total bytes loaded (16-bit)
+CRRMIN          .EQU     CLDSIZ+2     ; Shortest measured cassette period
+CRRMAX          .EQU     CRRMIN+1     ; Longest measured cassette period
+CRRTHR          .EQU     CRRMAX+1     ; Frequency decision threshold
+CRRSYNC         .EQU     CRRTHR+1     ; Period detector has acquired an edge
+CRRWIN          .EQU     CRRSYNC+1    ; Sliding sync-byte window
+CRRBITS         .EQU     CRRWIN+1     ; Bits seen while searching sync
+CRRVAL          .EQU     CRRBITS+1    ; Temporary received bit/period
+CASMOT          .EQU     CRRVAL+1     ; PC1 relay mask while cassette motor is on
+
+BASIC_WRKSPC    .EQU     CASMOT+1
 
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 

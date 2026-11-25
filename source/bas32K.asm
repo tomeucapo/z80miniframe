@@ -25,7 +25,7 @@ include "bas32k.inc"
 ;include "ppi.inc"
         
         extern  DIV_16_16
-        extern  CASWRFILE
+        extern  CASWRFILE, CASRDFILE
 
 BASCOLD::   
         JP      STARTB          ; Jump for cold start
@@ -396,6 +396,8 @@ ERRORS: .BYTE   "NF"            ; NEXT without FOR
         .BYTE   "MO"            ; Missing operand
         .BYTE   "HX"            ; HEX error
         .BYTE   "BN"            ; BIN error
+        .BYTE   "GM"            ; Graphics mode error
+        .BYTE   "IO"            ; Cassette I/O error
 
 ; INITIALISATION TABLE -------------------------------------------------------
 
@@ -4532,29 +4534,62 @@ SAVE1:
         ret     z
 
 prsave:
-        ld      HL,(PROGND)     ; Pointer of end of program    
-        ld      DE,PROGND       ; Address of pointer of end of program  
+        ld      HL,(PROGND)     ; End of program
+        ld      DE,(BASTXT)     ; Start of BASIC text
 
         xor     a
         sbc     hl, de
 
-        ld      A,H             ; program length
-        ld      C,L            
-        ld      DE, $0100       ; block size (256 bytes)
-        call    DIV_16_16       ; lenght/block size = nbr. of blocks
-        or      L               ; ...remainder (HL) is 0
-        jr      Z,SAVFL6        
-        inc     BC              
-SAVFL6: ld      b, c        
-        ld      hl, (TPBF4+2)
-        ld      de, PROGST        
+        ld      B,H             ; CASWRFILE takes the exact 16-bit length
+        ld      C,L
+        ld      hl, (TPBF4+2)   ; Filename character pointer
+        ld      A,(DKLNPT)      ; BASIC string length
+        ld      de, (BASTXT)
         call    CASWRFILE
 
         xor     a
         ret
 
-CLOAD:  
+CLOAD:
+        dec     HL              ; GETCHR increments HL
+        call    GETCHR          ; Is a filename present?
+        jr      Z,CLOAD_ANY
+        call    EVAL
+        call    CHKFN1          ; DKNMPT/DKLNPT = filename pointer/length
+        dec     HL
+        call    GETCHR
+        jp      NZ,SNERR        ; Reject trailing text
+        ld      HL,(DKNMPT)
+        ld      A,(DKLNPT)
+        jr      CLOAD_START
+
+CLOAD_ANY:
+        ld      HL,0
+        xor     A
+CLOAD_START:
+        ld      (CFNPTR),HL
+        ld      (CFLEN),A
+
+        ; Give the tape loader all memory between BASIC text and the RAM top.
+        ld      HL,(LSTRAM)
+        ld      DE,(BASTXT)
+        xor     A
+        sbc     HL,DE
+        ld      B,H
+        ld      C,L
+        ld      DE,(BASTXT)
+        ld      HL,(CFNPTR)
+        ld      A,(CFLEN)
+        call    CASRDFILE
+        jp      C,CLOAD_IOERR
+        ld      (PROGND),DE
+        call    RUNFST
         ret
+
+CLOAD_IOERR:
+        call    CLRPTR          ; Do not leave a partially loaded program
+        ld      E,IO
+        jp      ERROR
 
 ; List the FAT32 root directory through the firmware RST $20 service API.
 FILES:
