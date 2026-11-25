@@ -68,7 +68,15 @@ At startup, the monitor offers these commands:
 | `T` | Run the keyboard test |
 | `C` | Initialize the CompactFlash card |
 | `F` | Initialize the CF and mount a FAT32 volume |
+| `L` | Initialize the CF and list the FAT32 root directory |
 | `?` | Show help |
+
+Monitor command `R` receives Intel HEX over the UART. It validates each
+record checksum, accepts data, EOF, extended-segment and extended-linear
+records within the 16-bit Z80 address space, and ignores start-address
+records. Data is written only to free RAM (`TEMPSTACK+1` through `$FDFF` in
+the current memory map); the upper 512 bytes are reserved for the FAT32
+sector buffer.
 
 ## Repository layout
 

@@ -104,7 +104,7 @@ endif
 
 GETHEXBYTE::
             CALL    GET_HEX_NIB			;Get high nibble
-            RET		Z
+            RET		C
 
             RLC     A					;Rotate nibble into high nibble
             RLC     A
@@ -112,9 +112,10 @@ GETHEXBYTE::
             RLC     A
             LD      B,A					;Save upper four bits
             CALL    GET_HEX_NIB			;Get lower nibble
-            RET		Z
+            RET		C
 
             OR      B					;Combine both nibbles
+            OR      A					;Clear carry: zero is a valid byte
             RET				
 			
 ;; GETHEXWORD
@@ -123,11 +124,18 @@ GETHEXBYTE::
 GETHEXWORD::
 			PUSH    AF
             CALL    GETHEXBYTE		;Get high byte
+            JR		C,GHWERR
             LD		H,A
             CALL    GETHEXBYTE    	;Get low byte
+            JR		C,GHWERR
             LD      L,A
             POP     AF
+            OR		A					;Clear carry on success
             RET
+GHWERR:
+			POP		AF
+			SCF
+			RET
 						
 ;; PRHEXBYTE - Print two hex digit value to console
 ;;     A = Value to print
@@ -167,7 +175,9 @@ PRHEXWORD::
 GET_HEX_NIB:      
 			CALL	CON_GETCHAR
 			CP		ESCAPE
-            RET     Z			
+			JR		Z,GHABRT
+
+			CALL	TO_UPPER
 
             CALL    CHAR_ISHEX      	;Is it a hex digit?
             JP      NC,GET_HEX_NIB  	;Yes - Jump / No - Continue
@@ -177,9 +187,13 @@ GET_HEX_NIB:
             JP      C,GET_HEX_NIB_1 	;Yes - Jump / No - Continue
             SUB     $07             	;Adjust for A-F digits
 GET_HEX_NIB_1:                
-			SUB     '0'             	;Subtract to get nib between 0->15
+            SUB     '0'             	;Subtract to get nib between 0->15
             AND     $0F             	;Only return lower 4 bits
+			OR		A					;Clear carry; nibble 0 is valid
             RET	            
+GHABRT:
+			SCF
+			RET
 
 
 ;; PRINT_HEX_NIB - Prints a low nibble in hex notation from A to console

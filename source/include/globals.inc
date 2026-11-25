@@ -82,7 +82,13 @@ MON_HEX_LEN 	.EQU	 CHCSNDDTN+1
 MON_HEX_TYPE 	.EQU	 MON_HEX_LEN+1
 MON_HEX_ADDR 	.EQU	 MON_HEX_TYPE+1
 
-PPI_CONF        .EQU     MON_HEX_ADDR+1
+; Intel HEX receiver state. MON_HEX_ADDR is a 16-bit little-endian word.
+HBASE           .EQU     MON_HEX_ADDR+2
+HSTART          .EQU     HBASE+2
+HXSUM           .EQU     HSTART+2
+HCOUNT          .EQU     HXSUM+1
+
+PPI_CONF        .EQU     HCOUNT+1
 
 KBDROW          .EQU     PPI_CONF+1            
 KBDCOL          .EQU     KBDROW+1            
