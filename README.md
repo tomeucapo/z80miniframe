@@ -89,3 +89,7 @@ The Makefile has a `burn` target that invokes `epromng`. Its defaults are `MEMTY
 ## Hardware documentation
 
 PDF schematics are available in `schematics/`, including `CPU_IO_Board.pdf`, `VDP.pdf`, `PSG.pdf` and `SIO_PIO.pdf`. The KiCad project for the Z80 All-in-One board is in `schematics/Z80Allinone/Z80AllInOne/`.
+
+The PCB project is also available on PCBWay:
+
+<a href="https://www.pcbway.com/project/shareproject/Z80_MiniFrame_All_in_one_Computer_9e265b09.html"><img src="https://www.pcbway.com/project/img/images/frompcbway-1220.png" alt="PCB from PCBWay" /></a>
