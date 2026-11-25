@@ -745,10 +745,6 @@
       "IO"
     ],
     [
-      "bd669e64-c9da-4acf-9296-9c049d62d886",
-      "VIDEO"
-    ],
-    [
       "c0ae054b-bc80-49e7-9c22-c978a18aa8f9",
       "SOUND"
     ],
@@ -763,6 +759,10 @@
     [
       "8d56bc60-b04c-4adc-bf64-8e46195cb167",
       "BUS Expansion"
+    ],
+    [
+      "bd669e64-c9da-4acf-9296-9c049d62d886",
+      "VIDEO"
     ]
   ],
   "text_variables": {},
