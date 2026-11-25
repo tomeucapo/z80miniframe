@@ -111,10 +111,40 @@ SCT_SIZ         .equ     BYT_SIZ+$02     ; (1) file size in sectors
 ; Zero means no unhandled interrupt has been recorded since startup.
 IRQFAULT_VECTOR .EQU     SCT_SIZ+2
 
-BASIC_WRKSPC    .EQU     IRQFAULT_VECTOR+1
+; CompactFlash sector API parameters:
+; CF_LBA is a four-byte little-endian LBA28 address.
+; CF_BUFFER is a two-byte little-endian pointer to a 512-byte buffer.
+CF_LBA          .EQU     IRQFAULT_VECTOR+1
+CF_BUFFER       .EQU     CF_LBA+4
+
+; FAT32 API workspace (all multibyte values are little-endian).
+FNAME      .EQU     CF_BUFFER+2       ; 11-byte, space-padded 8.3 name
+FSIZE .EQU     FNAME+11     ; 4-byte on-disk file size
+FCLST   .EQU     FSIZE+4 ; 4-byte first cluster
+FPLBA  .EQU     FCLST+4   ; 4-byte partition start
+FFLBA   .EQU     FPLBA+4  ; 4-byte first FAT sector
+FDLBA  .EQU     FFLBA+4   ; 4-byte first data sector
+FFSIZE  .EQU     FDLBA+4  ; 4-byte sectors per FAT
+FROOT   .EQU     FFSIZE+4  ; 4-byte root directory cluster
+FSPC       .EQU     FROOT+4   ; sectors per cluster
+FNFT     .EQU     FSPC+1       ; number of FAT copies
+FMONT   .EQU     FNFT+1
+FPTR  .EQU     FMONT+1   ; 2-byte caller buffer pointer
+FLEN  .EQU     FPTR+2  ; 2-byte transfer length
+FWCNT .EQU    FLEN+2
+
+; FAT32 root-directory traversal workspace.
+DCLST           .EQU     FWCNT+1       ; Current cluster, 4 bytes
+DLBA            .EQU     DCLST+4       ; Current sector LBA, 4 bytes
+DWORK           .EQU     DLBA+4        ; Scratch dword
+DSEC            .EQU     DWORK+4       ; Sectors left in cluster
+DIDX            .EQU     DSEC+1        ; Directory entries left in sector
+DPTR            .EQU     DIDX+1        ; Current directory entry pointer
+DNAME           .EQU     DPTR+2        ; Printable 8.3 name buffer
+
+BASIC_WRKSPC    .EQU     DNAME+13
 
 TEMPSTACK       .EQU     BASIC_WRKSPC+$61                  ;  Top of BASIC line input buffer so is "free ram" when BASIC resets 
 
 ; CP/M CBIOS Address
 BOOT_CPM                .EQU     $4388
-

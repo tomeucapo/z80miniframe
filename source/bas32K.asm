@@ -93,6 +93,9 @@ TSTMEM: CALL    ATOH            ; Get high memory into DE
         JP      NZ,MSIZE        ; Ask again if no RAM
 
 SETTOP: DEC     HL              ; Back one byte
+        ; Keep the FAT32 sector cache at $FE00-$FFFF out of BASIC's arena.
+        LD      DE,0-$0200
+        ADD     HL,DE
         LD      DE,STLOOK-1     ; See if enough RAM
         CALL    CPDEHL          ; Compare DE with HL
         JP      C,MSIZE         ; Ask again if not enough RAM
@@ -209,6 +212,7 @@ WORDS:  .BYTE   'E'+80H,"ND"
         .BYTE   'C'+80H,"LOAD"
         .BYTE   'C'+80H,"SAVE"
         .BYTE   'N'+80H,"EW"
+        .BYTE   'F'+80H,"ILES"
 
         .BYTE   'T'+80H,"AB("
         .BYTE   'T'+80H,"O"
@@ -310,6 +314,7 @@ WORDTB: .WORD   PEND
         .WORD   CLOAD           ; CLOAD
         .WORD   CSAVE           ; CSAVE
         .WORD   NEW
+        .WORD   FILES
 
 
 ; RESERVED WORD TOKEN VALUES
@@ -322,27 +327,28 @@ ZGOSUB  .EQU    08CH            ; GOSUB
 ZREM    .EQU    08EH            ; REM           
 ZPRINT  .EQU    0A3H            ; PRINT        
 ZNEW    .EQU    0A9H            ; NEW                         
+ZFILES  .EQU    0AAH            ; FILES
 
-ZTAB    .EQU    0AAH            ; TAB
-ZTO     .EQU    0ABH            ; TO
-ZFN     .EQU    0ACH            ; FN
-ZSPC    .EQU    0ADH            ; SPC
-ZTHEN   .EQU    0AEH            ; THEN
-ZNOT    .EQU    0AFH            ; NOT
-ZSTEP   .EQU    0B0H            ; STEP
+ZTAB    .EQU    0ABH            ; TAB
+ZTO     .EQU    0ACH            ; TO
+ZFN     .EQU    0ADH            ; FN
+ZSPC    .EQU    0AEH            ; SPC
+ZTHEN   .EQU    0AFH            ; THEN
+ZNOT    .EQU    0B0H            ; NOT
+ZSTEP   .EQU    0B1H            ; STEP
 
-ZPLUS   .EQU    0B1H            ; +
-ZMINUS  .EQU    0B2H            ; -
-ZTIMES  .EQU    0B3H            ; *
-ZDIV    .EQU    0B4H            ; /
-ZOR     .EQU    0B7H            ; OR
-ZGTR    .EQU    0B8H            ; >
-ZEQUAL  .EQU    0B9H            ; =
-ZLTH    .EQU    0BAH            ; <
+ZPLUS   .EQU    0B2H            ; +
+ZMINUS  .EQU    0B3H            ; -
+ZTIMES  .EQU    0B4H            ; *
+ZDIV    .EQU    0B5H            ; /
+ZOR     .EQU    0B8H            ; OR
+ZGTR    .EQU    0B9H            ; >
+ZEQUAL  .EQU    0BAH            ; =
+ZLTH    .EQU    0BBH            ; <
 
-ZSGN    .EQU    0BBH            ; SGN
-ZPOINT  .EQU    0CEH            ; POINT
-ZLEFT   .EQU    0D6H            ; LEFT$
+ZSGN    .EQU    0BCH            ; SGN
+ZPOINT  .EQU    0CFH            ; POINT
+ZLEFT   .EQU    0D7H            ; LEFT$
 
 ; ARITHMETIC PRECEDENCE TABLE
 
@@ -1142,7 +1148,7 @@ EXCUTE: CALL    GETCHR          ; Get key word
 IFJMP:  RET     Z               ; Go to RUNCNT if end of STMT
 ONJMP:  SUB     ZEND            ; Is it a token?
         JP      C,LET           ; No - try to assign it
-        CP      ZNEW+1-ZEND     ; END to NEW ?
+        CP      ZFILES+1-ZEND   ; END to FILES ?
         JP      NC,SNERR        ; Not a key word - ?SN Error
         RLCA                    ; Double it
         LD      C,A             ; BC = Offset into table
@@ -4550,6 +4556,12 @@ SAVFL6: ld      b, c
 CLOAD:  
         ret
 
+; List the FAT32 root directory through the firmware RST $20 service API.
+FILES:
+        LD      B,F32DIRSVC
+        RST     $20
+        RET
+
 ; check that a disk/file name follows
 CHKFLNM:dec     HL              ; dec 'cause GETCHR increments
         call    GETCHR          ; check if something follows
@@ -4571,4 +4583,3 @@ DKNMPT: equ     TMPBFR2         ; store the pointer to the disk name string
 DKLNPT: equ     TMPBFR3         ; store the pointer to the lenght of disk name string
 
 .end
-

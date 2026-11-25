@@ -11,3 +11,4 @@ VDLINE           .EQU        18
 VDCIRCLE         .EQU        19
 
 KBWAITKEY        .EQU        30
+F32DIRSVC        .EQU        31

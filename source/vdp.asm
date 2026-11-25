@@ -1060,13 +1060,13 @@ VDP_CIRCLE::
         xor     A               ; clear Carry
         sbc     HL,DE           ; D=3-(2*R) => HL
         ld      (DC),HL         ; store D
-        call    DRWCRL          ; draw initial point
 RPTCRL: ld      DE,(XI)         ; load XI
         ld      HL,(YI)         ; load YI
         call    CMP16           ; is YI<DI?
-        jp      Z,RPTCL1        ; no, YI=XI
-        jp      P,RPTCL1        ; no, YI>XI
+        jp      Z,RPTCLP        ; YI=XI: draw current point
+        jp      P,RPTCLP        ; YI>XI: draw current point
         jp      ENDCRL          ; yes, so we've finished
+RPTCLP: call    DRWCRL          ; draw current point before advancing
 RPTCL1: ld      HL,XI
         inc     (HL)            ; XI=XI+1
         ld      HL,(DC)         ; load D
@@ -1098,7 +1098,6 @@ DLSZ:   ld      HL,(XI)         ; load XI
         ex      DE,HL           ; HL=D and DE=4*XI+6
         add     HL,DE           ; D=D+4*XI+6
 PLTCRL: ld      (DC),HL         ; store new D
-        call    DRWCRL          ; plot pixel
         jp      RPTCRL          ; repeat
 ENDCRL: pop     HL
         ret                     ; return to caller

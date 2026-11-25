@@ -12,6 +12,8 @@ include "svcroutine.inc"
 				extern BASCOLD, BASWARM
 				extern CON_PUTC, KB_READKEY, PRHEXBYTE
 				extern CASWRLEADER
+				extern CF_INIT
+				extern F32MNT
 
 MON_MAIN::				
 MON_LOOP:		EI
@@ -26,17 +28,21 @@ MON_LOOP:		EI
 						
  MON_OPTIONS:	
 				CP        'B'
- 				CALL	  Z, BASIC_INIT
+				JP		  Z, BASIC_INIT
  				CP		  'M'
- 				CALL	  Z, MEMORY_DUMP_COMMAND
+				JP		  Z, MEMORY_DUMP_COMMAND
  				CP		  'R'
- 				CALL	  Z, RECEIVE_HEX_COMMAND
+				JP		  Z, RECEIVE_HEX_COMMAND
  				CP		  'G'
- 				CALL	  Z, GO_COMMAND
+				JP		  Z, GO_COMMAND
  				CP		  'T'
- 				CALL	  Z, MON_TEST
- 				CP		  '?'
-				CALL	  Z, MON_HELP
+				JP		  Z, MON_TEST
+				CP		  'C'
+				JP		  Z, CF_INIT_COMMAND
+				CP		  'F'
+				JP		  Z, FAT32_MOUNT_COMMAND
+				CP		  '?'
+				JP		  Z, MON_HELP
 				CP		  CR
 				RET		  Z
 				CP		  BKSP
@@ -47,6 +53,44 @@ MON_LOOP:		EI
 				RET	      Z
 
 				CALL	  NZ, MON_UNK_CMD
+				RET
+
+; Initialize the CompactFlash card and report the result.
+CF_INIT_COMMAND:
+				CALL	CON_NL
+				LD		HL, CF_INIT_START_MSG
+				CALL	CON_PRINT
+				CALL	CF_INIT
+				JR		C, CF_INIT_FAILED
+				LD		HL, CF_INIT_OK_MSG
+				CALL	CON_PRINT
+				RET
+
+CF_INIT_FAILED:
+				PUSH	AF
+				LD		HL, CF_INIT_ERROR_MSG
+				CALL	CON_PRINT
+				POP		AF
+				CALL	PRHEXBYTE
+				CALL	CON_NL
+				RET
+
+FAT32_MOUNT_COMMAND:
+				CALL	CF_INIT
+				JR		C,FAT32_MOUNT_FAILED
+				CALL	F32MNT
+				JR		C,FAT32_MOUNT_FAILED
+				LD		HL,FAT32_MOUNT_OK_MSG
+				CALL	CON_PRINT
+				RET
+
+FAT32_MOUNT_FAILED:
+				PUSH	AF
+				LD		HL,FAT32_MOUNT_ERROR_MSG
+				CALL	CON_PRINT
+				POP		AF
+				CALL	PRHEXBYTE
+				CALL	CON_NL
 				RET
 
 MON_UNK_CMD:
@@ -162,29 +206,26 @@ MEMORY_DUMP_COMMAND:
 			LD 		HL, MDC_1			
 			CALL    CON_PRINT
 			CALL    GETHEXWORD		
-			PUSH	HL					
-			
-			CALL CON_NL
-			
-			POP		HL					
-			LD		C,11				
-MEMORY_DUMP_LINE:	
-			LD		B,8					
-			CALL	PRHEXWORD		    
-			LD		A,' '				
+			PUSH	HL
+			CALL	CON_NL
+			POP		HL
+
+			LD		D,10				; Ten rows, eight bytes per row
+MEMORY_DUMP_LINE:
+			CALL	PRHEXWORD			; Address of the first byte in this row
+			LD		A,' '
 			CALL	CON_PUTC
-			DEC		C					
+			LD		B,8
 MEMORY_DUMP_BYTES:
-			LD		A,(HL)				
-			CALL	PRHEXBYTE		
-			LD		A,' '				
-			RST		8		
-			INC 	HL					
-			DJNZ	MEMORY_DUMP_BYTES	
-			LD		B,C					
-			CALL    CON_NL				
-			DJNZ	MEMORY_DUMP_LINE	
-			LD		A,$FF				
+			LD		A,(HL)
+			CALL	PRHEXBYTE
+			INC		HL
+			LD		A,' '
+			CALL	CON_PUTC
+			DJNZ	MEMORY_DUMP_BYTES
+			CALL	CON_NL
+			DEC		D
+			JR		NZ,MEMORY_DUMP_LINE
 			RET
 
 			
@@ -232,7 +273,15 @@ MON_MENU:		.BYTE	CR,LF,"Monitor v1.2",CR,LF,CR,LF
 				.BYTE   "R - Receive HEX",CR,LF
 				.BYTE   "G - Go",CR,LF
 				.BYTE   "T - Tests", CR, LF
+				.BYTE   "C - Initialize CompactFlash", CR, LF
+				.BYTE   "F - Mount FAT32 volume", CR, LF
 				.BYTE	"? - This help", CR, LF, 0
+
+CF_INIT_START_MSG: .BYTE "Initializing CompactFlash...", CR, LF, 0
+CF_INIT_OK_MSG:    .BYTE "CompactFlash initialized (8-bit PIO)", CR, LF, 0
+CF_INIT_ERROR_MSG: .BYTE "CompactFlash init failed; status=$", 0
+FAT32_MOUNT_OK_MSG: .BYTE "FAT32 volume mounted", CR, LF, 0
+FAT32_MOUNT_ERROR_MSG: .BYTE "FAT32 mount failed; code/status=$", 0
 
 BASICSTARTMSG: .BYTE     CR,LF
                .BYTE     "(C)old or (W)arm start? ",0

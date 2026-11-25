@@ -40,7 +40,22 @@ The firmware provides:
 - A Z80 BASIC interpreter with VDP-aware console and graphics support
 - A serial monitor for memory inspection, Intel HEX reception, execution at an address and keyboard testing
 - VDP, PSG, keyboard, serial, cassette, PPI and PIT routines
+- CompactFlash IDE PIO routines for 512-byte LBA28 sector reads and writes
 - Interrupt-mode 2 support and firmware service routines at `RST $20`
+
+The CompactFlash routines use the `$A0-$A7` I/O ports. Call `CF_INIT` before
+transfers, then set the four-byte little-endian `CF_LBA` and two-byte
+little-endian `CF_BUFFER` values and call `CF_READ_SECTOR` or
+`CF_WRITE_SECTOR`. These routines provide raw sector access; they do not
+implement a filesystem.
+
+The FAT32 support validates a FAT32 superfloppy or a primary MBR partition
+(`0x0B`/`0x0C`/`0x1B`/`0x1C`) and lists its root directory in BASIC with `FILES`. The BASIC
+statement invokes the directory routine through the firmware `RST $20`
+service dispatcher. Names are displayed in 8.3 format; file read/write
+operations are not implemented yet. Monitor command `F` initializes the CF
+and mounts the volume. In BASIC, enter `FILES` to initialize, mount and list
+the root directory.
 
 At startup, the monitor offers these commands:
 
@@ -51,6 +66,8 @@ At startup, the monitor offers these commands:
 | `R` | Receive Intel HEX records |
 | `G` | Jump to an address |
 | `T` | Run the keyboard test |
+| `C` | Initialize the CompactFlash card |
+| `F` | Initialize the CF and mount a FAT32 volume |
 | `?` | Show help |
 
 ## Repository layout
