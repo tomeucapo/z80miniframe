@@ -4186,7 +4186,7 @@
 		)
 		(uuid "308d9fa9-711b-4585-8384-2b9046cdea1e")
 	)
-	(label "PA6"
+	(label "PA4"
 		(at 147.32 142.24 0)
 		(effects
 			(font
@@ -4277,7 +4277,7 @@
 		)
 		(uuid "1402342e-a532-4e3b-98ee-ab1e7f933b7b")
 	)
-	(hierarchical_label "PA6"
+	(hierarchical_label "PA4"
 		(shape output)
 		(at 147.32 142.24 180)
 		(effects
@@ -4310,7 +4310,7 @@
 		)
 		(uuid "69deb3fd-ecb2-43e3-9172-dcb4fbeb76f7")
 	)
-	(hierarchical_label "PA7"
+	(hierarchical_label "PC1"
 		(shape input)
 		(at 21.59 163.83 180)
 		(effects

@@ -11,6 +11,7 @@ PIO1CONT:    	.EQU    $0003              ; Control register address
 PPIDEFCFG:       .EQU    10010000b       ; Default configuration register
 PBIN:            .EQU    $02
 PBOUT:           .EQU    $F0
+CASMMSK:         .EQU    $02             ; Cassette motor relay on PC1
 
 ;; Port names depends on system
 
@@ -19,6 +20,8 @@ ifdef Z80AIO
 LED_PORT        .EQU            PIO1C
 SW_PORT         .EQU            PIO1A
 CAS_PORT_OUT    .EQU            PIO1C
+CAS_PORT_IN     .EQU            PIO1A
+CAS_INPUT_MASK  .EQU            $10     ; Cassette comparator is connected to PA4
 
 LED_PIN_1       .EQU            1
 LED_PIN_2       .EQU            2
@@ -30,6 +33,8 @@ ifdef Z80FRAME
 LED_PORT        .EQU            PIO1B
 SW_PORT         .EQU            PIO1A
 CAS_PORT_OUT    .EQU            PIO1C
+CAS_PORT_IN     .EQU            PIO1A
+CAS_INPUT_MASK  .EQU            $10     ; Cassette comparator is connected to PA4
 
 LED_PIN_1       .EQU            4
 LED_PIN_2       .EQU            8

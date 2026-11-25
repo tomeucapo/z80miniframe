@@ -429,7 +429,7 @@ $EndComp
 Wire Wire Line
 	6400 3750 7250 3750
 Text Label 1550 3400 0    50   ~ 0
-PA7
+PC1
 Wire Wire Line
 	7250 3650 7150 3650
 Wire Wire Line
@@ -606,7 +606,7 @@ $EndComp
 Wire Wire Line
 	2350 3400 2650 3400
 Text Label 2650 3400 0    50   ~ 0
-PA6
+PA4
 $Comp
 L Comparator:LM393 U2
 U 1 1 62D751FE
@@ -621,7 +621,7 @@ $EndComp
 Wire Wire Line
 	6700 5600 6600 5600
 Text Label 5800 5600 0    50   ~ 0
-PA6
+PA4
 $Comp
 L 74xx:74LS07 U1
 U 7 1 62D7A93F
